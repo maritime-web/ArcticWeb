@@ -113,6 +113,19 @@
 			<artifactId>enav-model</artifactId>
 		</dependency>
 
+		<!-- OpenID Connect dependencies -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.5.1</version>
+		</dependency>
+
+
 		<!-- Import the Servlet API. -->
 		<dependency>
 			<groupId>javax.servlet</groupId>

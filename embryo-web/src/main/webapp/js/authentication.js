@@ -187,6 +187,25 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                 });
             };
 
+            this.checkLogin = function (success, error) {
+                $http.get(embryo.baseUrl + "rest/authentication/details").success(function (details) {
+                    $cookieStore.put('embryo.authentication', details);
+                    sessionStorage.clear();
+                    $rootScope.authentication = details;
+                    embryo.authentication = details;
+
+                    embryo.eventbus.fireEvent(embryo.eventbus.AuthenticatedEvent());
+
+                    // EMBRYO-325
+                    embryo.eventbus.fireEvent(embryo.eventbus.AuthenticationChangedEvent());
+                    success(details);
+                }).error(function (data, status) {
+                    if (error) {
+                        error(data, status);
+                    }
+                });
+            };
+
             this.logout = function (success, error) {
                 $http.get(embryo.baseUrl + "rest/authentication/logout").success(function () {
                     clearSessionData($cookieStore, $rootScope);
@@ -345,6 +364,37 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
             setCookie("cookies-accepted", "true", 365);
         }
     }
+
+    embryo.CheckLoginCtrl = function ($scope, Subject) {
+        var messageId = embryo.messagePanel.show({
+            text: "Logging in ..."
+        });
+
+        Subject.checkLogin(function () {
+            var path = location.pathname;
+            if (path.indexOf("index.html") >= 0 || path.indexOf("content.html") >= 0 || path.indexOf(".html") < 0) {
+                location.href = "map.html#/vessel";
+            }
+
+            embryo.messagePanel.replace(messageId, {
+                text: "Succesfully logged in.",
+                type: "success"
+            });
+        }, function (data, status) {
+            // updateNavigationBar();
+            embryo.messagePanel.replace(messageId, {
+                text: "Log in failed. (" + status + ")",
+                type: "error"
+            });
+
+            var errorMessage = embryo.ErrorService.extractError(data, status)[0];
+            setTimeout(function () {
+                $scope.loginDlg({
+                    msg: errorMessage
+                });
+            }, 1000);
+        });
+    };
 
     embryo.LoginModalCtrl = function ($scope, $http, $modalInstance, $location, Subject, msg) {
         function resetMsgs() {

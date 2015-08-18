@@ -14,10 +14,15 @@
  */
 package dk.dma.embryo.user.service;
 
+import dk.dma.embryo.user.security.oidc.OIDCAuthenticationToken;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authc.credential.AllowAllCredentialsMatcher;
+import org.apache.shiro.authc.credential.CredentialsMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -36,6 +41,7 @@ public class JpaRealm extends AuthorizingRealm {
         setName(REALM); // This name must match the name in the User class's getPrincipals() method
     }
 
+    @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authcToken) {
         RealmDao realmDao = Configuration.getBean(RealmDao.class);
 
@@ -49,6 +55,18 @@ public class JpaRealm extends AuthorizingRealm {
         }
     }
 
+    @Override
+    protected void assertCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) throws AuthenticationException {
+
+        // Check if the user has already been logged in by an OpenID Connect auth service
+        if (token instanceof OIDCAuthenticationToken) {
+            return;
+        }
+
+        super.assertCredentialsMatch(token, info);
+    }
+
+    @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
         RealmDao realmDao = Configuration.getBean(RealmDao.class);
 

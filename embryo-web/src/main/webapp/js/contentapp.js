@@ -14,6 +14,9 @@
             templateUrl: 'partials/common/access.html'
         }).when('/changePassword/:uuid', {
             templateUrl: 'partials/common/changepassword.html'
+        }).when('/checkLogin', {
+            template : "<div></div>",
+            controller : embryo.CheckLoginCtrl
         }).otherwise({
 		    controller : function(){
 		        window.location.replace('/');

@@ -90,7 +90,14 @@
       <artifactId>shiro-web</artifactId>
       <version>${shiro.version}</version>
     </dependency>
-    
+
+    <!-- Maritime Client OAuth authentication -->
+    <dependency>
+      <groupId>net.maritimecloud.idreg</groupId>
+      <artifactId>mc-idreg-client</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
     <!-- Import the Servlet API. -->
     <dependency>
       <groupId>javax.servlet</groupId>

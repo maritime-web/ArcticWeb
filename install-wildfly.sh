@@ -4,7 +4,7 @@
 # Installs a wildfly instance that can be used for development purposes
 #
 
-WILDFLY=wildfly-8.2.0.Final
+WILDFLY=wildfly-8.2.1.Final
 # on Windows
 # BASE_DIR=$PWD
 # on Linux

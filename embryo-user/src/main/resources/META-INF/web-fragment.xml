@@ -17,6 +17,16 @@
         <filter-class>org.apache.shiro.web.servlet.ShiroFilter</filter-class>
     </filter>
 
+    <servlet>
+        <servlet-name>KeycloakLogin</servlet-name>
+        <servlet-class>dk.dma.embryo.user.security.oidc.OIDCLoginServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>KeycloakCallback</servlet-name>
+        <servlet-class>dk.dma.embryo.user.security.oidc.OIDCCallbackServlet</servlet-class>
+    </servlet>
+
     <filter-mapping>
         <filter-name>ShiroFilter</filter-name>
         <url-pattern>/*</url-pattern>
@@ -25,6 +35,16 @@
         <dispatcher>INCLUDE</dispatcher>
         <dispatcher>ERROR</dispatcher>
     </filter-mapping>
+
+    <servlet-mapping>
+        <servlet-name>KeycloakLogin</servlet-name>
+        <url-pattern>/oidc-login</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>KeycloakCallback</servlet-name>
+        <url-pattern>/oidc-callback</url-pattern>
+    </servlet-mapping>
 
 </web-fragment>
     
