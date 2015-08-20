@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
  * Called by the Keycloak OpenID Connect service when the user has attempted to log in
@@ -68,6 +67,14 @@ public class OIDCCallbackServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        // Check if the service is enabled
+        if (oidcClientService.getOidcClient() == null) {
+            logger.warn("The OpenID Connect service is not enabled");
+            response.sendRedirect("/");
+            return;
+        }
+
         // Make sure the user is logged out
         if (subject.isLoggedIn()) {
             subject.logout();
@@ -93,13 +100,23 @@ public class OIDCCallbackServlet extends HttpServlet {
         response.sendRedirect("/content.html#/checkLogin");
     }
 
+    /**
+     * Creates the user defined by the access token, if the user does not already exist
+     * @param accessTokenData the acces token data
+     */
     private void checkCreateUser(AccessTokenData accessTokenData) {
+
+        // Suffices for test purposes:
+        long mmsi = accessTokenData.getCustomClaims().containsKey("mmsi")
+                ? Long.valueOf(accessTokenData.getCustomClaims().get("mmsi").toString())
+                : (long)(Math.random() * 9999999);
+
         SecuredUser user = realmDao.findByUsername(accessTokenData.getUserName());
         if (user == null) {
             userService.create(
                     accessTokenData.getUserName(),
                     UUID.randomUUID().toString(),
-                    (long)(Math.random() * 9999999),
+                    mmsi,
                     accessTokenData.getEmail(),
                     getRole(accessTokenData),
                     null
@@ -107,6 +124,7 @@ public class OIDCCallbackServlet extends HttpServlet {
         }
     }
 
+    /** Determine the role to assign a newly created user */
     private String getRole(AccessTokenData accessTokenData) {
         if (accessTokenData.getRealmRoles() != null) {
             if (accessTokenData.getRealmRoles().contains("Administration")) {

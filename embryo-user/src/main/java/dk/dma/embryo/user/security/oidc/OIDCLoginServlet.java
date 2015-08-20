@@ -45,6 +45,14 @@ public class OIDCLoginServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        // Check if the service is enabled
+        if (oidcClientService.getOidcClient() == null) {
+            logger.warn("The OpenID Connect service is not enabled");
+            response.sendRedirect("/");
+            return;
+        }
+
         logger.info("OpenID Connect login called");
         OIDCUtils.nocache(response);
         String callbackUrl = OIDCUtils.getUrl(request, "/oidc-callback");

@@ -60,6 +60,7 @@ public class OIDCClientService {
         }
     }
 
+    /** Returns the OpenID Connect client if defined, and null otherwise */
     public OIDCClient getOidcClient() {
         return oidcClient;
     }
