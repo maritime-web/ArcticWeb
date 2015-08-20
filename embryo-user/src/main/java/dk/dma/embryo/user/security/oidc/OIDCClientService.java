@@ -14,16 +14,15 @@
  */
 package dk.dma.embryo.user.security.oidc;
 
+import dk.dma.embryo.common.configuration.Property;
 import net.maritimecloud.idreg.client.OIDCClient;
-import net.maritimecloud.idreg.client.OIDCClientFactory;
 import org.slf4j.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.FileReader;
 import java.io.Reader;
 
 /**
@@ -31,7 +30,12 @@ import java.io.Reader;
  */
 @Singleton
 @Startup
+
 public class OIDCClientService {
+
+    @Inject
+    @Property(value = "embryo.keycloak.json", substituteSystemProperties = true)
+    private String keycloakJsonFile;
 
     @Inject
     Logger logger;
@@ -42,10 +46,18 @@ public class OIDCClientService {
      * Called when the service is initialized
      */
     @PostConstruct
-    public void init() throws IOException {
-        Reader configFile = new InputStreamReader(OIDCClientService.class.getResourceAsStream("/keycloak.json"));
-        oidcClient = OIDCClientFactory.newOIDCClient(configFile);
-        logger.info("Instantiated Maritime Cloud OpenID Connect service");
+    public void init() {
+        try (Reader configFile = new FileReader(keycloakJsonFile)){
+
+            oidcClient = OIDCClient.newBuilder()
+                .configuration(configFile)
+                .build();
+
+            logger.info("Instantiated OpenID Connect client from " + keycloakJsonFile);
+
+        } catch (Exception e) {
+            logger.error("Error instantiating OpenID Connect client");
+        }
     }
 
     public OIDCClient getOidcClient() {
