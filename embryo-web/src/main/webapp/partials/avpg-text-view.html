@@ -1,0 +1,10 @@
+<div x-ng-controller="AVPGTextViewCtrl">
+    <div e-reporting-panel x-ng-if="provider.doShow" id="AVPGTextView">
+        <h2>
+            <a class="close" href="#" style="float: right" x-ng-click="close($event)">&times;</a>{{provider.content.title}}
+        </h2>
+        <div ng-include="provider.content.url">
+
+        </div>
+    </div>
+</div>
