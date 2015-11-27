@@ -10,6 +10,10 @@
             <h4>
                 <a href="#" x-ng-click="viewText('3', $event)">List of Lights and Buoys and Aids to Navigation</a>
             </h4>
+            <ul>
+                <li x-ng-repeat="light in lights"><a href="#" x-ng-click="selectLight(light, $event)">{{light.description}}</a></li>
+            </ul>
+            <div>{{selected.light}}</div>
             <h4>
                 <a href="#" x-ng-click="viewText('4', $event)">Nautical Charts and Publications services</a>
             </h4>
