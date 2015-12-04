@@ -22,10 +22,13 @@ function AvpgLayer() {
                 return -context.size() / 2;
             },
             size: function() {
-                return [16, 20, 24][that.zoomLevel];
+                return [4, 6, 12][that.zoomLevel];
             },
             description: function(feature) {
                 return feature.data.description;
+            },
+            display: function(feature) {
+                return feature.cluster ? "none" : "";
             }
         };
 
@@ -50,7 +53,8 @@ function AvpgLayer() {
                     fillOpacity: "${polygonTransparency}",
                     strokeWidth: 3,
                     strokeColor: "#8f2f7b",
-                    strokeOpacity: "${polygonTransparency}"
+                    strokeOpacity: "${polygonTransparency}",
+                    display: "${display}"
 
                 }, { context: context }),
                 "select": new OpenLayers.Style({
@@ -73,14 +77,15 @@ function AvpgLayer() {
                     label : "${description}",
                     fill: true,
                     fillOpacity: 0.6,
-                    strokeOpacity: 0.8
+                    strokeOpacity: 0.8,
+                    display: "${display}"
                 }, { context: context} )
 
             }),
             strategies: [
                 new OpenLayers.Strategy.Cluster({
-                    distance: 25,
-                    threshold: 3
+                    distance: 35,
+                    threshold: 2
                 })
             ]
         });
@@ -97,15 +102,15 @@ function AvpgLayer() {
         for (var i in data) {
             var attr = {
                 id : i,
-                description: data[i].description,
+                description: data[i].AFM_NAVN,
                 type : "avpg",
                 avpg : data[i]
             };
-            var p = data[i].point;
-            features.push(new OpenLayers.Feature.Vector(this.map.createPoint(p.longitude, p.latitude), attr));
+            features.push(new OpenLayers.Feature.Vector(this.map.createPoint(data[i].LONGITUDE, data[i].LATTITUDE), attr));
         }
 
         this.layers.avpg.addFeatures(features);
+        this.layers.avpg.refresh();
     };
 }
 

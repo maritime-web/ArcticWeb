@@ -7,13 +7,58 @@
             <h4>
                 <a href="#" x-ng-click="viewText('2', $event)">Radio Aids to Navigation</a>
             </h4>
-            <h4>
-                <a href="#" x-ng-click="viewText('3', $event)">List of Lights and Buoys and Aids to Navigation</a>
-            </h4>
-            <ul>
-                <li x-ng-repeat="light in lights"><a href="#" x-ng-click="selectLight(light, $event)">{{light.description}}</a></li>
-            </ul>
-            <div>{{selected.light}}</div>
+
+            <div id="CarriageRequirementsPanel" accordion close-others="false" class="controlPanel3">
+                <div accordion-group heading="List of Lights and Buoys and Aids to Navigation">
+                    <div>
+                        <div><a href="#" x-ng-click="viewText('3', $event)">Introduction to navaid</a></div>
+                        <table class="table table-condensed">
+                            <tbody >
+                            <tr x-ng-repeat="light in lights | startFrom:currentPage*pageSize | limitTo:pageSize">
+                                <td>{{light.AFM_NAVN}}</td>
+                                <td style="text-align: right;"><a href="#" x-ng-click="selectLight(light, $event)">view</a> </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage < 50" ng-click="currentPage=currentPage-50">
+                            -50
+                        </button>
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage < 10" ng-click="currentPage=currentPage-10">
+                            -10
+                        </button>
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1">
+                            -1
+                        </button>
+                        {{currentPage+1}}/{{numberOfPages()}}
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage >= lights.length/pageSize - 1" ng-click="currentPage=currentPage+1">
+                            +1
+                        </button>
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage >= lights.length/pageSize - 10" ng-click="currentPage=currentPage+10">
+                            +10
+                        </button>
+                        <button class="btn e-btn-low btn-primary btn-xs" ng-disabled="currentPage >= lights.length/pageSize - 50" ng-click="currentPage=currentPage+50">
+                            +50
+                        </button>
+                    </div>
+                </div>
+                <div accordion-group heading="Selected AtoN" is-open="selected.open"
+                     e-left-bar-content-change="{{selected.aton}}">
+                    <div x-ng-if="!selected.aton">Nothing selected</div>
+                    <div id="selectedAton" x-ng-show="selected.aton">
+                        <table class="table table-condensed">
+                            <tbody >
+                            <tr><td>Type</td><td>{{selected.aton.AFMSTATION}}</td></tr>
+                            <tr><td>Name</td><td>{{selected.aton.AFM_NAVN}}</td></tr>
+                            <tr><td>Lattitude</td><td>{{selected.aton.BREDDE}}</td></tr>
+                            <tr><td>Longitude</td><td>{{selected.aton.LAENGDE}}</td></tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+
             <h4>
                 <a href="#" x-ng-click="viewText('4', $event)">Nautical Charts and Publications services</a>
             </h4>

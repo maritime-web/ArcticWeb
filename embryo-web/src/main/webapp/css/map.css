@@ -75,6 +75,21 @@ body {
     width: 300px;
 }
 
+.controlPanel3 .panel {
+    border: none;
+}
+
+.controlPanel3 .panel-group .panel-heading {
+    padding: 0;
+}
+
+.controlPanel3 .panel-group .panel-body {
+    padding: 10px 0 10px 10px;
+}
+.controlPanel3 .panel-group .panel {
+    -webkit-box-shadow: none;
+}
+
 .accordion-group {
     background-color: white;
 }

@@ -15,8 +15,8 @@
                 "url": "partials/avpg/navigational_warnings_services.html"
             },
             "3": {
-                "title": "No content",
-                "url": "partials/avpg/missing_content.html"
+                "title": "List of Lights and Buoys and Aids to Navigation",
+                "url": "partials/avpg/aton-introduction.html"
             },
             "4": {
                 "title": "Nautical Charts and Publications services",
