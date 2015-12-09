@@ -13,7 +13,7 @@
                     <div>
                         <div><a href="#" x-ng-click="viewText('3', $event)">Introduction to navaid</a></div>
                         <table class="table table-condensed">
-                            <tbody >
+                            <tbody>
                             <tr x-ng-repeat="light in lights | startFrom:currentPage*pageSize | limitTo:pageSize">
                                 <td>{{light.AFM_NAVN}}</td>
                                 <td style="text-align: right;"><a href="#" x-ng-click="selectLight(light, $event)">view</a> </td>
@@ -46,7 +46,7 @@
                     <div x-ng-if="!selected.aton">Nothing selected</div>
                     <div id="selectedAton" x-ng-show="selected.aton">
                         <table class="table table-condensed">
-                            <tbody >
+                            <tbody>
                             <tr><td>Type</td><td>{{selected.aton.AFMSTATION}}</td></tr>
                             <tr><td>Name</td><td>{{selected.aton.AFM_NAVN}}</td></tr>
                             <tr><td>Lattitude</td><td>{{selected.aton.BREDDE}}</td></tr>
@@ -96,43 +96,46 @@
                 <a href="#" x-ng-click="viewText('13', $event)">Limiting Depth For Constricted Waterways</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('14', $event)">Environment Protected Areas</a>
+                <a href="#" x-ng-click="viewText('14', $event)">Tide, Current and Water Level information (similar to S-49 U.6.1)</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('15', $event)">Major Aids to Navigations (similar to S-49 E.1.2 and U.1.2)</a>
+                <a href="#" x-ng-click="viewText('15', $event)">Environment Protected Areas</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('16', $event)">Places of refuge or Pilot Boarding Stations (similar to S-49 E.1.5)</a>
+                <a href="#" x-ng-click="viewText('16', $event)">Major Aids to Navigations (similar to S-49 E.1.2 and U.1.2)</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('17', $event)">Calling-in Points (similar to S-49 E.4.1)</a>
+                <a href="#" x-ng-click="viewText('17', $event)">Places of refuge or Pilot Boarding Stations (similar to S-49 E.1.5)</a>
+            </h4>
+            <h4>
+                <a href="#" x-ng-click="viewText('18', $event)">Calling-in Points (similar to S-49 E.4.1)</a>
             </h4>
         </div>
         <div accordion-group heading="Reporting and Communicating">
             <h4>
-                <a href="#" x-ng-click="viewText('18', $event)">Areas of Legislative Importance to Navigation</a>
+                <a href="#" x-ng-click="viewText('19', $event)">Areas of Legislative Importance to Navigation</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('19', $event)">Marine Communication Services (similar calling-in info to S-49 E.4.1)</a>
+                <a href="#" x-ng-click="viewText('20', $event)">Marine Communication Services (similar calling-in info to S-49 E.4.1)</a>
             </h4>
         </div>
         <div accordion-group heading="Marine Services">
             <h4>
-                <a href="#" x-ng-click="viewText('20', $event)">Ice Breaking Support Services</a>
+                <a href="#" x-ng-click="viewText('21', $event)">Ice Breaking Support Services</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('21', $event)">Search and Rescue Support Services</a>
+                <a href="#" x-ng-click="viewText('22', $event)">Search and Rescue Support Services</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('22', $event)">Ice Services Information (similar to S-49 U.6.4)</a>
+                <a href="#" x-ng-click="viewText('23', $event)">Ice Services Information (similar to S-49 U.6.4)</a>
             </h4>
         </div>
         <div accordion-group heading="Nautical Charts and Publications">
             <h4>
-                <a href="#" x-ng-click="viewText('23', $event)">Nautical Chart Catalogue and Coverage</a>
+                <a href="#" x-ng-click="viewText('24', $event)">Nautical Chart Catalogue and Coverage</a>
             </h4>
             <h4>
-                <a href="#" x-ng-click="viewText('24', $event)">Publication Catalogue and Coverage</a>
+                <a href="#" x-ng-click="viewText('25', $event)">Publication Catalogue and Coverage</a>
             </h4>
         </div>
     </div>
