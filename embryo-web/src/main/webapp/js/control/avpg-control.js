@@ -47,7 +47,7 @@ $(function() {
         $scope.selected = {};
         $scope.lights = [];
         AtonService.getAtonData(function(atonData) {
-            $scope.lights = atonData.sort(function(a, b) {return a.AFM_NAVN.trim().localeCompare(b.AFM_NAVN.trim());});
+            $scope.lights = atonData.sort(function(a, b) {return a.AFM_navn.trim().localeCompare(b.AFM_navn.trim());});
             $log.debug("Drawing " + $scope.lights.length + " lights");
             avpgLayer.draw($scope.lights);
             avpgLayer.show();
@@ -58,10 +58,12 @@ $(function() {
             $timeout(function () {
                 $scope.$apply(function () {
                     if (avpg != null) {
-                        if (avpg.AFM_NAVN) {
+                        if (avpg.LONGITUDE) {
+                            $log.debug("Selecting from map: " + avpg.LONGITUDE + ", " + avpg.LATITUDE);
+
                             $scope.selected.open = true;
                             $scope.selected.aton = avpg;
-                            embryo.map.setCenter(avpg.LONGITUDE, avpg.LATTITUDE, 15);
+                            embryo.map.setCenter(avpg.LONGITUDE, avpg.LATITUDE, 15);
                         }
                     } else {
                         $scope.selected.open = false;
@@ -112,7 +114,8 @@ $(function() {
 
         $scope.selectLight = function(light, $event) {
             $event.preventDefault();
-            embryo.map.setCenter(light.LONGITUDE, light.LATTITUDE, 15);
+            $log.debug("Selecting: " + light.LONGITUDE + ", " + light.LATITUDE);
+            embryo.map.setCenter(light.LONGITUDE, light.LATITUDE, 15);
 
             avpgLayer.select(light);
         };

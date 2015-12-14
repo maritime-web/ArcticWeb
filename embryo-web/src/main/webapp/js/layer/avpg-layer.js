@@ -102,11 +102,11 @@ function AvpgLayer() {
         for (var i in data) {
             var attr = {
                 id : i,
-                description: data[i].AFM_NAVN,
+                description: data[i].AFM_navn,
                 type : "avpg",
                 avpg : data[i]
             };
-            features.push(new OpenLayers.Feature.Vector(this.map.createPoint(data[i].LONGITUDE, data[i].LATTITUDE), attr));
+            features.push(new OpenLayers.Feature.Vector(this.map.createPoint(data[i].LONGITUDE, data[i].LATITUDE), attr));
         }
 
         this.layers.avpg.addFeatures(features);

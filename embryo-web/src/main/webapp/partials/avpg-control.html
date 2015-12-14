@@ -15,7 +15,7 @@
                         <table class="table table-condensed">
                             <tbody>
                             <tr x-ng-repeat="light in lights | startFrom:currentPage*pageSize | limitTo:pageSize">
-                                <td>{{light.AFM_NAVN}}</td>
+                                <td>{{light.AFM_navn ? (light.NR_DK + ": " + light.AFM_navn) : light.NR_DK}}</td>
                                 <td style="text-align: right;"><a href="#" x-ng-click="selectLight(light, $event)">view</a> </td>
                             </tr>
                             </tbody>
@@ -47,10 +47,9 @@
                     <div id="selectedAton" x-ng-show="selected.aton">
                         <table class="table table-condensed">
                             <tbody>
-                            <tr><td>Type</td><td>{{selected.aton.AFMSTATION}}</td></tr>
-                            <tr><td>Name</td><td>{{selected.aton.AFM_NAVN}}</td></tr>
-                            <tr><td>Lattitude</td><td>{{selected.aton.BREDDE}}</td></tr>
-                            <tr><td>Longitude</td><td>{{selected.aton.LAENGDE}}</td></tr>
+                            <tr x-ng-repeat="(key, value) in selected.aton">
+                                <td>{{key}}</td><td>{{value}}</td>
+                            </tr>
                             </tbody>
                         </table>
 
