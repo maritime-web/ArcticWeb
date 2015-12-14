@@ -121,7 +121,7 @@ $(function () {
         $scope.searchObjects = SarService.searchObjectTypes();
             $scope.sarTypes = embryo.sar.Operation;
             $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
-        $scope.sarTypeDatas = sarTypeDatas;
+            $scope.sarTypeDatas = sarTypeDatas;
 
             $scope.tmp = {
                 sarTypeData: $scope.sarTypeDatas[0]
@@ -167,9 +167,14 @@ $(function () {
                 $scope.alertMessages = [];
                 // retain PouchDB fields like _id and _rev
                 var calculatedOperation = SarService.createSarOperation(sarInput);
-                $scope.sarOperation.docType = embryo.sar.Type.SearchArea;
+                $scope.sarOperation['@type'] = calculatedOperation['@type'];
+                $scope.sarOperation.coordinator = calculatedOperation.coordinator;
                 $scope.sarOperation.input = calculatedOperation.input;
                 $scope.sarOperation.output = calculatedOperation.output;
+                if(!$scope.sarOperation.coordinator){
+                    $scope.sarOperation.coordinator = calculatedOperation.coordinator;
+                }
+
                 $scope.tmp.searchObject = SarService.findSearchObjectType($scope.sarOperation.input.searchObject);
                 $scope.page = 'sarResult';
             } catch (error) {
@@ -216,20 +221,93 @@ $(function () {
             });
         }
 
-            $scope.end = function () {
-                var id = $scope.sarOperation._id;
+        $scope.end = function () {
+            var id = $scope.sarOperation._id;
 
-                LivePouch.get(id).then(function (sar) {
-                    sar.status = embryo.SARStatus.ENDED;
-                    LivePouch.put(sar).then(function () {
-                        $scope.provider.doShow = false;
-                        SarService.selectSar(null);
-                    }).catch(function (err) {
-                        console.log(err)
+            LivePouch.get(id).then(function (sar) {
+                sar.status = embryo.SARStatus.ENDED;
+                LivePouch.put(sar).then(function () {
+                    $scope.provider.doShow = false;
+                    SarService.selectSar(null);
+                }).catch(function (err) {
+                    console.log(err)
+            });
+            });
+        }
+
+        $scope.getUsers = function (query) {
+            UserPouch.get(query).then(function (sar) {
+                sar.status = embryo.SARStatus.ENDED;
+                LivePouch.put(sar).then(function () {
+                    $scope.provider.doShow = false;
+                    SarService.selectSar(null);
+                }).catch(function (err) {
+                    console.log(err)
                 });
-                });
+            });
+        }
+
+    }]);
+
+    module.controller("SARCoordinatorController", ['$scope', 'LivePouch', function ($scope, LivePouch) {
+        $scope.coordinator = {
+            user: {}
+        }
+
+        $scope.assign = function () {
+            var sarOperation = clone($scope.sarOperation);
+            sarOperation.coordinator = $scope.coordinator.user;
+            LivePouch.put(sarOperation).then(function () {
+                $scope.provider.close();
+            }).catch(function (error) {
+                $scope.alertMessages = [error.toString()];
+            })
         }
     }]);
+
+    module.controller("SARUsersController", ['$scope', '$q', 'UserPouch', 'VesselService', 'SarService',
+        function ($scope, $q, UserPouch, VesselService, SarService) {
+
+            $scope.getUsers = function (query) {
+                return function () {
+                    var deferred = $q.defer();
+                    UserPouch.query("users/userView", {
+                        startkey: query.toLowerCase(),
+                        endkey: query.toLowerCase() + "\uffff",
+                        include_docs: true
+                    }).then(function (result) {
+                        var users = SarService.extractDbDocs(result);
+                        deferred.resolve(users);
+                    });
+                    return deferred.promise;
+                }().then(function(res) {
+                    return res;
+                });;
+            }
+            $scope.getUsersAndVessels = function (query) {
+                var vessels = []
+                VesselService.clientSideSearch(query, function (match) {
+                    vessels = match;
+                })
+
+                return function () {
+                    var deferred = $q.defer();
+                    UserPouch.query("users/userView", {
+                        startkey: query.toLowerCase(),
+                        endkey: query.toLowerCase() + "\uffff",
+                        include_docs: true
+                    }).then(function (result) {
+                        var users = SarService.mergeQueries(result, vessels);
+                        deferred.resolve(users);
+                    });
+                    return deferred.promise;
+                }().then(function (res) {
+                    return res;
+                });
+                ;
+            }
+        }]);
+
 
     var targetText = {};
     targetText[embryo.sar.effort.TargetTypes.PersonInWater] = "Person in Water (PIW)";
@@ -316,7 +394,7 @@ $(function () {
 
     var AllocationStatusTxt = {};
     AllocationStatusTxt[embryo.sar.effort.Status.Active] = "Shared";
-    AllocationStatusTxt[embryo.sar.effort.Status.DraftSRU] = "No zone";
+    AllocationStatusTxt[embryo.sar.effort.Status.DraftSRU] = "No sub area";
     AllocationStatusTxt[embryo.sar.effort.Status.DraftZone] = "Not shared";
     AllocationStatusTxt[embryo.sar.effort.Status.DraftPattern] = "Not shared";
     AllocationStatusTxt[embryo.sar.effort.Status.DraftModifiedOnMap] = "Not shared";
@@ -328,6 +406,9 @@ $(function () {
     AllocationStatusLabel[embryo.sar.effort.Status.DraftPattern] = "label-danger";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftModifiedOnMap] = "label-danger";
 
+    function clone(object) {
+        return JSON.parse(JSON.stringify(object));
+    }
 
     module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', '$timeout',
         function ($scope, ViewService, SarService, LivePouch, $timeout) {
@@ -389,7 +470,7 @@ $(function () {
 
                 $scope.srus = []
                 // find docs where sarId === selectedSarId
-                LivePouch.query('sareffortview', {
+                LivePouch.query('sar/effortView', {
                     key: $scope.sarId,
                     include_docs: true
                 }).then(function (result) {
@@ -397,7 +478,7 @@ $(function () {
                         var srus = [];
                         var patterns = [];
                         for (var index in result.rows) {
-                            if (result.rows[index].doc.docType === embryo.sar.Type.SearchPattern) {
+                            if (result.rows[index].doc['@type'] === embryo.sar.Type.SearchPattern) {
                                 patterns.push(result.rows[index].doc)
                             } else {
                                 srus.push(result.rows[index].doc)
@@ -419,7 +500,6 @@ $(function () {
                 title: "SarEffortAllocation",
                 type: "effort",
                 show: function (context) {
-                    console.log("show")
                     $scope.alertMessages = null;
                     $scope.message = null;
                     $scope.page = context && context.page ? context.page : 'SRU';
@@ -455,10 +535,6 @@ $(function () {
             };
 
 
-            function clone(object) {
-                return JSON.parse(JSON.stringify(object));
-            }
-
             $scope.editSRU = function ($event, SRU) {
                 $event.preventDefault();
                 $scope.sru = clone(SRU);
@@ -468,19 +544,21 @@ $(function () {
             $scope.toConfirmDelSRU = function ($event, SRU) {
                 $event.preventDefault();
                 $scope.sru = SRU;
+                $scope.alertMessages = null;
+                $scope.message = null;
                 $scope.page = 'deleteSRU';
             }
 
             $scope.removeSRU = function (SRU) {
-                LivePouch.query('sareffortview', {
+                LivePouch.query('sar/effortView', {
                     key: SRU.sarId,
                     include_docs: true
                 }).then(function (result) {
                     var toRemove = [];
                     for (var index in result.rows) {
                         var doc = result.rows[index].doc;
-                        if (doc.docType === embryo.sar.Type.EffortAllocation && doc._id == SRU._id
-                            || doc.docType === embryo.sar.Type.SearchPattern && doc.effId === SRU._id) {
+                        if (doc['@type'] === embryo.sar.Type.EffortAllocation && doc._id == SRU._id
+                            || doc['@type'] === embryo.sar.Type.SearchPattern && doc.effId === SRU._id) {
                             toRemove.push(doc)
                             doc._deleted = true;
                         }
@@ -491,52 +569,20 @@ $(function () {
                 }).then(function () {
                     $scope.toSrus();
                 }).catch(function (error) {
-                    $scope.alertMessages = ["Internal eror removing SRU", error];
-                    console.log("error removing sru")
-                    console.log(error)
+                    $scope.alertMessages = ["Internal error removing SRU", error];
                 });
             }
 
             $scope.toSrus = function () {
+                $scope.alertMessages = null;
+                $scope.message = null;
                 loadSRUs();
                 $scope.page = "SRU";
             }
 
-            $scope.saveUnit = function () {
-                // If active, then make a new copy in status draft
-                // the copy will replace the active zone, when itself being activated
-                // TODO move much of this code into SarService where easier to unit test.
-                var sru = clone($scope.sru);
-                if (sru.status === embryo.sar.effort.Status.Active) {
-                    delete sru._id;
-                    delete sru._rev;
-                    delete sru.area;
-                }
-                if (sru.status === embryo.sar.effort.Status.DraftZone) {
-                    delete sru.area;
-                    sru.status = embryo.sar.effort.Status.DraftSRU;
-                }
-                if (!sru._id) {
-                    sru.sarId = $scope.sarId;
-                    sru._id = "sarEf-" + Date.now();
-                    sru.docType = embryo.sar.Type.EffortAllocation;
-                    sru.status = embryo.sar.effort.Status.DraftSRU;
-                }
-                var sru2 = $scope.sru;
-                // FIXME can not rely on local computer time
-                sru.modified = Date.now();
-                $scope.sru = null;
-                LivePouch.put(sru).then(function (result) {
-                    $scope.toSrus();
-                }).catch(function (error) {
-                    console.log(error)
-                    $scope.sru = sru2;
-                    $scope.alertMessages = ["internal error", error];
-                });
-
-            }
-
             $scope.initEffortAllocation = function () {
+                $scope.alertMessages = null;
+                $scope.message = null;
                 if (!$scope.effort) {
                     $scope.effort = {}
                 }
@@ -563,10 +609,16 @@ $(function () {
                 if (!$scope.effort.wind && latest) {
                     $scope.effort.wind = latest.wind;
                 }
+
+                if($scope.effort.status === embryo.sar.effort.Status.Active) {
+                    $scope.message = "Sub area is edited by creating a copy of the existing shared sub area. \n";
+                    $scope.message += "Write new values below, Calculate sub area, drag and shape sub area on the map and Share it. ";
+                    $scope.message += "Your will hereby also replace the existing shared sub area. ";
+                }
             }
 
-            $scope.toZoneCalculation = function (effort) {
-                $scope.effort = effort;
+            $scope.toSubAreaCalculation = function (effort) {
+                $scope.effort = clone(effort);
                 $scope.initEffortAllocation();
                 $scope.page = "effort";
             }
@@ -577,6 +629,13 @@ $(function () {
             }
 
             $scope.calculate = function () {
+
+                if($scope.effort.status === embryo.sar.effort.Status.Active) {
+                    delete $scope.effort._rev;
+                    delete $scope.effort.area;
+                    $scope.effort._id = "sarEf-" + Date.now();
+                }
+
                 LivePouch.get($scope.effort.sarId).then(function (sar) {
                     var allocation = null;
                     try {
@@ -584,6 +643,8 @@ $(function () {
                     } catch (error) {
                         console.log(error)
                         $scope.alertMessages = ["internal error", error];
+                        $scope.$apply(function () {
+                        });
                     }
 
                     if (allocation) {
@@ -593,17 +654,12 @@ $(function () {
                             $scope.$apply(function () {
                             });
                         }).catch(function (error) {
-                            console.log(error)
                             $scope.alertMessages = ["internal error", error];
                             $scope.$apply(function () {
                             });
                         });
                     }
-
-                    $scope.$apply(function () {
-                    });
                 }).catch(function (error) {
-                    console.log(error);
                     $scope.alertMessages = ["internal error", error];
                     $scope.$apply(function () {
                     });
@@ -627,7 +683,7 @@ $(function () {
                 }
 
                 function deleteEffortAllocationsForSameUser(effort) {
-                    LivePouch.query('sareffortview', {
+                    LivePouch.query('sar/effortView', {
                         key: effort.sarId,
                         include_docs: true
                     }).then(function (result) {
@@ -635,12 +691,12 @@ $(function () {
                         for (var index in result.rows) {
                             var doc = result.rows[index].doc;
 
-                            if (doc.docType === embryo.sar.Type.EffortAllocation && doc.name == effort.name
+                            if (doc['@type'] === embryo.sar.Type.EffortAllocation && doc.name == effort.name
                                 && doc._id !== effort._id) {
 
                                 efforts.push(doc)
                                 doc._deleted = true;
-                            } else if (doc.docType === embryo.sar.Type.SearchPattern && doc.name === effort.name) {
+                            } else if (doc['@type'] === embryo.sar.Type.SearchPattern && doc.name === effort.name) {
                                 efforts.push(doc)
                                 doc._deleted = true;
                             }
@@ -696,7 +752,7 @@ $(function () {
             }
 
             function findNewestSearchPattern(zone, init) {
-                LivePouch.query('sarsearchpattern', {
+                LivePouch.query('sar/searchPattern', {
                     key: zone.sarId,
                     include_docs: true
                 }).then(function (result) {
@@ -812,5 +868,56 @@ $(function () {
                 SarLayerSingleton.getInstance().removeTemporarySearchPattern();
             })
         }]);
+
+    module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', function ($scope, SarService, LivePouch) {
+        $scope.alertMessages = null;
+        $scope.message = null;
+
+        $scope.participant = {
+            user: {}
+        }
+        if ($scope.sru.name) {
+            $scope.participant.user.name = $scope.sru.name;
+        }
+        if ($scope.sru.mmsi) {
+            $scope.participant.user.mmsi = $scope.sru.mmsi;
+        }
+
+        $scope.saveUnit = function () {
+            // If active, then make a new copy in status draft
+            // the copy will replace the active zone, when itself being activated
+            // TODO move much of this code into SarService where easier to unit test.
+            var sru = clone($scope.sru);
+            sru.name = $scope.participant.user.name;
+            sru.mmsi = $scope.participant.user.mmsi;
+            if (sru.status === embryo.sar.effort.Status.Active) {
+                delete sru._id;
+                delete sru._rev;
+                delete sru.area;
+            }
+            if (sru.status === embryo.sar.effort.Status.DraftZone) {
+                delete sru.area;
+                sru.status = embryo.sar.effort.Status.DraftSRU;
+            }
+            if (!sru._id) {
+                sru.sarId = $scope.sarId;
+                sru._id = "sarEf-" + Date.now();
+                sru['@type'] = embryo.sar.Type.EffortAllocation;
+                sru.status = embryo.sar.effort.Status.DraftSRU;
+            }
+            var sru2 = $scope.sru;
+            // FIXME can not rely on local computer time
+            sru.modified = Date.now();
+            $scope.sru = null;
+            LivePouch.put(sru).then(function (result) {
+                $scope.toSrus();
+            }).catch(function (error) {
+                console.log(error)
+                $scope.sru = sru2;
+                $scope.alertMessages = ["internal error", error];
+            });
+
+        }
+    }]);
 
 });
