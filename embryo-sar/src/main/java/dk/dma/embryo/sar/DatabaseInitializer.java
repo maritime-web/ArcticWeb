@@ -22,6 +22,7 @@ import dk.dma.embryo.user.model.SecuredUser;
 import dk.dma.embryo.user.service.UserService;
 import dk.dma.embryo.vessel.model.Vessel;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,103 +50,97 @@ import java.util.stream.Stream;
 @Startup
 public class DatabaseInitializer {
 
-    @Inject
-    @Property("embryo.couchDb.user")
     private String dbUser;
 
-    @Inject
-    @Property("embryo.couchDb.password")
     private String dbPassword;
 
-    @Inject
-    @Property("embryo.couchDb.live.url")
     private String liveDbUrl;
 
-    @Inject
-    @Property("embryo.couchDb.user.url")
     private String userDbUrl;
 
-    @Inject
-    @Property("embryo.couchDb.user.cron")
     private ScheduleExpression userCron;
 
-    @Resource
     private TimerService timerService;
 
     private final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
     private UserDb userDb;
 
-    @Inject
     private UserService userService;
 
+    // no-arg constructor required for EJBs
+    protected DatabaseInitializer() {
+    }
+
+    @Inject
+    public DatabaseInitializer(@Property("embryo.couchDb.user")String dbUser,
+                               @Property("embryo.couchDb.password")String dbPassword,
+                               @Property("embryo.couchDb.live.url")String liveDbUrl,
+                               @Property("embryo.couchDb.user.url")String userDbUrl,
+                               @Property("embryo.couchDb.user.cron")ScheduleExpression userCron,
+                               UserService userService) {
+        this.dbUser = StringUtils.isNotBlank(dbUser) ? dbUser : null;
+        this.dbPassword = StringUtils.isNotBlank(dbPassword) ? dbPassword : null;
+        this.liveDbUrl = liveDbUrl;
+        this.userDbUrl = userDbUrl;
+        this.userCron = userCron;
+        this.userService = userService;
+    }
 
     @PostConstruct
     public void initialize() {
-
-        if (liveDbUrl != null && liveDbUrl.trim().length() != 0) {
-            logger.info("Initializing CouchDB with url {}", liveDbUrl);
-
-            AsyncHttpClient httpClient = new AsyncHttpClient();
-
-            // automaticly creates database if not already existing
-            SarDb db = new SarDb(new CouchDbConfig.Builder().setHttpClient(httpClient)
-                    .setServerUrl(liveDbUrl).setDbName("embryo-live")
-                    .setUser(dbUser).setPassword(dbPassword)
-                    .build());
-            db.cleanupViews();
+        if (haveGotLiveDbUrl()) {
+            initializeLiveDb();
         } else {
             logger.info("embryo.couchDb.live.url not set");
         }
 
-        if (userDbUrl != null && userDbUrl.trim().length() != 0) {
-            logger.info("Initializing CouchDB with url {}", userDbUrl);
-
-            AsyncHttpClient httpClient = new AsyncHttpClient();
-
-            // automaticly creates database if not already existing
-            userDb = new UserDb(new CouchDbConfig.Builder().setHttpClient(httpClient)
-                    .setServerUrl(userDbUrl).setDbName("embryo-user")
-                    .setUser(dbUser).setPassword(dbPassword)
-                    .build());
-            userDb.cleanupViews();
-
-            timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
+        if (haveGotUserDbUrl()) {
+            initializeUserDb();
         } else {
             logger.info("embryo.couchDb.user.url not set");
         }
+    }
 
+    private void initializeUserDb() {
+        logger.info("Initializing CouchDB with url {}", userDbUrl);
 
+        AsyncHttpClient httpClient = new AsyncHttpClient();
 
-        /*
-        try{
-            CouchDbEventListener<SarDocument> listener = new CouchDbEventListener<SarDocument>(db, new CouchDbNotificationConfig.Builder().setIncludeDocs(true).build()) {
-            //empty
-            s};
-            final CountDownLatch latch = new CountDownLatch(1);
+        // automaticly creates database if not already existing
+        userDb = new UserDb(new CouchDbConfig.Builder().setHttpClient(httpClient)
+                .setServerUrl(userDbUrl).setDbName("embryo-user")
+                .setUser(dbUser).setPassword(dbPassword)
+                .build());
+        userDb.cleanupViews();
 
-            listener.addEventHandler(new CouchDbEventHandler<SarDocument>() {
-                @Override
-                public void onEvent(CouchDbEvent<SarDocument> event) {
-                    System.out.println(event);
-                    latch.countDown();
-                }
+        timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
+    }
 
-                @Override
-                public void onError(Throwable e) {
-                    e.printStackTrace();
-                }
-            });
+    private boolean haveGotUserDbUrl() {
+        return userDbUrl != null && userDbUrl.trim().length() != 0;
+    }
 
-            listener.startListening();
+    private void initializeLiveDb() {
+        logger.info("Initializing CouchDB with url {}", liveDbUrl);
 
-            latch.await();
-        }catch(InterruptedException e){
-            System.out.println(e);
-        }
-*/
+        AsyncHttpClient httpClient = new AsyncHttpClient();
 
+        // automaticly creates database if not already existing
+        SarDb db = new SarDb(new CouchDbConfig.Builder().setHttpClient(httpClient)
+                .setServerUrl(liveDbUrl).setDbName("embryo-live")
+                .setUser(dbUser).setPassword(dbPassword)
+                .build());
+        db.cleanupViews();
+    }
 
+    private boolean haveGotLiveDbUrl() {
+        return liveDbUrl != null && liveDbUrl.trim().length() != 0;
+    }
+
+    @Resource
+    protected void setTimerService(TimerService timerService) {
+        this.timerService = timerService;
     }
 
     private static String getUserName(SecuredUser user) {
