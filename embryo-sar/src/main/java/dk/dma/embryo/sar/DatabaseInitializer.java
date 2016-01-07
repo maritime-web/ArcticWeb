@@ -87,6 +87,35 @@ public class DatabaseInitializer {
         this.userService = userService;
     }
 
+    public void initializeUserDatabase() {
+        if (userDbUrl != null && userDbUrl.trim().length() != 0) {
+            logger.info("Initializing CouchDB with url {}", userDbUrl);
+
+            AsyncHttpClient httpClient = new AsyncHttpClient();
+
+            // automaticly creates database if not already
+
+            CouchDbConfig.Builder builder = new CouchDbConfig.Builder().setHttpClient(httpClient)
+                    .setServerUrl(userDbUrl).setDbName("embryo-user");
+
+            if (dbUser != null && dbUser.trim().length() > 0 && dbPassword != null && dbPassword.trim().length() > 0) {
+                builder.setUser(dbUser).setPassword(dbPassword);
+            }
+
+            userDb = new UserDb(builder.build());
+
+            userDb.cleanupViews();
+
+            if (userCron != null) {
+                timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
+            }
+        } else {
+            logger.info("embryo.couchDb.user.url not set");
+        }
+
+    }
+
+
     @PostConstruct
     public void initialize() {
         if (haveGotLiveDbUrl()) {
@@ -95,31 +124,8 @@ public class DatabaseInitializer {
             logger.info("embryo.couchDb.live.url not set");
         }
 
-        if (haveGotUserDbUrl()) {
-            initializeUserDb();
-        } else {
-            logger.info("embryo.couchDb.user.url not set");
-        }
-    }
 
-    private void initializeUserDb() {
-        logger.info("Initializing CouchDB with url {}", userDbUrl);
-
-        AsyncHttpClient httpClient = new AsyncHttpClient();
-
-        // automaticly creates database if not already existing
-        userDb = new UserDb(new CouchDbConfig.Builder().setHttpClient(httpClient)
-                .setServerUrl(userDbUrl).setDbName("embryo-user")
-                .setUser(dbUser).setPassword(dbPassword)
-                .build());
-        userDb.cleanupViews();
-
-        timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
-    }
-
-    private boolean haveGotUserDbUrl() {
-        return userDbUrl != null && userDbUrl.trim().length() != 0;
-    }
+        initializeUserDatabase();
 
     private void initializeLiveDb() {
         logger.info("Initializing CouchDB with url {}", liveDbUrl);
@@ -154,10 +160,10 @@ public class DatabaseInitializer {
         return name;
     }
 
-    private static Integer getMmsi(SecuredUser user) {
-        Integer mmsi = null;
+    private static String getMmsi(SecuredUser user) {
+        String mmsi = null;
         if (user.getRole().getClass() == SailorRole.class) {
-            mmsi = ((SailorRole) user.getRole()).getVessel().getMmsi().intValue();
+            mmsi = ((SailorRole) user.getRole()).getVessel().getMmsi().toString();
         }
         return mmsi;
     }
@@ -166,28 +172,29 @@ public class DatabaseInitializer {
     public void timeout() throws IOException {
 
         logger.info("replicating users from MySQL to CouchDB");
-
         List<SecuredUser> users = userService.list();
 
-        Stream<User> userStream = userDb.getUserView().<User>createDocQuery().asDocs().stream();
-        //Stream<User> userStream = userDb.getBuiltInView().<User>createDocQuery().asDocs().stream();
+        Stream<User> userStream = userDb.getUsersView().<User>createDocQuery().asDocs().stream();
         Map<String, User> couchUsers = userStream.filter(d -> d.getClass() == User.class).collect(Collectors.toMap(User::getDocId, user -> user));//filter design docs if exists
 
         List<User> newOrModifiedUsers = new ArrayList<>();
 
         // Add new users to couchdb
         for (SecuredUser user : users) {
-            if (!couchUsers.containsKey(user.getId())) {
-                Integer mmsi = getMmsi(user);
+            String id = user.getId().toString();
+            if (!couchUsers.containsKey(id)) {
+                String mmsi = getMmsi(user);
                 String name = getUserName(user);
-                newOrModifiedUsers.add(new User(user.getId(), name, mmsi));
+                newOrModifiedUsers.add(new User(id, name, mmsi));
+                logger.info("Adding user with id={} and name={}", user.getId(), name);
             }else{
-                User couchUser = couchUsers.get(user.getId());
-                Integer mmsi = getMmsi(user);
+                User couchUser = couchUsers.get(id);
+                String mmsi = getMmsi(user);
                 String name = getUserName(user);
                 if(!couchUser.getName().equals(name) || !ObjectUtils.equals(couchUser.getMmsi(), mmsi)){
-                    couchUser.setMmsi(mmsi);
+                    couchUser.setMmsi(mmsi.toString());
                     couchUser.setName(name);
+                    logger.info("Updating user with id={} and name={}", id, name);
                     newOrModifiedUsers.add(couchUser);
                 }
             }
@@ -198,9 +205,10 @@ public class DatabaseInitializer {
         Map<Long, SecuredUser> securedUsers = users.stream().collect(Collectors.toMap(SecuredUser::getId, u -> u));
         List<User> toRemove = new ArrayList<>();
         for (User user : couchUsers.values()) {
-            if (!securedUsers.containsKey(user.getDocId())) {
+            if (!securedUsers.containsKey(Long.parseLong(user.getDocId()))) {
                 toRemove.add(user);
                 user.setDeleted();
+                logger.info("Removing user with id={} and name={}", user.getDocId(), user.getName());
             }
         }
 
