@@ -87,34 +87,6 @@ public class DatabaseInitializer {
         this.userService = userService;
     }
 
-    public void initializeUserDatabase() {
-        if (userDbUrl != null && userDbUrl.trim().length() != 0) {
-            logger.info("Initializing CouchDB with url {}", userDbUrl);
-
-            AsyncHttpClient httpClient = new AsyncHttpClient();
-
-            // automaticly creates database if not already
-
-            CouchDbConfig.Builder builder = new CouchDbConfig.Builder().setHttpClient(httpClient)
-                    .setServerUrl(userDbUrl).setDbName("embryo-user");
-
-            if (dbUser != null && dbUser.trim().length() > 0 && dbPassword != null && dbPassword.trim().length() > 0) {
-                builder.setUser(dbUser).setPassword(dbPassword);
-            }
-
-            userDb = new UserDb(builder.build());
-
-            userDb.cleanupViews();
-
-            if (userCron != null) {
-                timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
-            }
-        } else {
-            logger.info("embryo.couchDb.user.url not set");
-        }
-
-    }
-
 
     @PostConstruct
     public void initialize() {
@@ -124,8 +96,16 @@ public class DatabaseInitializer {
             logger.info("embryo.couchDb.live.url not set");
         }
 
+        if (haveGotUserDbUrl()) {
+            initializeUserDatabase();
+        } else {
+            logger.info("embryo.couchDb.user.url not set");
+        }
+    }
 
-        initializeUserDatabase();
+    private boolean haveGotLiveDbUrl() {
+        return liveDbUrl != null && liveDbUrl.trim().length() != 0;
+    }
 
     private void initializeLiveDb() {
         logger.info("Initializing CouchDB with url {}", liveDbUrl);
@@ -140,8 +120,31 @@ public class DatabaseInitializer {
         db.cleanupViews();
     }
 
-    private boolean haveGotLiveDbUrl() {
-        return liveDbUrl != null && liveDbUrl.trim().length() != 0;
+    private boolean haveGotUserDbUrl() {
+        return userDbUrl != null && userDbUrl.trim().length() != 0;
+    }
+
+    public void initializeUserDatabase() {
+        logger.info("Initializing CouchDB with url {}", userDbUrl);
+
+        AsyncHttpClient httpClient = new AsyncHttpClient();
+
+        // automaticly creates database if not already
+
+        CouchDbConfig.Builder builder = new CouchDbConfig.Builder().setHttpClient(httpClient)
+                .setServerUrl(userDbUrl).setDbName("embryo-user");
+
+        if (dbUser != null && dbUser.trim().length() > 0 && dbPassword != null && dbPassword.trim().length() > 0) {
+            builder.setUser(dbUser).setPassword(dbPassword);
+        }
+
+        userDb = new UserDb(builder.build());
+
+        userDb.cleanupViews();
+
+        if (userCron != null) {
+            timerService.createCalendarTimer(userCron, new TimerConfig(null, false));
+        }
     }
 
     @Resource
