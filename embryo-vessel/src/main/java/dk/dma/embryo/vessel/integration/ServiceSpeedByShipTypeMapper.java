@@ -54,7 +54,7 @@ public class ServiceSpeedByShipTypeMapper {
     Sailing(6.0),
     SAR_Military_LawEnforcement(25.0),
     Other(12.0);*/
-    
+
     public static final double OTHER                          = 12.0;
     public static final double TANKER                         = 13.6;
     public static final double SAILING_PLEASURE               = 15.0;
@@ -119,8 +119,8 @@ public class ServiceSpeedByShipTypeMapper {
                 return OTHER;
             case UNDEFINED:
                 return OTHER;
-            
-            default:                        return NO_MATCH;
+            default:
+                return NO_MATCH;
         }
     }
 }

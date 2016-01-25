@@ -44,7 +44,7 @@ import java.util.Locale;
 
 /**
  * Parser for reading routes in RT3 format. RT3 format is among others used by Transas ECDIS.
- * 
+ *
  * @author Jesper Tejlgaard
  */
 public class DmiForecastParser {

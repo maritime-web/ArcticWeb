@@ -41,7 +41,7 @@ public class DmiForecastParser_EnTest {
 
     @Inject
     DmiForecastParser_En parser;
-    
+
     @Test
     public void test() throws IOException {
 
@@ -132,7 +132,7 @@ public class DmiForecastParser_EnTest {
         Assert.assertEquals(1407153600000L, forecast.getTo().getTime());
         Assert.assertEquals(14, forecast.getDistricts().size());
     }
-    
+
     @Test
     public void test20141209FailedInProduction() throws IOException {
         InputStream is = getClass().getResourceAsStream("/dmi/grudseng-2014-12-09.xml");
@@ -175,7 +175,7 @@ public class DmiForecastParser_EnTest {
         InputStream is = getClass().getResourceAsStream("/dmi/grudsengxml-14-09-2014--00-23-21.xml");
         RegionForecast forecast = parser.parse(is);
     }
-    
+
     @Test
     public void testGronvar() throws IOException {
         InputStream is = getClass().getResourceAsStream("/dmi/gronvarxml-14-09-2014--00-19-54.xml");

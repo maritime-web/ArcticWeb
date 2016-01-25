@@ -47,7 +47,7 @@ import java.util.Set;
 
 /**
  * Parser for reading routes in RT3 format. RT3 format is among others used by Transas ECDIS.
- * 
+ *
  * @author Jesper Tejlgaard
  */
 
@@ -110,7 +110,7 @@ public class DmiForecastParser_En {
                         result.setDesc(text);
                     } else if (districts.contains(elem.getNodeName())) {
                         result.getDistricts().add(extractDistrikt(elem));
-                    } 
+                    }
                 }
             }
         } catch (RuntimeException | ParserConfigurationException | SAXException e) {
