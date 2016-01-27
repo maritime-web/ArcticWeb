@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by Jesper Tejlgaard on 11/12/15.
@@ -156,7 +155,7 @@ public class DatabaseInitializer {
         String name = user.getUserName();
         if (user.getRole().getClass() == SailorRole.class) {
             Vessel vessel = ((SailorRole) user.getRole()).getVessel();
-            if(vessel.getAisData() != null && vessel.getAisData().getName() != null){
+            if (vessel.getAisData() != null && vessel.getAisData().getName() != null) {
                 name = vessel.getAisData().getName();
             }
         }
@@ -172,13 +171,13 @@ public class DatabaseInitializer {
     }
 
     @Timeout
-    public void timeout() throws IOException {
+    public void replicateUsers() throws IOException {
 
         logger.info("replicating users from MySQL to CouchDB");
         List<SecuredUser> users = userService.list();
 
-        Stream<User> userStream = userDb.getUsersView().<User>createDocQuery().asDocs().stream();
-        Map<String, User> couchUsers = userStream.filter(d -> d.getClass() == User.class).collect(Collectors.toMap(User::getDocId, user -> user));//filter design docs if exists
+        List<User> usersView = userDb.getUsersView().<User>createDocQuery().asDocs();
+        Map<String, User> couchUsers = User.toMap(usersView);
 
         List<User> newOrModifiedUsers = new ArrayList<>();
 
@@ -190,11 +189,11 @@ public class DatabaseInitializer {
                 String name = getUserName(user);
                 newOrModifiedUsers.add(new User(id, name, mmsi));
                 logger.info("Adding user with id={} and name={}", user.getId(), name);
-            }else{
+            } else {
                 User couchUser = couchUsers.get(id);
                 String mmsi = getMmsi(user);
                 String name = getUserName(user);
-                if(!couchUser.getName().equals(name) || !ObjectUtils.equals(couchUser.getMmsi(), mmsi)){
+                if (!couchUser.getName().equals(name) || !ObjectUtils.equals(couchUser.getMmsi(), mmsi)) {
                     couchUser.setMmsi(mmsi.toString());
                     couchUser.setName(name);
                     logger.info("Updating user with id={} and name={}", id, name);

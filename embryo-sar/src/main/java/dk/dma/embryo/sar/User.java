@@ -18,6 +18,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.n1global.acc.json.CouchDbDocument;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Simple Class name (i.e. 'User') is added as @type property on JSON document.
@@ -30,6 +33,9 @@ public class User extends CouchDbDocument {
     private String name;
     private String mmsi;
 
+    // //////////////////////////////////////////////////////////////////////
+    // Constructors
+    // //////////////////////////////////////////////////////////////////////
     public User() {
     }
 
@@ -46,6 +52,16 @@ public class User extends CouchDbDocument {
         this.mmsi = mmsi;
     }
 
+    // //////////////////////////////////////////////////////////////////////
+    // Business Logic
+    // //////////////////////////////////////////////////////////////////////
+    public static Map<String, User> toMap(List<User> users) {
+        return users.stream().filter(d -> d.getClass() == User.class).collect(Collectors.toMap(User::getDocId, user -> user));
+    }
+
+    // //////////////////////////////////////////////////////////////////////
+    // Property methods
+    // //////////////////////////////////////////////////////////////////////
     public String getName() {
         return name;
     }

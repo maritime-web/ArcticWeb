@@ -56,7 +56,7 @@ import static dk.dma.embryo.dataformats.inshore.DmiInshoreIceReportPredicates.ac
 import static dk.dma.embryo.dataformats.inshore.DmiInshoreIceReportPredicates.rejectedReports;
 
 /**
- * 
+ *
  * @author Jesper Tejlgaard
  */
 @Singleton
@@ -71,13 +71,13 @@ public class DmiInshoreIceReportJob {
 
     @Inject
     private EmbryoLogService embryoLogService;
-    
+
     @Inject
     private InshoreIceReportService iceInformationService;
 
     @Inject
     private PropertyFileService propertyFileService;
-    
+
     @Inject
     private MailSender mailSender;
 
@@ -100,7 +100,7 @@ public class DmiInshoreIceReportJob {
     @Inject
     @Property("embryo.inshoreIceReport.dmi.ftp.baseDirectory")
     private String baseDir;
-    
+
     @Inject
     @Property("embryo.inshoreIceReport.dmi.ftp.ageInDays")
     private Integer ageInDays;
@@ -174,12 +174,12 @@ public class DmiInshoreIceReportJob {
                 }
 
                 List<FTPFile> files = Arrays.asList(ftp.listFiles(null, EmbryoFTPFileFilters.FILES));
-                
+
                 logger.debug("files: {}" , files);
-                
+
                 Collection<FTPFile> rejected = Collections2.filter(files, rejectedReports());
                 Collection<FTPFile> accepted = Collections2.filter(files, acceptedReports(mapsYoungerThan));
-                
+
                 logger.debug("rejected: {}", rejected);
 
                 for (FTPFile file : accepted) {
@@ -196,7 +196,7 @@ public class DmiInshoreIceReportJob {
             } finally {
                 ftp.logout();
             }
-            
+
             try {
                 iceInformationService.update();
             } catch(InshoreIceReportException iire){
@@ -289,7 +289,7 @@ public class DmiInshoreIceReportJob {
                         .send(mailSender);
                 notifications.add(file.getName(), DateTime.now(DateTimeZone.UTC));
             }
-        }      
+        }
     }
-    
+
 }

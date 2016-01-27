@@ -21,19 +21,19 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * @author Jesper Tejlgaard
  */
 public class DistrictForecast {
-    
+
     private String name;
     private String forecast;
     private String waves;
     private String ice;
-    
+
     // //////////////////////////////////////////////////////////////////////
     // Constructors
     // //////////////////////////////////////////////////////////////////////
     public DistrictForecast() {
         super();
     }
-    
+
     public DistrictForecast(String name, String forecast, String waves) {
         super();
         this.name = name;

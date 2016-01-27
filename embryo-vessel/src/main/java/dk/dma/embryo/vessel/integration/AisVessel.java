@@ -35,7 +35,7 @@ public class AisVessel {
 
     private String country;
     private String sourceRegion;
-//    private String type;
+    //    private String type;
     private Date lastReport;
     private Long mmsi;
     private String sourceCountry;
@@ -48,7 +48,7 @@ public class AisVessel {
     private Date eta;
     private Double heading;
     private Long imoNo;
-//    private String lastPosReport;
+    //    private String lastPosReport;
 //    private String lastStaticReport;
     private Double lat;
     private Double length;
@@ -58,9 +58,9 @@ public class AisVessel {
     private String navStatus;
     private Double rot;
     private Double sog;
-//    private String vesselCargo;
-@JsonIgnore
-private VesselType type;
+    //    private String vesselCargo;
+    @JsonIgnore
+    private VesselType type;
     private String vesselType;
     private Double width;
     private Double maxSpeed;
@@ -203,7 +203,7 @@ private VesselType type;
 
     @Override
     public boolean equals(Object otherObject) {
-        
+
         if (this == otherObject) {
             return true;
         }
@@ -221,12 +221,11 @@ private VesselType type;
         } else if (!mmsi.equals(otherVessel.mmsi)){
             return false;
         }
-        
+
         return true;
     }
-    
-    
-    
+
+
     // //////////////////////////////////////////////////////////////////////
     // Property methods
     // //////////////////////////////////////////////////////////////////////
