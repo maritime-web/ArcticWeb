@@ -15,6 +15,7 @@
 package dk.dma.embryo.dataformats.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.dma.embryo.common.EmbryonicException;
 import dk.dma.embryo.common.configuration.Property;
 import dk.dma.embryo.common.configuration.PropertyFileService;
 import dk.dma.embryo.common.log.EmbryoLogService;
@@ -202,13 +203,17 @@ public class ForecastServiceImpl implements ForecastService {
                                                             .withTimestamp(timestamp)
                                                             .withOriginalFileName(name);
                                                     forecastData.add(additionalMetaData);
-                                                    persistForecastData(forecastData);
+                                                    try {
+                                                        persistForecastData(forecastData);
+                                                    } catch (EmbryonicException e) {
+                                                        logger.error("Got error persisting \"" + forecastData.getHeader() + "\"", e);
+                                                    }
                                                 } else {
                                                     logger.info("Got empty result for {}.", name);
                                                 }
                                             } catch (IOException e) {
                                                 failedFiles.add(name);
-                                                logger.error("Got error parsing \"" + name + "\"", e);
+                                                logger.error("Got error parsing  \"" + name + "\"", e);
                                                 if (!failedFiles.contains(name)) {
                                                     embryoLogService.error("Error parsing file " + name, e);
                                                 }

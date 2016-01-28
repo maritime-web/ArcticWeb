@@ -16,6 +16,7 @@
 package dk.dma.embryo.dataformats.persistence;
 
 import dk.dma.embryo.common.EmbryonicException;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpResponseException;
@@ -27,10 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  *
@@ -69,7 +72,7 @@ public class HttpCouchClient {
         String viewUrl = null;
         try {
             String forecastDbUrl = config.getForecastDbUrl() + (config.getForecastDbUrl().endsWith("/") ? "" : "/");
-            String designDocumentId  = config.getDesignDocumentId() + (config.getDesignDocumentId().endsWith("/") ? "" : "/");
+            String designDocumentId = config.getDesignDocumentId() + (config.getDesignDocumentId().endsWith("/") ? "" : "/");
             viewUrl = forecastDbUrl + designDocumentId + "_view" + viewQuery;
 
             res = execute(Request.Get(viewUrl)).returnContent().asString();
@@ -90,18 +93,36 @@ public class HttpCouchClient {
         String upsertUrl = null;
         try {
             String forecastDbUrl = config.getForecastDbUrl() + (config.getForecastDbUrl().endsWith("/") ? "" : "/");
-            String designDocumentId  = config.getDesignDocumentId() + (config.getDesignDocumentId().endsWith("/") ? "" : "/");
+            String designDocumentId = config.getDesignDocumentId() + (config.getDesignDocumentId().endsWith("/") ? "" : "/");
             upsertUrl = forecastDbUrl + designDocumentId + "_update/upsert/" + id;
             HttpResponse httpResponse = execute(Request.Put(upsertUrl).bodyString(json, ContentType.APPLICATION_JSON))
                     .returnResponse();
 
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (statusCode != 201) {
-                throw new EmbryonicException("Unable to upsert document with id \"" + id +"\" into the couchDb defined by: " + config.getForecastDbUrl());
+                String responseFromCouch = parseResponse(httpResponse);
+                throw new EmbryonicException("Unable to upsert document with id \"" + id + "\" using : " + upsertUrl + "\nResponse was:\n" + responseFromCouch);
             }
         } catch (IOException e) {
             throw new EmbryonicException("Got error requsting: \"" + upsertUrl + "\"", e);
         }
+    }
+
+    private String parseResponse(HttpResponse httpResponse) {
+        StringBuilder res = new StringBuilder();
+        res.append(httpResponse.getStatusLine()).append("\n---\n")
+                .append(Arrays.deepToString(httpResponse.getAllHeaders())).append("\n---\n");
+        HttpEntity entity = httpResponse.getEntity();
+        if (entity != null) {
+            try {
+                ByteArrayOutputStream entityStream = new ByteArrayOutputStream();
+                entity.writeTo(entityStream);
+                res.append(entityStream.toString("UTF-8"));
+            } catch (IOException e) {
+                //Ignore
+            }
+        }
+        return res.toString();
     }
 
     private Response execute(Request request) {
@@ -125,7 +146,7 @@ public class HttpCouchClient {
         HttpHost host = new HttpHost(config.getHost(), config.getPort());
         executor = Executor.newInstance()
                 .auth(host, config.getUser(), config.getPassword())
-        .authPreemptive(host);
+                .authPreemptive(host);
     }
 
     private void ensureDB() {
@@ -142,8 +163,8 @@ public class HttpCouchClient {
 
     private void addDesignDocument() {
         String designDocument = readFromClassPath(config.getDesignDocumentResourceUrl());
-        String designDocumentId  = config.getDesignDocumentId();
-        String designUrl = config.getForecastDbUrl() + (config.getForecastDbUrl().endsWith("/") ? designDocumentId : "/"+designDocumentId);
+        String designDocumentId = config.getDesignDocumentId();
+        String designUrl = config.getForecastDbUrl() + (config.getForecastDbUrl().endsWith("/") ? designDocumentId : "/" + designDocumentId);
         LOGGER.info("Upserting design document with id \"" + designDocumentId + "\"");
         try {
             HttpResponse httpResponse = execute(Request.Put(designUrl).bodyString(designDocument, ContentType.APPLICATION_JSON))
@@ -167,7 +188,7 @@ public class HttpCouchClient {
         String revId = httpResponse.getFirstHeader("ETag").getValue();
 
         StringBuilder sb = new StringBuilder(designDocument);
-        sb.insert(sb.indexOf("{") + 1 ,"\"_rev\": " + revId + ", ");
+        sb.insert(sb.indexOf("{") + 1, "\"_rev\": " + revId + ", ");
         LOGGER.info("Updating existing design document\n" + sb);
         httpResponse = execute(Request.Put(designUrl).bodyString(sb.toString(), ContentType.APPLICATION_JSON))
                 .returnResponse();
