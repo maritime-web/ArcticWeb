@@ -1,4 +1,4 @@
-Embryo
+ArcticWeb
 =========
 
 A tool for ships sailing in the Arctic region around Greenland. ArcticWeb serves as a single access point to safety related information, provides streamlined reporting and allows for voluntary coordinated voyage through sharing of positions and planned routes.
