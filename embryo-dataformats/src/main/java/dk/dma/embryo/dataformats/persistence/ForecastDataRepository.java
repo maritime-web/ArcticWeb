@@ -23,9 +23,7 @@ import dk.dma.embryo.dataformats.model.ForecastDataId;
 import dk.dma.embryo.dataformats.model.ForecastHeader;
 import dk.dma.embryo.dataformats.model.Type;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,19 +36,13 @@ import java.util.stream.Collectors;
  * Created by Steen on 11-01-2016.
  *
  */
-@Singleton
-@Startup
+@Stateless
 public class ForecastDataRepository {
     private HttpCouchClient httpCouchClient;
 
     //Required by EJB spec.
     @SuppressWarnings("unused")
     protected ForecastDataRepository() {
-    }
-
-    @PostConstruct
-    public void initialize() {
-        httpCouchClient.initialize();
     }
 
     @Inject

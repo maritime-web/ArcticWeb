@@ -16,26 +16,73 @@
 package dk.dma.embryo.dataformats.persistence;
 
 import dk.dma.embryo.common.configuration.Property;
+import org.apache.http.HttpHost;
+import org.apache.http.client.fluent.Executor;
 
+import javax.annotation.PostConstruct;
+import javax.ejb.AccessTimeout;
+import javax.ejb.Singleton;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 
 /**
  * Created by Steen on 18-01-2016.
  *
  */
 @SuppressWarnings("unused")
+@Singleton
+@AccessTimeout(15000)
 public class CouchClientFactory {
+    private String forecastDb;
+    private String host;
+    private int port;
+    private String user;
+    private String password;
+    private String designDocumentResourceUrl;
+    private String designDocumentId;
+
+    //Required for EJB
+    protected CouchClientFactory() {
+    }
+
+    @Inject
+    public CouchClientFactory(@Property("embryo.couchDb.forecast.db") String forecastDb,
+                              @Property("embryo.couchDb.host") String host,
+                              @Property("embryo.couchDb.port") int port,
+                              @Property("embryo.couchDb.user") String user,
+                              @Property("embryo.couchDb.password") String password,
+                              @Property("embryo.couchDb.forecast.design.resource.url") String designDocumentResourceUrl,
+                              @Property("embryo.couchDb.forecast.design.document.id") String designDocumentId
+    ) {
+        this.forecastDb = forecastDb;
+        this.host = host;
+        this.port = port;
+        this.user = user;
+        this.password = password;
+        this.designDocumentResourceUrl = designDocumentResourceUrl;
+        this.designDocumentId = designDocumentId;
+    }
+
+
+    @PostConstruct
+    public void initialize() {
+        createHttpCouchClient().initialize();
+    }
+
     @Produces
     @CouchDatabase(databaseName = "forecast")
-    public HttpCouchClient createHttpCouchClient(@Property("embryo.couchDb.forecast.db")String forecastDb,
-                                                 @Property("embryo.couchDb.host")String host,
-                                                 @Property("embryo.couchDb.port")int port,
-                                                 @Property("embryo.couchDb.user")String user,
-                                                 @Property("embryo.couchDb.password")String password,
-                                                 @Property("embryo.couchDb.forecast.design.resource.url")String designDocumentResourceUrl,
-                                                 @Property("embryo.couchDb.forecast.design.document.id")String designDocumentId) {
+    public HttpCouchClient createHttpCouchClient() {
         CouchDbConfig config = new CouchDbConfig(forecastDb, designDocumentResourceUrl, designDocumentId, host, port, user, password);
-        return new HttpCouchClient(config);
+        Executor executor = createExecutor(config);
+        return new HttpCouchClient(executor, config);
     }
+
+    private Executor createExecutor(CouchDbConfig config) {
+        HttpHost host = new HttpHost(config.getHost(), config.getPort());
+        return Executor.newInstance()
+                .auth(host, config.getUser(), config.getPassword())
+                .authPreemptive(host);
+    }
+
 
 }

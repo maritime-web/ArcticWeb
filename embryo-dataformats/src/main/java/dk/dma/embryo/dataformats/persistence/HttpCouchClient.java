@@ -17,7 +17,6 @@ package dk.dma.embryo.dataformats.persistence;
 
 import dk.dma.embryo.common.EmbryonicException;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.fluent.Executor;
@@ -42,10 +41,12 @@ public class HttpCouchClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCouchClient.class);
 
     private final CouchDbConfig config;
-    private Executor executor;
+    private final Executor executor;
 
-    public HttpCouchClient(CouchDbConfig config) {
+    public HttpCouchClient(Executor executor, CouchDbConfig config) {
+        this.executor = executor;
         this.config = config;
+
     }
 
     public String get(String id) {
@@ -136,17 +137,9 @@ public class HttpCouchClient {
         }
     }
 
-    protected void initialize() {
-        createExecutor();
+    void initialize() {
         ensureDB();
         addDesignDocument();
-    }
-
-    private void createExecutor() {
-        HttpHost host = new HttpHost(config.getHost(), config.getPort());
-        executor = Executor.newInstance()
-                .auth(host, config.getUser(), config.getPassword())
-                .authPreemptive(host);
     }
 
     private void ensureDB() {
