@@ -616,9 +616,8 @@
 								</goals>
 								<configuration>
 									<address>subsystem=datasources,data-source=java:jboss/datasources/embryoDS</address>
-									<resources>
 										<resource>
-											<enable-resource>true</enable-resource>
+											<enableResource>true</enableResource>
 											<properties>
 												<jndi-name>java:jboss/datasources/embryoDS</jndi-name>
 												<connection-url>jdbc:mysql://localhost:3306/embryo</connection-url>
@@ -630,18 +629,14 @@
 												<enable>true</enable>
 											</properties>
 										</resource>
-									</resources>
 								</configuration>
 							</execution>
 							<execution>
 								<id>deploy</id>
 								<phase>install</phase>
 								<goals>
-									<goal>deploy</goal>
+									<goal>deploy-only</goal>
 								</goals>
-								<configuration>
-									<skipTests>true</skipTests>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
