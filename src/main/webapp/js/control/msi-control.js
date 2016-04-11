@@ -10,7 +10,14 @@ $(function() {
 
     module.controller("MsiLayerControl", [ '$scope', 'MsiService', function($scope, MsiService) {
         MsiService.subscribe(function(error, warnings){
-            msiLayer.draw(warnings);
+            if(error){
+                embryo.messagePanel.show({
+                    text: error,
+                    type: "error"
+                });
+            }else{
+                msiLayer.draw(warnings);
+            }
         });
     } ]);
 
