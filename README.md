@@ -7,18 +7,19 @@ The live system can be found here: https://arcticweb.e-navigation.net
 
 ## Software Architecture
 
-The ArcticWeb client is a rich client HTML/JS-application with a server side JSON webservice API. The server is a J2EE 6 application.
+The ArcticWeb client is a rich client HTML/JS-application with a server side JSON webservice API.
+The server is a Java EE 7 application.
 
 On the client side we use:
 
 * JavaScript/HTML
-* Grunt (for building)
 * OpenLayers (for maps)
-* JQuery (for DOM-manipulation and calling webservices)
 * Twitter Bootstrap (for basic layout)
 * AngularJS (for forms and similar)
 * HTML5 Application Cache
-* Karma (for unit testing)
+* Node and Grunt (for building)
+* Karma and PhantomJS (for unit testing)
+* JQuery (to be removed in the future)
 
 On the server side we use:
 
@@ -32,7 +33,6 @@ On the server side we use:
 * JUnit (for unit-test)
 * Mockito (for mocking)
 
-
 ## Prerequisites ##
 
 * Java JDK 1.8
@@ -43,6 +43,24 @@ On the server side we use:
 * Grunt.js (Follow the installation instructions at http://gruntjs.com)
 * CouchDB
 * a file called arcticweb.properties
+
+
+## Server side code
+This project mainly contains the web side code executed in the browser client. All server side executed
+logic (web, services and data access) is maintained in the [Enav-Services](https://github.com/maritime-web/Enav-Services) Github project.
+Most of it is developed as Java code and included in the war-file produced by this project as .jar artifacts.
+
+## User manual
+The [user manual](https://github.com/maritime-web/arcticweb-usermanual) is a separate web application maintained in a separate Github project.
+The user manual is included in the war produced by this project using the overlays configuration in the maven-war-plugin.
+
+## Continuous integration and deployment
+
+The master branch is build and testet continuously by Jenkins
+https://dma.ci.cloudbees.com/view/MaritimeWeb/job/ArcticWeb-branch-master/
+
+Other branches of ArcticWeb may also have been configured for continuous integration on Jenkins.
+If so they will be available in the list of build jobs: https://dma.ci.cloudbees.com/view/MaritimeWeb/
 
 ## Initial setup
 
@@ -169,37 +187,14 @@ http://stackoverflow.com/questions/7102299/eclipse-javascript-validation-disable
 
 More stable releases are demoed from this test server:
 
-http://test.e-navigation.net/arcticweb (requires credentials only available to development team)
+https://arcticweb-test.e-navigation.net
 
 
 ## CI Test Server - Latest and Greatest
 
 The CI server continuously deployes the latest and greatest to a separate test server:
 
-http://appsrv-alpha.e-navigation.net/arcticweb/ (requires credentials only available to development team)
-
-## Database maintenaince
-
-Hibernate can be used to maintain the database (good in development mode) where as Liquibase is used in more stable environments (like production). Which strategy is used depends on two properties hibernate.hbm2ddl.auto and embryo.liquibase.enabled.
-
-<table>
-  <tr>
-    <th>Property</th><th>Values</th><th>Where</th><th>Default</th>
-  </tr>
-  <tr>
-    <td>hibernate.hbm2ddl.auto</td><td>create, create-drop, update and validate</td><td>pom.xml or Maven command line property</td><td>validate</td>
-  </tr>
-  <tr>
-    <td>embryo.liquibase.enabled</td><td>true/false</td><td>default or system configuration file (see above)</td><td>false (dev) / true (prod)</td>
-  </tr>
-  <tr>
-    <td>embryo.liquibase.changelog</td><td>path to changelog file</td><td>default or system configuration file (see above)</td><td>/liquibase/changelog.xml</td>
-  </tr>
-</table>
-
-hibernate.hbm2ddl.auto may be set on command line when building a war archive as follows: 
-
-    mvn clean package -Dhibernate.hbm2ddl.auto=update
+https://arcticweb-alpha.e-navigation.net (requires credentials only available to development team)
 
 
 ## Scheduled Jobs
@@ -225,11 +220,11 @@ The application contains a number of integrations with external systems. These m
 
 Names of the integration jobs/services of can be retrieved calling the URL:
 
-    http(s)://host/arcticweb/rest/log/services
+    http(s)://host/rest/log/services
 
 The latest log entry of a specific job/service can be retrieved by the URL
 
-    http(s)://host/arcticweb/rest/log/latest?service=dk.dma.arcticweb.filetransfer.DmiFtpReaderJob
+    http(s)://host/rest/log/latest?service=dk.dma.arcticweb.filetransfer.DmiFtpReaderJob
 
 where dk.dma.arcticweb.filetransfer.DmiFtpReaderJob is the job name. This will return a JSON response in the format
 
@@ -263,33 +258,3 @@ At the time of writing the current services are subject to surveillance
 * dk.dma.embryo.tiles.service.TilerJob
 * dk.dma.embryo.tiles.service.TilerServiceBean
 * dk.dma.embryo.tiles.service.DmiSatelliteJob
-
-## Developer Logging
-
-Developer logging is performed using SLF4J. No binding to log4j or logback exists in deployed war. Instead it depends on a suitable SLF4J binding (http://www.slf4j.org/manual.html#swapping) to be present on the classpath (with logging framework and configuration). 
-
-JBoss Logging is configured in configuration/standalone.xml. Development environment could be setup with the following values:
-
-    <subsystem xmlns="urn:jboss:domain:logging:1.1">
-        <console-handler name="CONSOLE">
-            <level name="DEBUG"/>
-        </console-handler>
-
-	...
-
-        <logger category="dk.dma">
-            <level name="DEBUG"/>
-        </logger>
-        <root-logger>
-            <level name="DEBUG"/>
-            <handlers>
-                <handler name="CONSOLE"/>
-                <handler name="FILE"/>
-            </handlers>
-        </root-logger>
-    </subsystem>
-
-
-
-
-
