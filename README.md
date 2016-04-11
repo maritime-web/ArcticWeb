@@ -119,7 +119,7 @@ Daily deployment
 
 A local deployment will setup ArcticWeb at the following URL:
 
-    http://localhost:8080/arcticweb/
+    http://localhost:8080/
 
 To setup test users and data you must first login with dma/qwerty and thereafter push the button at the following URL
 
