@@ -121,6 +121,13 @@
 			<artifactId>sar</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>dk.dma.arcticweb</groupId>
+			<artifactId>arcticweb-usermanual</artifactId>
+			<version>2.3-SNAPSHOT</version>
+			<type>war</type>
+		</dependency>
+
 
 		<!-- Import the Servlet API. -->
 		<dependency>
@@ -379,6 +386,12 @@
 							</excludes>
 						</resource>
 					</webResources>
+					<overlays>
+						<overlay>
+							<groupId>dk.dma.arcticweb</groupId>
+							<artifactId>arcticweb-usermanual</artifactId>
+						</overlay>
+					</overlays>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -596,6 +609,7 @@
 	</profiles>
 
 	<repositories>
+		<!-- necessary to download parent for the first time, without building it locally -->
 		<repository>
 			<id>dma-releases</id>
 			<name>Dma Release Repository</name>
