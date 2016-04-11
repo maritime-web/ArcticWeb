@@ -192,7 +192,7 @@ https://arcticweb-test.e-navigation.net
 
 ## CI Test Server - Latest and Greatest
 
-The CI server continuously deployes the latest and greatest to a separate test server:
+The CI server continuously deploys the latest and greatest to a separate test server:
 
 https://arcticweb-alpha.e-navigation.net (requires credentials only available to development team)
 
