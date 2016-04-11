@@ -1,5 +1,7 @@
 /.tmp/
-/node_modules/
+/overlays/dk.dma.arcticweb.arcticweb-usermanual-2.3-20160405.112534-1
+/embryo-web/overlays/dk.dma.arcticweb.arcticweb-usermanual-2.3-20160405.112534-1
+node_modules
 /.settings
 target/
 /.classpath
