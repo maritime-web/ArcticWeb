@@ -10,7 +10,14 @@ $(function() {
 
     module.controller("MsiLayerControl", [ '$scope', 'MsiService', function($scope, MsiService) {
         MsiService.subscribe(function(error, warnings){
-            msiLayer.draw(warnings);
+            if(error){
+                embryo.messagePanel.show({
+                    text: error,
+                    type: "error"
+                });
+            }else{
+                msiLayer.draw(warnings);
+            }
         });
     } ]);
 
@@ -18,7 +25,7 @@ $(function() {
         $scope.regions = [];
         $scope.warnings = [];
         $scope.selected = {};
-        
+
         MsiService.subscribe(function(error, warnings, regions, selectedRegions){
             for ( var x in regions) {
                 if ($.inArray(regions[x].name, selectedRegions) != -1) {
@@ -50,14 +57,14 @@ $(function() {
 
         $scope.selectMsi = function(msi) {
             switch (msi.type) {
-            case "Point":
-                embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
-                break;
-            case "Points":
-            case "Polygon":
-            case "Polyline":
-                embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
-                break;
+                case "Point":
+                    embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
+                    break;
+                case "Points":
+                case "Polygon":
+                case "Polyline":
+                    embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
+                    break;
             }
             msiLayer.select(msi);
         };

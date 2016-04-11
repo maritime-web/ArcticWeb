@@ -6,12 +6,12 @@
         var service = null;
         var interval = 1 * 60 * 1000 * 60;
 
-        function notifySubscribers(error) {
+        function notifySubscribers() {
             if (subscription) {
                 for ( var i in subscription.callbacks) {
                     if (subscription.callbacks[i]) {
-                        if (error) {
-                            subscription.callbacks[i](error);
+                        if (subscription.error) {
+                            subscription.callbacks[i](subscription.error);
                         } else {
                             subscription.callbacks[i](null, subscription.warnings, subscription.regions, subscription.selectedRegions);
                         }
@@ -20,7 +20,7 @@
             }
         }
 
-        
+
         function getMsiData() {
             function getWarnings(regionNames){
                 subscription.selectedRegions = service.getSelectedRegions();
@@ -32,14 +32,20 @@
                     subscription.warnings = warnings;
                     notifySubscribers();
                 }, function(error, status){
-                    notifySubscribers(error);
+                    subscription.error = error;
+                    notifySubscribers();
                 });
             }
-            
+
+            subscription.error = null;
+
             if (!subscription.regions) {
                 service.regions(function(regions) {
                     subscription.regions = regions;
                     getWarnings();
+                }, function (errorMsg){
+                    subscription.error = errorMsg;
+                    notifySubscribers();
                 });
             }else{
                 getWarnings();
@@ -60,7 +66,7 @@
                 var messageId = embryo.messagePanel.show({
                     text : "Requesting active MSI warnings ..."
                 });
-                
+
                 $http.get(embryo.baseUrl + "rest/msi/list?" + arrayToHttpParams(regions, 'regions'), {
                     timeout : embryo.defaultTimeout
                 }).success(function(warnings){
@@ -105,8 +111,9 @@
                 if (subscription.interval == null) {
                     subscription.interval = $interval(getMsiData, interval);
                     getMsiData();
-                }
-                if (subscription.warnings) {
+                }else if (subscription.error) {
+                    callback(subscription.error, null, null, null);
+                } else if (subscription.warnings) {
                     callback(null, subscription.warnings, subscription.regions, subscription.selectedRegions);
                 }
                 return {
