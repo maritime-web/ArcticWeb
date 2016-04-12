@@ -60,6 +60,16 @@
     </filter-mapping>
 
     <filter>
+        <filter-name>NoCacheFilter</filter-name>
+        <filter-class>dk.dma.embryo.common.servlet.NoCacheFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>NoCacheFilter</filter-name>
+        <url-pattern>/partials/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
         <filter-name>SetCacheManifestContentTypeFilter</filter-name>
         <filter-class>dk.dma.embryo.common.servlet.SetContentTypeFilter</filter-class>
         <init-param>
