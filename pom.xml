@@ -23,12 +23,12 @@
 		<hibernate.hbm2ddl.auto>validate</hibernate.hbm2ddl.auto>
 
 		<!-- persistence.xml properties -->
-		<embryo-common.jar>common-${project.version}.jar</embryo-common.jar>
-		<embryo-dataformats.jar>dataformats-${project.version}.jar</embryo-dataformats.jar>
-		<embryo-vessel.jar>vessel-${project.version}.jar</embryo-vessel.jar>
-		<embryo-user.jar>user-${project.version}.jar</embryo-user.jar>
-		<embryo-reporting.jar>reporting-${project.version}.jar</embryo-reporting.jar>
-		<embryo-tiles.jar>map-tiles-${project.version}.jar</embryo-tiles.jar>
+		<embryo-common.jar>common-${project.parent.version}.jar</embryo-common.jar>
+		<embryo-dataformats.jar>dataformats-${project.parent.version}.jar</embryo-dataformats.jar>
+		<embryo-vessel.jar>vessel-${project.parent.version}.jar</embryo-vessel.jar>
+		<embryo-user.jar>user-${project.parent.version}.jar</embryo-user.jar>
+		<embryo-reporting.jar>reporting-${project.parent.version}.jar</embryo-reporting.jar>
+		<embryo-tiles.jar>map-tiles-${project.parent.version}.jar</embryo-tiles.jar>
 
 	</properties>
 
@@ -57,59 +57,67 @@
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>test-utilities</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>io</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>common</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>vessel</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>dataformats</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>user</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>msi</artifactId>
-			<version>2.7-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>metoc</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>reporting</artifactId>
-			<version>2.7-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>weather</artifactId>
-			<version>2.7-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>map-tiles</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
@@ -120,6 +128,7 @@
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>sar</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
