@@ -1533,7 +1533,8 @@
                 if (sa['@type'] != embryo.sar.Type.SearchArea){
                     return sa;
                 }
-                if(Subject.getDetails().userName === sa.coordinator.name || Subject.getDetails().shipMmsi === sa.coordinator.mmsi){
+                var details = Subject.getDetails();
+                if(details.userName === sa.coordinator.name || (details.shipMmsi && details.shipMmsi == sa.coordinator.mmsi)){
                     return sa;
                 }
                 var searchArea = clone(sa);
