@@ -1437,7 +1437,6 @@
             createSarOperation: function (sarInput) {
                 var clonedInput = clone(sarInput);
                 var result = {
-                    coordinator: Subject.getDetails().userName,
                     input: clonedInput,
                     output: getCalculator(clonedInput.type).calculate(clonedInput)
                 }
@@ -1461,9 +1460,6 @@
                     name: sarDoc.input.no,
                     status: sarDoc.status
                 }
-            },
-            save: function (sarOperation) {
-
             },
             searchPatternCspLabels: function (zone) {
                 return new SearchPatternCalculator().searchPatternCspLabels(zone);
@@ -1502,6 +1498,55 @@
                     }
                 }
                 return users;
+            },
+            setUserAsCoordinator: function (sar, user){
+                var sarOperation = clone(sar);
+                var coordinator = clone(user);
+                delete coordinator._rev
+                delete coordinator['@class']
+                delete coordinator['@type']
+                sarOperation.coordinator = coordinator;
+                return sarOperation;
+            },
+            findAndPrepareCurrentUserAsCoordinator: function (users){
+                function findUser(){
+                    var userName = Subject.getDetails().userName
+                    var mmsi = Subject.getDetails().shipMmsi;
+
+                    for(var index in users) {
+                        if (mmsi && users[index].mmsi === mmsi) {
+                            return users[index];
+                        } else if (users[index].name === userName) {
+                            return users[index];
+                        }
+                    }
+                    return null;
+                }
+                var user = findUser();
+                if(!user){
+                    throw new Error("Current user not found among existing users");
+                }
+                var result = service.setUserAsCoordinator({}, user);
+                return result.coordinator;
+            },
+            prepareSearchAreaForDisplayal: function(sa){
+                if (sa['@type'] != embryo.sar.Type.SearchArea){
+                    return sa;
+                }
+                if(Subject.getDetails().userName === sa.coordinator.name || Subject.getDetails().shipMmsi === sa.coordinator.mmsi){
+                    return sa;
+                }
+                var searchArea = clone(sa);
+                if(searchArea.output.datum){
+                    delete searchArea.output.datum;
+                    delete searchArea.output.rdv;
+                    delete searchArea.output.radius;
+                } else if (searchArea.output.downWind){
+                    delete searchArea.output.downWind;
+                    delete searchArea.output.min;
+                    delete searchArea.output.max;
+                }
+                return searchArea;
             }
         };
 

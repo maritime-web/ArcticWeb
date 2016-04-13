@@ -53,8 +53,8 @@ $(function () {
     sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
     sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/generic.png")
 
-    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch',
-        function ($scope, ViewService, SarService, $q, LivePouch) {
+    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch',
+        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch) {
 
             $scope.alertMessages = [];
 
@@ -161,28 +161,37 @@ $(function () {
 
         $scope.createSarOperation = function () {
             var sarInput = $scope.sar;
-            try {
-                $scope.alertMessages = [];
-                // retain PouchDB fields like _id and _rev
-                var calculatedOperation = SarService.createSarOperation(sarInput);
-                $scope.sarOperation['@type'] = calculatedOperation['@type'];
-                $scope.sarOperation.coordinator = calculatedOperation.coordinator;
-                $scope.sarOperation.input = calculatedOperation.input;
-                $scope.sarOperation.output = calculatedOperation.output;
-                if (!$scope.sarOperation.coordinator) {
-                    $scope.sarOperation.coordinator = calculatedOperation.coordinator;
-                }
 
-                $scope.tmp.searchObject = SarService.findSearchObjectType($scope.sarOperation.input.searchObject);
-                $scope.page = 'sarResult';
-            } catch (error) {
-                if (typeof error === 'object' && error.message) {
-                    $scope.alertMessages.push("Internal error: " + error.message);
-                    throw error;
-                } else if (typeof error === 'string') {
-                    $scope.alertMessages.push("Internal error: " + error);
+            UserPouch.allDocs({
+                include_docs: true
+            }).then(function (result) {
+                console.log(result)
+                var users = SarService.extractDbDocs(result);
+                console.log("users")
+                console.log(users)
+
+                try {
+                    $scope.alertMessages = [];
+                    // retain PouchDB fields like _id and _rev
+                    var calculatedOperation = SarService.createSarOperation(sarInput);
+                    $scope.sarOperation['@type'] = calculatedOperation['@type'];
+                    $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
+                    $scope.sarOperation.input = calculatedOperation.input;
+                    $scope.sarOperation.output = calculatedOperation.output;
+
+                    $scope.tmp.searchObject = SarService.findSearchObjectType($scope.sarOperation.input.searchObject);
+                    $scope.page = 'sarResult';
+                } catch (error) {
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                        throw error;
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
                 }
-            }
+            });
+
+
         }
 
         $scope.formatTs = formatTime;
@@ -219,42 +228,41 @@ $(function () {
             });
         }
 
-            $scope.end = function () {
-                var id = $scope.sarOperation._id;
+        $scope.end = function () {
+            var id = $scope.sarOperation._id;
 
-                LivePouch.get(id).then(function (sar) {
-                    sar.status = embryo.SARStatus.ENDED;
-                    LivePouch.put(sar).then(function () {
-                        $scope.provider.doShow = false;
-                        SarService.selectSar(null);
-                    }).catch(function (err) {
-                        console.log(err)
-                    });
+            LivePouch.get(id).then(function (sar) {
+                sar.status = embryo.SARStatus.ENDED;
+                LivePouch.put(sar).then(function () {
+                    $scope.provider.doShow = false;
+                    SarService.selectSar(null);
+                }).catch(function (err) {
+                    console.log(err)
                 });
-            }
+            });
+        }
 
-            $scope.getUsers = function (query) {
-                UserPouch.get(query).then(function (sar) {
-                    sar.status = embryo.SARStatus.ENDED;
-                    LivePouch.put(sar).then(function () {
-                        $scope.provider.doShow = false;
-                        SarService.selectSar(null);
-                    }).catch(function (err) {
-                        console.log(err)
+        $scope.getUsers = function (query) {
+            UserPouch.get(query).then(function (sar) {
+                sar.status = embryo.SARStatus.ENDED;
+                LivePouch.put(sar).then(function () {
+                    $scope.provider.doShow = false;
+                    SarService.selectSar(null);
+                }).catch(function (err) {
+                    console.log(err)
                 });
-                });
+            });
         }
 
     }]);
 
-    module.controller("SARCoordinatorController", ['$scope', 'LivePouch', function ($scope, LivePouch) {
+    module.controller("SARCoordinatorController", ['$scope', 'LivePouch', 'SarService', function ($scope, LivePouch, SarService) {
         $scope.coordinator = {
             user: {}
         }
 
         $scope.assign = function () {
-            var sarOperation = clone($scope.sarOperation);
-            sarOperation.coordinator = $scope.coordinator.user;
+            var sarOperation = SarService.setUserAsCoordinator($scope.sarOperation, $scope.coordinator.user);
             LivePouch.put(sarOperation).then(function () {
                 $scope.provider.close();
             }).catch(function (error) {

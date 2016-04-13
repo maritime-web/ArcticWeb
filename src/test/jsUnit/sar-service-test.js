@@ -1,5 +1,108 @@
 describe('embryo.sar', function () {
 
+
+    function createSarInputTestObject(service) {
+        var searchObjectTypes = service.searchObjectTypes();
+        return {
+            sarNo: 1,
+            type: embryo.sar.Operation.RapidResponse,
+            lastKnownPosition: {
+                ts: Date.now() - 60 * 60 * 1000,
+                lon: -51,
+                lat: 61
+            },
+            startTs: Date.now(),
+            surfaceDriftPoints: [{
+                ts: Date.now() - 60 * 60 * 1000,
+                twcSpeed: 5,
+                twcDirection: 45,
+                leewaySpeed: 15,
+                leewayDirection: 30
+            }],
+            xError: 1,
+            yError: 0.1,
+            safetyFactor: 1,
+            searchObject: searchObjectTypes[0].id
+        }
+    }
+
+    function createTestRdv(increment){
+        return {
+            direction: 6 + increment,
+            distance: 5 + increment,
+            speed: 5 + increment
+        }
+    }
+    function createTestDatum(increment){
+        return {
+            lon: -58 + increment,
+            lat: 62 + increment
+        }
+    }
+    function createCoordinator(name){
+        return {
+            name: name,
+            _id: 62
+        }
+    }
+
+    function createSarOutputTestObject(type) {
+        var output = {
+            searchArea: {
+                A: {
+                    lon: -57,
+                    lat: 63
+                },
+                B: {
+                    lon: -57,
+                    lat: 61
+                },
+                C: {
+                    lon: -59,
+                    lat: 61
+                },
+                D: {
+                    lon: -59,
+                    lat: 63
+                }
+            }
+        }
+
+        if(type === embryo.sar.Operation.RapidResponse){
+            output.radius = 2;
+            output.datum = createTestDatum(0);
+            output.rdv = createTestRdv(0);
+        } else if (type === embryo.sar.Operation.DatumPoint){
+            output.downWind = {
+                radius: 2,
+                datum: createTestDatum(1),
+                rdv: createTestRdv(1)
+            };
+            output.max = {
+                radius: 3,
+                datum: createTestDatum(2),
+                rdv: createTestRdv(2)
+            };
+            output.min = {
+                radius: 1,
+                datum: createTestDatum(0),
+                rdv: createTestRdv(0)
+            }
+        }
+        return output;
+    }
+
+    function createSarTestObject(service, user, operationType) {
+        var sar = {
+            coordinator: createCoordinator(user),
+            input: createSarInputTestObject(service),
+            output: createSarOutputTestObject(operationType)
+        }
+
+        sar['@type'] = embryo.sar.Type.SearchArea;
+        return sar;
+    }
+
     describe('SarService', function () {
         var service;
         beforeEach(function () {
@@ -21,32 +124,6 @@ describe('embryo.sar', function () {
             service = SarService;
         }));
 
-        function createSarTestObject(service) {
-            var searchObjectTypes = service.searchObjectTypes();
-            return {
-                sarNo: 1,
-                type: embryo.sar.Operation.RapidResponse,
-                lastKnownPosition: {
-                    ts: Date.now() - 60 * 60 * 1000,
-                    lon: -51,
-                    lat: 61
-                },
-                startTs: Date.now(),
-                surfaceDriftPoints: [{
-                    ts: Date.now() - 60 * 60 * 1000,
-                    twcSpeed: 5,
-                    twcDirection: 45,
-                    leewaySpeed: 15,
-                    leewayDirection: 30
-                }],
-                xError: 1,
-                yError: 0.1,
-                safetyFactor: 1,
-                searchObject: searchObjectTypes[0].id
-            }
-        }
-
-
         /**
          * This unit test has been produced to ensure the same result as when calculating rapid response SAR operations in the EPD project.
          * The unit test was first written in Java in the EPD project, just making assertion values fit what was actually calculated, and then
@@ -60,7 +137,7 @@ describe('embryo.sar', function () {
             var formatLatitude = embryo.geo.formatLatitude;
             var formatLongitude = embryo.geo.formatLongitude;
 
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
 
             //var sarOperation = null;
             var result = service.createSarOperation(input);
@@ -182,7 +259,7 @@ describe('embryo.sar', function () {
         }
 
         it('Error thrown if lastKnownPosition.ts has no value', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.lastKnownPosition.ts = null;
 
             var err = executeWithTryCatch(service, input)
@@ -190,7 +267,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if lastKnownPosition.lon has no value', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.lastKnownPosition.lon = null;
 
             var err = executeWithTryCatch(service, input)
@@ -198,7 +275,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if lastKnownPosition.lat has no value', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.lastKnownPosition.lat = null;
 
             var err = executeWithTryCatch(service, input)
@@ -206,7 +283,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if startTs has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.startTs = null;
 
             var err = executeWithTryCatch(service, input)
@@ -214,7 +291,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if surfaceDriftPoint.ts has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.surfaceDriftPoints[0].ts = null;
 
             var err = executeWithTryCatch(service, input)
@@ -222,7 +299,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if surfaceDriftPoint.twcSpeed has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.surfaceDriftPoints[0].twcSpeed = null;
 
             var err = executeWithTryCatch(service, input)
@@ -230,7 +307,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if surfaceDriftPoint.twcDirection has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.surfaceDriftPoints[0].twcDirection = null;
 
             var err = executeWithTryCatch(service, input)
@@ -238,7 +315,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if surfaceDriftPoint.leewaySpeed has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.surfaceDriftPoints[0].leewaySpeed = null;
 
             var err = executeWithTryCatch(service, input)
@@ -246,7 +323,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if surfaceDriftPoint.leewayDirection has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.surfaceDriftPoints[0].leewayDirection = null;
 
             var err = executeWithTryCatch(service, input)
@@ -254,7 +331,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if xError has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.xError = null;
 
             var err = executeWithTryCatch(service, input)
@@ -262,7 +339,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if yError has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.yError = null;
 
             var err = executeWithTryCatch(service, input)
@@ -270,7 +347,7 @@ describe('embryo.sar', function () {
         });
 
         it('Error thrown if safetyFactor has no value ', function () {
-            var input = createSarTestObject(service);
+            var input = createSarInputTestObject(service);
             input.safetyFactor = null;
 
             var err = executeWithTryCatch(service, input)
@@ -361,8 +438,100 @@ describe('embryo.sar', function () {
         });
 
 
+        it('prepareSearchAreaForDisplayal removes datum and RDV if user is not coordinator', function () {
+            var searchArea = createSarTestObject(service, "Coordinator", embryo.sar.Operation.RapidResponse)
 
+            var result = service.prepareSearchAreaForDisplayal(searchArea);
 
+            expect(result).toBeDefined();
+            expect(result.output).toBeDefined();
+            expect(result.output.searchArea).toBeDefined();
+            expect(result.output.datum).toBeUndefined();
+            expect(result.output.radius).toBeUndefined();
+            expect(result.output.rdv).toBeUndefined();
+        });
+
+        it('prepareSearchAreaForDisplayal removes downWind, min and max if user is not coordinator', function () {
+            var searchArea = createSarTestObject(service, "Coordinator", embryo.sar.Operation.DatumPoint)
+
+            var result = service.prepareSearchAreaForDisplayal(searchArea);
+
+            expect(result).toBeDefined();
+            expect(result.output).toBeDefined();
+            expect(result.output.searchArea).toBeDefined();
+            expect(result.output.downWind).toBeUndefined();
+            expect(result.output.min).toBeUndefined();
+            expect(result.output.max).toBeUndefined();
+        });
+
+        it('setUserAsCoordinator', function () {
+            var sarOperation = createSarTestObject(service, "Coordinator", embryo.sar.Operation.DatumPoint)
+
+            var user = {
+                _id: 34,
+                _rev: 134567,
+                name : "JohnDoe",
+                mmsi : 123456789
+            }
+            user['class'] = 'test.User'
+
+            var result = service.setUserAsCoordinator(sarOperation, user);
+
+            expect(result).toBeDefined();
+            expect(result.coordinator).toBeDefined();
+            expect(result.coordinator._id).toBe(34);
+            expect(result.coordinator.name).toBe("JohnDoe");
+            expect(result.coordinator.mmsi).toBe(123456789);
+            expect(result.coordinator._rev).toBeUndefined();
+            expect(result.coordinator['@class']).toBeUndefined();
+        });
     });
 
+    describe('SarService.prepareSearchAreaForDisplayal - failing', function () {
+        beforeEach(function () {
+            var mockSubject = {
+                getDetails: function () {
+                    return {
+                        userName: "Coordinator"
+                    };
+                }
+            };
+
+            module('embryo.authentication.service', function ($provide) {
+                $provide.value('Subject', mockSubject);
+            });
+            module('embryo.sar.service');
+        });
+
+        beforeEach(inject(function (SarService) {
+            service = SarService;
+        }));
+
+        it('prepareSearchAreaForDisplayal maintains datum and RDV if user is coordinator', function () {
+            var searchArea = createSarTestObject(service, "Coordinator", embryo.sar.Operation.RapidResponse)
+
+            var result = service.prepareSearchAreaForDisplayal(searchArea);
+
+            expect(result).toBeDefined();
+            expect(result.output).toBeDefined();
+            expect(result.output.searchArea).toBeDefined();
+            expect(result.output.datum).toBeDefined();
+            expect(result.output.radius).toBeDefined();
+            expect(result.output.rdv).toBeDefined();
+        });
+
+        it('prepareSearchAreaForDisplayal maintains downWind, min and max if user is coordinator', function () {
+            var searchArea = createSarTestObject(service, "Coordinator", embryo.sar.Operation.DatumPoint)
+
+            var result = service.prepareSearchAreaForDisplayal(searchArea);
+
+            expect(result).toBeDefined();
+            expect(result.output).toBeDefined();
+            expect(result.output.searchArea).toBeDefined();
+            expect(result.output.downWind).toBeDefined();
+            expect(result.output.min).toBeDefined();
+            expect(result.output.max).toBeDefined();
+        });
+
+    });
 });

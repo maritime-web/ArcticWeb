@@ -344,12 +344,12 @@ function SarLayer() {
 
     this.drawSar = function (sar) {
         var active = sar.status != embryo.SARStatus.ENDED;
+
+        this.layers.sar.addFeatures(createSearchArea(sar, active));
+        addLKP(this.layers.sar, sar.input.lastKnownPosition, sar._id);
+
         if (sar.output.datum) {
             addSearchRing(sar._id, this.layers.sar, sar.output, "Datum", active);
-
-            this.layers.sar.addFeatures(createSearchArea(sar, active));
-
-            addLKP(this.layers.sar, sar.input.lastKnownPosition, sar._id);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.datum);
             addDriftVector(this.layers.sar, prepareDriftVectors(sar.input.lastKnownPosition, sar.output.currentPositions, sar.output.windPositions))
         } else if (sar.output.downWind) {
@@ -357,9 +357,6 @@ function SarLayer() {
             addSearchRing(sar._id, this.layers.sar, sar.output.min, "Datum min", active);
             addSearchRing(sar._id, this.layers.sar, sar.output.max, "Datum max", active);
 
-            this.layers.sar.addFeatures(createSearchArea(sar, active));
-
-            addLKP(this.layers.sar, sar.input.lastKnownPosition, sar._id);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.downWind.datum);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.min.datum);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.max.datum);

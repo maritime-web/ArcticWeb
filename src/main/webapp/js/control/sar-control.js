@@ -87,7 +87,7 @@ $(function () {
                         doc.status == embryo.sar.effort.Status.Active ||
                         doc.status == embryo.sar.effort.Status.DraftZone ||
                         doc.status == embryo.sar.effort.Status.DraftModifiedOnMap) {
-                        documents.push(doc);
+                        documents.push(SarService.prepareSearchAreaForDisplayal(doc));
                     }
                 }
                 sarDocuments = documents;
