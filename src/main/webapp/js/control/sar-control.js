@@ -215,8 +215,8 @@ $(function () {
                 }
 
                 $scope.selected.sarId = sarId;
-                if (sarId) {
-                    LivePouch.get(sarId).catch(function (err) {
+                function loadSarOperation(){
+                    LivePouch.get($scope.selected.sarId).catch(function (err) {
                         $log.error(err);
                         throw err;
                     }).then(function (res) {
@@ -225,6 +225,22 @@ $(function () {
                         $log.debug("operationcontrol");
                         $log.debug(res);
                     })
+                }
+
+                if (sarId) {
+                    loadSarOperation();
+
+                    LivePouch.changes({
+                        since: 'now',
+                        live: true,
+                        include_docs: true,
+                        filter : '_view',
+                        view: "sar/searchArea",
+                        key : sarId
+                }).on('change', function () {
+                        loadSarOperation();
+                    });
+
                 } else {
                     $scope.selected.sar = null;
                     $scope.sar = null;
