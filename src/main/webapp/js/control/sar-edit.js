@@ -199,7 +199,7 @@ $(function () {
             if (!position) {
                 return ""
             }
-            return "(" + formatLatitude(position.lat) + ", " + formatLongitude(position.lon) + ")";
+            return "(" + position.lat + ", " + position.lon + ")";
         }
 
         $scope.formatDecimal = embryo.Math.round10;

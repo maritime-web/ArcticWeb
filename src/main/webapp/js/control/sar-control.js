@@ -3,7 +3,7 @@ $(function () {
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices']);
+    var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices', 'embryo.position']);
 
     module.controller("SARControl", ['$scope', function ($scope) {
         $scope.selected = {
@@ -41,11 +41,11 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SARLayerControl", ['SarService', 'LivePouch', '$log',
-        function (SarService, LivePouch, $log) {
+    module.controller("SARLayerControl", ['SarService', 'LivePouch', '$log', 'PositionService',
+        function (SarService, LivePouch, $log, PositionService) {
         var sarDocuments = [];
 
-        SarLayerSingleton.getInstance().modified = function (zoneUpdate) {
+        SarLayerSingleton.getInstance(PositionService).modified = function (zoneUpdate) {
             $log.debug("zone updated on map");
             $log.debug(zoneUpdate);
             LivePouch.get(zoneUpdate._id).then(function (zone) {
@@ -68,7 +68,7 @@ $(function () {
         SarService.sarSelected("SARLayerControl", function (sarId) {
             if (sarId) {
                 LivePouch.get(sarId).then(function (sar) {
-                    SarLayerSingleton.getInstance().zoomToSarOperation(sar);
+                    SarLayerSingleton.getInstance(PositionService).zoomToSarOperation(sar);
                 });
             }
         });
@@ -91,7 +91,7 @@ $(function () {
                     }
                 }
                 sarDocuments = documents;
-                SarLayerSingleton.getInstance().draw(sarDocuments);
+                SarLayerSingleton.getInstance(PositionService).draw(sarDocuments);
                 $log.debug("loadSarDocuments");
                 $log.debug(sarDocuments)
             }).catch(function (err) {
@@ -118,7 +118,6 @@ $(function () {
         });
 
         loadSarDocuments();
-
     }]);
 
     module.controller("OperationsControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch',
@@ -256,9 +255,6 @@ $(function () {
                 }
                 return formatLatitude(position.lat) + ", " + formatLongitude(position.lon);
             };
-
-            $scope.formatLat = formatLatitude;
-            $scope.formatLon = formatLongitude;
 
             $scope.edit = function () {
                 $scope.newSarProvider.show({sarId: $scope.sar._id});

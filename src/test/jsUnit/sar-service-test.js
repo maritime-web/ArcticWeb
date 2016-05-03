@@ -8,8 +8,8 @@ describe('embryo.sar', function () {
             type: embryo.sar.Operation.RapidResponse,
             lastKnownPosition: {
                 ts: Date.now() - 60 * 60 * 1000,
-                lon: -51,
-                lat: 61
+                lon: "051 00.000W",
+                lat: "61 00.000N"
             },
             startTs: Date.now(),
             surfaceDriftPoints: [{
@@ -134,9 +134,6 @@ describe('embryo.sar', function () {
          * as testRapidResponseWithOneSurfarceDriftPoint()
          */
         it('create rapid response SAR operation with one surface drift point', function () {
-            var formatLatitude = embryo.geo.formatLatitude;
-            var formatLongitude = embryo.geo.formatLongitude;
-
             var input = createSarInputTestObject(service);
 
             //var sarOperation = null;
@@ -147,25 +144,25 @@ describe('embryo.sar', function () {
             var output = result.output;
 
             // ASSERT DATUM
-            expect(formatLongitude(output.datum.lon)).toBe("050 52.939W");
-            expect(formatLatitude(output.datum.lat)).toBe("61 03.328N");
+            expect(output.datum.lon).toBe("050 52.939W");
+            expect(output.datum.lat).toBe("61 03.328N");
 
             expect(output.rdv.direction).toBeCloseTo(45.780030, 4);
             expect(output.rdv.distance).toBeCloseTo(4.775445, 4);
             expect(output.rdv.speed).toBeCloseTo(4.775445, 4);
             expect(output.radius).toBeCloseTo(2.532634, 4);
 
-            expect(formatLatitude(output.searchArea.A.lat)).toBe("61 06.905N");
-            expect(formatLongitude(output.searchArea.A.lon)).toBe("050 52.842W");
+            expect(output.searchArea.A.lat).toBe("61 06.905N");
+            expect(output.searchArea.A.lon).toBe("050 52.842W");
 
-            expect(formatLatitude(output.searchArea.B.lat)).toBe("61 03.278N");
-            expect(formatLongitude(output.searchArea.B.lon)).toBe("050 45.541W");
+            expect(output.searchArea.B.lat).toBe("61 03.278N");
+            expect(output.searchArea.B.lon).toBe("050 45.541W");
 
-            expect(formatLatitude(output.searchArea.C.lat)).toBe("60 59.748N");
-            expect(formatLongitude(output.searchArea.C.lon)).toBe("050 53.043W");
+            expect(output.searchArea.C.lat).toBe("60 59.748N");
+            expect(output.searchArea.C.lon).toBe("050 53.043W");
 
-            expect(formatLatitude(output.searchArea.D.lat)).toBe("61 03.375N");
-            expect(formatLongitude(output.searchArea.D.lon)).toBe("051 00.331W");
+            expect(output.searchArea.D.lat).toBe("61 03.375N");
+            expect(output.searchArea.D.lon).toBe("051 00.331W");
             expect(output.searchArea.size).toBeCloseTo(2.5326335063948107 * 2.5326335063948107 * 4, 4);
         });
 
@@ -182,8 +179,6 @@ describe('embryo.sar', function () {
 
         it('create rapid response SAR operation with two surface drift points', function () {
             var searchObjectTypes = service.searchObjectTypes();
-            var formatLatitude = embryo.geo.formatLatitude;
-            var formatLongitude = embryo.geo.formatLongitude;
 
             var input = {
                 sarNo: 1,
@@ -221,25 +216,25 @@ describe('embryo.sar', function () {
             var output = result.output;
 
             // ASSERT DATUM
-            expect(formatLatitude(output.datum.lat)).toBe("61 04.854N");
-            expect(formatLongitude(output.datum.lon)).toBe("050 51.794W");
+            expect(output.datum.lat).toBe("61 04.854N");
+            expect(output.datum.lon).toBe("050 51.794W");
 
             expect(output.rdv.direction).toBeCloseTo(35.372815, 4);
             expect(output.rdv.distance).toBeCloseTo(3.914134, 4);
             expect(output.rdv.speed).toBeCloseTo(7.828269, 4);
             expect(output.radius).toBeCloseTo(1.374240, 4);
 
-            expect(formatLatitude(output.searchArea.A.lat)).toBe("61 06.769N");
-            expect(formatLongitude(output.searchArea.A.lon)).toBe("050 52.467W");
+            expect(output.searchArea.A.lat).toBe("61 06.769N");
+            expect(output.searchArea.A.lon).toBe("050 52.467W");
 
-            expect(formatLatitude(output.searchArea.B.lat)).toBe("61 05.179N");
-            expect(formatLongitude(output.searchArea.B.lon)).toBe("050 47.833W");
+            expect(output.searchArea.B.lat).toBe("61 05.179N");
+            expect(output.searchArea.B.lon).toBe("050 47.833W");
 
-            expect(formatLatitude(output.searchArea.C.lat)).toBe("61 02.939N");
-            expect(formatLongitude(output.searchArea.C.lon)).toBe("050 51.124W");
+            expect(output.searchArea.C.lat).toBe("61 02.939N");
+            expect(output.searchArea.C.lon).toBe("050 51.124W");
 
-            expect(formatLatitude(output.searchArea.D.lat)).toBe("61 04.529N");
-            expect(formatLongitude(output.searchArea.D.lon)).toBe("050 55.753W");
+            expect(output.searchArea.D.lat).toBe("61 04.529N");
+            expect(output.searchArea.D.lon).toBe("050 55.753W");
             expect(output.searchArea.size).toBeCloseTo(1.3742403439070814 * 1.3742403439070814 * 4, 4);
         });
 
@@ -367,8 +362,6 @@ describe('embryo.sar', function () {
 
         it('create datum point SAR operation with one surface drift point', function () {
             var searchObjectTypes = service.searchObjectTypes();
-            var formatLatitude = embryo.geo.formatLatitude;
-            var formatLongitude = embryo.geo.formatLongitude;
 
             var input = {
                 sarNo: 1,
@@ -400,22 +393,22 @@ describe('embryo.sar', function () {
             var output = result.output;
 
             // ASSERT DATUM
-            expect(formatLatitude(output.downWind.datum.lat)).toBe("61 03.328N");
-            expect(formatLongitude(output.downWind.datum.lon)).toBe("050 52.939W");
+            expect(output.downWind.datum.lat).toBe("61 03.328N");
+            expect(output.downWind.datum.lon).toBe("050 52.939W");
             expect(output.downWind.rdv.direction).toBeCloseTo(45.780030, 4);
             expect(output.downWind.rdv.distance).toBeCloseTo(4.7754450, 4);
             expect(output.downWind.rdv.speed).toBeCloseTo(4.775445, 4);
             expect(output.downWind.radius).toBeCloseTo(2.532633, 4);
 
-            expect(formatLatitude(output.max.datum.lat)).toBe("61 03.413N");
-            expect(formatLongitude(output.max.datum.lon)).toBe("050 53.115W");
+            expect(output.max.datum.lat).toBe("61 03.413N");
+            expect(output.max.datum.lon).toBe("050 53.115W");
             expect(output.max.rdv.direction).toBeCloseTo(44.331598, 4);
             expect(output.max.rdv.distance).toBeCloseTo(4.7752103, 4);
             expect(output.max.rdv.speed).toBeCloseTo(4.7752103, 4);
             expect(output.max.radius).toBeCloseTo(2.5325631, 4);
 
-            expect(formatLatitude(output.min.datum.lat)).toBe("61 03.297N");
-            expect(formatLongitude(output.min.datum.lon)).toBe("050 52.699W");
+            expect(output.min.datum.lat).toBe("61 03.297N");
+            expect(output.min.datum.lon).toBe("050 52.699W");
             expect(output.min.rdv.direction).toBeCloseTo(47.008245, 4);
             expect(output.min.rdv.distance).toBeCloseTo(4.8383743, 4);
             expect(output.min.rdv.speed).toBeCloseTo(4.8383743, 4);

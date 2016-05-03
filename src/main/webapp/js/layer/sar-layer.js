@@ -4,6 +4,8 @@ function SarLayer() {
 
     var that = this;
 
+    var PositionService;
+
     that.zoomLevels = [8, 10, 12];
 
     this.init = function () {
@@ -144,6 +146,12 @@ function SarLayer() {
                         D: that.map.transformToPosition(feature.geometry.components[3])
                     }
                 }
+
+                zoneUpdate.area.A = PositionService.degreesToStrings(zoneUpdate.area.A);
+                zoneUpdate.area.B = PositionService.degreesToStrings(zoneUpdate.area.B);
+                zoneUpdate.area.C = PositionService.degreesToStrings(zoneUpdate.area.C);
+                zoneUpdate.area.D = PositionService.degreesToStrings(zoneUpdate.area.D);
+
                 that.modified(zoneUpdate)
             }
         }
@@ -213,10 +221,16 @@ function SarLayer() {
     function createSearchArea(sar, active) {
         var searchArea = sar.output.searchArea;
         var features = [];
-        var pointA = embryo.map.createPoint(searchArea.A.lon, searchArea.A.lat);
-        var pointB = embryo.map.createPoint(searchArea.B.lon, searchArea.B.lat);
-        var pointC = embryo.map.createPoint(searchArea.C.lon, searchArea.C.lat);
-        var pointD = embryo.map.createPoint(searchArea.D.lon, searchArea.D.lat);
+
+        var A = PositionService.stringsToDegrees(searchArea.A);
+        var B = PositionService.stringsToDegrees(searchArea.B);
+        var C = PositionService.stringsToDegrees(searchArea.C);
+        var D = PositionService.stringsToDegrees(searchArea.D);
+
+        var pointA = embryo.map.createPoint(A.lon, A.lat);
+        var pointB = embryo.map.createPoint(B.lon, B.lat);
+        var pointC = embryo.map.createPoint(C.lon, C.lat);
+        var pointD = embryo.map.createPoint(D.lon, D.lat);
         var square = new OpenLayers.Geometry.LinearRing([pointA, pointB, pointC, pointD]);
         features.push(new OpenLayers.Feature.Vector(square, {
             type: "area",
@@ -251,7 +265,8 @@ function SarLayer() {
         var points = []
         var length = positions.length;
         for (var i = 0; i < length; i++) {
-            points.push(embryo.map.createPoint(positions[i].lon, positions[i].lat));
+            var position = PositionService.stringsToDegrees(positions[i]);
+            points.push(embryo.map.createPoint(position.lon, position.lat));
         }
         var features = [new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points), {
 //            renderers: ['SVGExtended', 'VMLExtended', 'CanvasExtended'],
@@ -261,7 +276,8 @@ function SarLayer() {
     }
 
     function addLKP(layer, lkp, sarId) {
-        var features = [new OpenLayers.Feature.Vector(embryo.map.createPoint(lkp.lon, lkp.lat), {
+        var position = PositionService.stringsToDegrees(lkp);
+        var features = [new OpenLayers.Feature.Vector(embryo.map.createPoint(position.lon, position.lat), {
             label: "LKP",
             type: "lkpLabel",
             sarId: sarId
@@ -272,12 +288,13 @@ function SarLayer() {
     function prepareDriftVectors(lkp, twcPositions, leewayPositions) {
         var points = []
         if (lkp) {
-            points.push(lkp);
+            var position = PositionService.stringsToDegrees(lkp);
+            points.push(position);
         }
         var length = twcPositions ? twcPositions.length : 0;
         for (var i = 0; i < length; i++) {
-            points.push(twcPositions[i]);
-            points.push(leewayPositions[i])
+            points.push(PositionService.stringsToDegrees(twcPositions[i]));
+            points.push(PositionService.stringsToDegrees(leewayPositions[i]))
         }
         return points;
     }
@@ -305,9 +322,10 @@ function SarLayer() {
             active: active,
             sarId: id
         }
-        features.addFeatures(embryo.adt.createRing(circle.datum.lon, circle.datum.lat, radiusInKm, 1, attributes));
+        var datum = PositionService.stringsToDegrees(circle.datum)
+        features.addFeatures(embryo.adt.createRing(datum.lon, datum.lat, radiusInKm, 1, attributes));
 
-        var center = embryo.map.createPoint(circle.datum.lon, circle.datum.lat);
+        var center = embryo.map.createPoint(datum.lon, datum.lat);
         features.addFeatures(new OpenLayers.Feature.Vector(center, {
             type: 'circleLabel',
             label: label,
@@ -370,10 +388,15 @@ function SarLayer() {
     this.drawEffortAllocationZone = function (effAll) {
         var area = effAll.area;
 
-        var pointA = embryo.map.createPoint(area.A.lon, area.A.lat);
-        var pointB = embryo.map.createPoint(area.B.lon, area.B.lat);
-        var pointC = embryo.map.createPoint(area.C.lon, area.C.lat);
-        var pointD = embryo.map.createPoint(area.D.lon, area.D.lat);
+        var A = PositionService.stringsToDegrees(area.A);
+        var B = PositionService.stringsToDegrees(area.B);
+        var C = PositionService.stringsToDegrees(area.C);
+        var D = PositionService.stringsToDegrees(area.D);
+
+        var pointA = embryo.map.createPoint(A.lon, A.lat);
+        var pointB = embryo.map.createPoint(B.lon, B.lat);
+        var pointC = embryo.map.createPoint(C.lon, C.lat);
+        var pointD = embryo.map.createPoint(D.lon, D.lat);
         var square = new OpenLayers.Geometry.LinearRing([pointA, pointB, pointC, pointD]);
         var feature = new OpenLayers.Feature.Vector(square, {
             type: "zone",
@@ -391,7 +414,8 @@ function SarLayer() {
     };
 
     this.drawLogPosition = function (log) {
-        var point = embryo.map.createPoint(log.lon, log.lat);
+        var position = PositionService.stringsToDegrees(log);
+        var point = embryo.map.createPoint(position.lon, position.lat);
         var feature = new OpenLayers.Feature.Vector(point, {
             type: log["@type"],
             label: log.value,
@@ -434,6 +458,10 @@ function SarLayer() {
             return !!feature.attributes.temp;
         })
     }
+
+    this.setPositionService = function(PosService){
+        PositionService = PosService;
+    }
 }
 
 SarLayer.prototype = new RouteLayer();
@@ -443,7 +471,10 @@ SarLayer.prototype = new RouteLayer();
  */
 var SarLayerSingleton = {
     instance: null,
-    getInstance: function () {
+    getInstance: function (PositionService) {
+        if(PositionService){
+            this.instance.setPositionService(PositionService);
+        }
         return this.instance;
     }
 }

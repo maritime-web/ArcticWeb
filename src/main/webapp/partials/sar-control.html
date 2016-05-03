@@ -113,29 +113,29 @@
                         </tr>
                         <tr x-ng-if="sar.output.datum">
                             <td>DW</td>
-                            <td>{{formatLat(sar.output.datum.lat)}}</td>
-                            <td>{{formatLon(sar.output.datum.lon)}}</td>
+                            <td>{{sar.output.datum.lat}}</td>
+                            <td>{{sar.output.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.rdv.distance, -2)}} nm</td>
                             <td>{{formatDecimal(sar.output.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.downWind">
                             <td>DW</td>
-                            <td>{{formatLat(sar.output.downWind.datum.lat)}}</td>
-                            <td>{{formatLon(sar.output.downWind.datum.lon)}}</td>
+                            <td>{{sar.output.downWind.datum.lat}}</td>
+                            <td>{{sar.output.downWind.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.downWind.rdv.distance, -2)}} nm</td>
                             <td>{{formatDecimal(sar.output.downWind.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.min">
                             <td>Min</td>
-                            <td>{{formatLat(sar.output.min.datum.lat)}}</td>
-                            <td>{{formatLon(sar.output.min.datum.lon)}}</td>
+                            <td>{{sar.output.min.datum.lat}}</td>
+                            <td>{{sar.output.min.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.min.rdv.distance, -2)}} nm</td>
                             <td>{{formatDecimal(sar.output.min.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.max">
                             <td>Max</td>
-                            <td>{{formatLat(sar.output.max.datum.lat)}}</td>
-                            <td>{{formatLon(sar.output.max.datum.lon)}}</td>
+                            <td>{{sar.output.max.datum.lat}}</td>
+                            <td>{{sar.output.max.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.max.rdv.distance, -2)}} nm</td>
                             <td>{{formatDecimal(sar.output.max.radius, -2)}} nm</td>
                         </tr>
@@ -149,23 +149,23 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4">A</div>
-                        <div class="col-md-4 nopadding">{{formatLat(sar.output.searchArea.A.lat)}}</div>
-                        <div class="col-md-4 nopadding">{{formatLon(sar.output.searchArea.A.lon)}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">B</div>
-                        <div class="col-md-4 nopadding">{{formatLat(sar.output.searchArea.B.lat)}}</div>
-                        <div class="col-md-4 nopadding">{{formatLon(sar.output.searchArea.B.lon)}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">C</div>
-                        <div class="col-md-4 nopadding">{{formatLat(sar.output.searchArea.C.lat)}}</div>
-                        <div class="col-md-4 nopadding">{{formatLon(sar.output.searchArea.C.lon)}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">D</div>
-                        <div class="col-md-4 nopadding">{{formatLat(sar.output.searchArea.D.lat)}}</div>
-                        <div class="col-md-4 nopadding">{{formatLon(sar.output.searchArea.D.lon)}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
+                        <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
                     </div>
                     <div class="row" style="margin-top:5px">
                         <div class="col-md-4">Size</div>
