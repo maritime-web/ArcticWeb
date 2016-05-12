@@ -17,6 +17,7 @@ package dk.dma.embryo.tiles.image;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,17 +26,18 @@ import java.io.IOException;
 /**
  * Created by Jesper Tejlgaard on 8/20/14.
  */
-
+@Ignore("Only for manual test via the IDE since it requires a maptiler executable")
 public class Image2TilesUsingMaptilerIT {
 
     @Test
     public void testGeotiff() throws IOException, InterruptedException {
 
         String executable = "/home/jesper/Git/enav-appsrv/maptiler-cluster/maptiler";
+        String license = null;
         File conf = new File(getClass().getResource("/default-configuration.properties").getFile());
         File logDir = new File(conf.getParentFile().getParentFile(), "test-tmp");
-
-        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, logDir.getAbsolutePath(), "");
+        Integer daysToKeepLogs = 6;
+        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, license, logDir.getAbsolutePath(), daysToKeepLogs, "");
 
         File destinationFile = new File("/home/jesper/Documents/201408051525.rgb_MODIS_Dundee.mbtiles");
         if (destinationFile.exists()) {
@@ -61,10 +63,11 @@ public class Image2TilesUsingMaptilerIT {
     public void testJpgToFolder() throws IOException, InterruptedException {
 
         String executable = "/home/jesper/Git/enav-appsrv/maptiler-cluster/maptiler";
+        String license = null;
         File conf = new File(getClass().getResource("/default-configuration.properties").getFile());
         File logDir = new File(conf.getParentFile().getParentFile(), "test-tmp");
-
-        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, logDir.getAbsolutePath(), "-zoom 3 5");
+        Integer daysToKeepLogs = 6;
+        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, license, logDir.getAbsolutePath(), daysToKeepLogs, "-zoom 3 5");
 
         File destinationFile = new File("/home/jesper/Documents/NASA_Modis_20141001-aqua-r01c01-250m");
         if (destinationFile.exists()) {
@@ -80,10 +83,12 @@ public class Image2TilesUsingMaptilerIT {
     public void testJpgToMbfiles() throws IOException, InterruptedException {
 
         String executable = "/home/jesper/Git/enav-appsrv/maptiler-cluster/maptiler";
+        String license = null;
         File conf = new File(getClass().getResource("/default-configuration.properties").getFile());
         File logDir = new File(conf.getParentFile().getParentFile(), "test-tmp");
+        Integer daysToKeepLogs = 6;
 
-        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, logDir.getAbsolutePath(), "-nodata 0 0 0 -zoom 3 4");
+        Image2TilesUsingMaptiler geoTiff2Tiles = new Image2TilesUsingMaptiler(executable, license, logDir.getAbsolutePath(), daysToKeepLogs, "-nodata 0 0 0 -zoom 3 4");
 
         File destinationFile = new File("/home/jesper/Documents/Source_Type_20141106-ZZ.mbtiles");
         if (destinationFile.exists()) {

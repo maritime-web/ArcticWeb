@@ -42,20 +42,14 @@ public class Image2TilesUsingMaptiler implements Image2Tiles {
 
     Logger logger = LoggerFactory.getLogger(Image2TilesUsingMaptiler.class);
 
-    @Inject
-    @Property(value = "embryo.tiles.maptiler.executable", substituteSystemProperties = true)
     private String mapTilerExecutable;
 
-    @Inject
-    @Property(value = "embryo.tiler.maptiler.logDir", substituteSystemProperties = true)
+    private String mapTilerLicense;
+
     private String logDir;
 
-    @Inject
-    @Property(value = "embryo.tiler.maptiler.daysToKeepLogs")
     private Integer daysToKeepLogs;
 
-    @Inject
-    @Property(value = "embryo.tiler.maptiler.defaults")
     private String defaults;
 
     private File logDirectory;
@@ -63,9 +57,17 @@ public class Image2TilesUsingMaptiler implements Image2Tiles {
     public Image2TilesUsingMaptiler() {
     }
 
-    public Image2TilesUsingMaptiler(String executable, String logDir, String defaults) {
+    @Inject
+    public Image2TilesUsingMaptiler(
+            @Property(value = "embryo.tiles.maptiler.executable", substituteSystemProperties = true) String executable,
+            @Property(value = "embryo.tiles.maptiler.license") String mapTilerLicense,
+            @Property(value = "embryo.tiler.maptiler.logDir", substituteSystemProperties = true) String logDir,
+            @Property(value = "embryo.tiler.maptiler.daysToKeepLogs") Integer daysToKeepLogs,
+            @Property(value = "embryo.tiler.maptiler.defaults") String defaults) {
         this.mapTilerExecutable = executable;
+        this.mapTilerLicense = mapTilerLicense;
         this.logDir = logDir;
+        this.daysToKeepLogs = daysToKeepLogs;
         this.defaults = defaults;
     }
 
@@ -112,14 +114,20 @@ public class Image2TilesUsingMaptiler implements Image2Tiles {
         String name = destinationFile.getName().replaceAll(".mbtiles", "");
         ProcessBuilder builder = new ProcessBuilder(cmds);
 
+        logger.debug("ProcessBuilder commands: {}", commands);
+        if(mapTilerLicense != null && mapTilerLicense.trim().length() > 1){
+            builder.environment().put("MAPTILER_LICENSE", mapTilerLicense);
+            logger.debug("MAPTILER_LICENSE added to system environment");
+        }
+        logger.debug("ProcessBuilder system environment: {}", builder.environment());
+
         File errorLog = new File(logDirectory, name + "-error.log");
         File outputLog = new File(logDirectory, name + "-output.log");
+        builder.redirectError(errorLog);
+        builder.redirectOutput(outputLog);
 
         logger.debug("Error log file: {}", errorLog.getAbsolutePath());
         logger.debug("Output log file: {}", outputLog.getAbsolutePath());
-
-        builder.redirectError(errorLog);
-        builder.redirectOutput(outputLog);
 
         try {
             Process proc = builder.start();
