@@ -1015,7 +1015,8 @@
                     var mmsi = Subject.getDetails().shipMmsi;
 
                     for(var index in users) {
-                        if (mmsi && users[index].mmsi === mmsi) {
+                        // change to '===' when data are both strings / numbers
+                        if (mmsi && users[index].mmsi == mmsi) {
                             return users[index];
                         } else if (users[index].name === userName) {
                             return users[index];
