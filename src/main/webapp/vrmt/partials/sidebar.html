@@ -1,0 +1,50 @@
+
+<div class="col-xs-12 col-sm-3 col-md-3 sidebar">
+    <div style="padding-left: 10px;">
+        <h3>VOYAGE RISK MANAGEMENT</h3>
+        <div class="row" style="padding-bottom: 10px;">
+            <div class="col-xs-3">
+                <img src="img/vessel_purple.png">
+            </div>
+            <div class="col-xs-9">
+                <span>02.06.2016 13:00 - 14:00</span>
+            </div>
+        </div>
+        <div class="row" style="padding-bottom: 10px;">
+            <div class="col-xs-3">
+                <span style="background-color: yellow; color: transparent">aaa</span>
+            </div>
+            <div class="col-xs-9">
+                <span>Index: 1700</span>
+            </div>
+        </div>
+    </div>
+
+    <accordion close-others="true">
+        <accordion-group is-open="sidebar.monitorAndReportActive">
+            <accordion-heading>
+                MONITOR AND REPORT <span class="pull-right glyphicon" ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
+            </accordion-heading>
+            Hello, nice weather.
+        </accordion-group>
+        <accordion-group is-open="sidebar.safetyMeasuresActive">
+            <accordion-heading>
+                SAFETY MEASURES <span class="pull-right glyphicon" ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
+            </accordion-heading>
+            Hello, nice weather.
+        </accordion-group>
+        <accordion-group is-open="sidebar.decisionMakingActive">
+            <accordion-heading>
+                DECISION MAKING <span class="pull-right glyphicon" ng-class="{'glyphicon-menu-down': !sidebar.decisionMakingActive, 'glyphicon-menu-up': sidebar.decisionMakingActive}"></span>
+            </accordion-heading>
+            Hello, nice weather.
+        </accordion-group>
+        <accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
+            <accordion-heading>
+                LOG OF MEASURES AND REPORTS <span class="pull-right glyphicon" ng-class="{'glyphicon-menu-down': !sidebar.logOfMeasuresAndReportsActive, 'glyphicon-menu-up': sidebar.logOfMeasuresAndReportsActive}"></span>
+            </accordion-heading>
+            Hello, nice weather.
+        </accordion-group>
+    </accordion>
+
+</div>
