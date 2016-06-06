@@ -313,7 +313,9 @@ $(function () {
         }
 
         $scope.add = function(){
+            console.log("add")
             $scope.dsp.surfaceDrifts.push({});
+            console.log($scope.dsp.surfaceDrifts);
         }
 
         $scope.removeLast = function(){

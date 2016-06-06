@@ -307,7 +307,7 @@
                     <h5>Surface drift</h5>
                     <div class="form-group" x-ng-if="(!dspToEditIndex && dspToEditIndex != 0 && (sar.dsps && sar.dsps.length > 0)) || dspToEditIndex > 0">
                         <label class="control-label col-xs-5" >
-                            <input type="checkbox" x-ng-model="dsp.reuseSurfaceDrifts"/>Reuse drift values from first DSP
+                            <input type="checkbox" x-ng-model="dsp.reuseSurfaceDrifts" x-ng-change="changeReuse()"/>Reuse drift values from first DSP
                         </label>
                         <div class="col-xs-7">
                         </div>
