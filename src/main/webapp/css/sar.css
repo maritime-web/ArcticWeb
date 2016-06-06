@@ -32,9 +32,19 @@
     width: 175px;
 }
 
+table.dsps td:nth-child(2) {
+    width: 175px;
+}
+
 table.surfaceDriftPointsPresented {
     width: 400px;
 }
+
+table.dsps tr.surfaceDrift td {
+    padding-top: 0px;
+    border-top: 0px;
+}
+
 
 #sarOperationEditPanel hr {
     margin-top: 10px;

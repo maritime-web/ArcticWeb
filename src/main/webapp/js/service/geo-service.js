@@ -1,6 +1,8 @@
 (function () {
     "use strict";
 
+    var module = angular.module('embryo.geo.services', []);
+
     embryo.geo = {}
     embryo.geo.Heading = Object.freeze({"RL": "RL", "GC": "GC"})
 
@@ -458,10 +460,310 @@
         return distanceInNm;
     }
 
+    /* To be replaced by embryo.geo.Position.formatLongitude*/
+    function formatLongitude(longitude) {
+        var ns = "E";
+        if (longitude < 0) {
+            ns = "W";
+            longitude *= -1;
+        }
+        var hours = Math.floor(longitude);
+        longitude -= hours;
+        longitude *= 60;
+        var lonStr = longitude.toFixed(3);
+        while (lonStr.indexOf('.') < 2) {
+            lonStr = "0" + lonStr;
+        }
+
+        return (hours / 1000.0).toFixed(3).substring(2) + " " + lonStr + ns;
+    }
+
+    /* To be replaced by embryo.geo.Position.formatLatitude*/
+    function formatLatitude(latitude) {
+        var ns = "N";
+        if (latitude < 0) {
+            ns = "S";
+            latitude *= -1;
+        }
+        var hours = Math.floor(latitude);
+        latitude -= hours;
+        latitude *= 60;
+        var latStr = latitude.toFixed(3);
+        while (latStr.indexOf('.') < 2) {
+            latStr = "0" + latStr;
+        }
+
+        return (hours / 100.0).toFixed(2).substring(2) + " " + latStr + ns;
+    }
+
+
+    embryo.geo.Position.prototype.toDegreesAndDecimalMinutes = function () {
+        return {
+            lat : formatLatitude(this.lat),
+            lon : formatLongitude(this.lon)
+        }
+    }
+
+
+    function splitFormattedPos(posStr) {
+        var parts = [];
+        parts[2] = posStr.substring(posStr.length - 1);
+        posStr = posStr.substring(0, posStr.length - 1);
+        var posParts = $.trim(posStr).split(" ");
+        if (posParts.length != 2) {
+            throw "Format exception";
+        }
+        parts[0] = posParts[0];
+        parts[1] = posParts[1];
+        return parts;
+    }
+
+    function parseString(str){
+        str = $.trim(str);
+        if (str == null || str.length == 0) {
+            return null;
+        }
+        return str;
+    }
+
+    function parseLat(hours, minutes, northSouth) {
+        var h = parseInt(hours, 10);
+        var m = parseFloat(minutes);
+        var ns = parseString(northSouth);
+        if (h == null || m == null || ns == null) {
+            throw "Format exception";
+        }
+        ns = ns.toUpperCase();
+        if (!(ns == "N") && !(ns == "S")) {
+            throw "Format exception";
+        }
+        var lat = h + m / 60.0;
+        if (ns == "S") {
+            lat *= -1;
+        }
+        return lat;
+    }
+
+    function parseLon(hours, minutes, eastWest) {
+        var h = parseInt(hours, 10);
+        var m = parseFloat(minutes);
+        var ew = parseString(eastWest);
+        if (h == null || m == null || ew == null) {
+            throw "Format exception";
+        }
+        ew = ew.toUpperCase();
+        if (!(ew == "E") && !(ew == "W")) {
+            throw "Format exception";
+        }
+        var lon = h + m / 60.0;
+        if (ew == "W") {
+            lon *= -1;
+        }
+        return lon;
+    }
+
+    embryo.geo.Position.parseLatitude = function (value) {
+        if ($.trim(value).indexOf(" ") < 0) {
+            var parsed = parseFloat(value);
+            if (parsed == value) {
+                return parsed;
+            }
+        }
+        var parts = splitFormattedPos(value);
+        return parseLat(parts[0], parts[1], parts[2]);
+    };
+
+    embryo.geo.Position.parseLongitude = function (value) {
+        if ($.trim(value).indexOf(" ") < 0) {
+            var parsed = parseFloat(value);
+            if (parsed == value) {
+                return parsed;
+            }
+        }
+        var parts = splitFormattedPos(value);
+        return parseLon(parts[0], parts[1], parts[2]);
+    };
+
+
+    embryo.geo.Position.toDegreesAndDecimalMinutes = function (positionArray) {
+        var result = [];
+        for(var index in positionArray){
+            result.push(positionArray[index].toDegreesAndDecimalMinutes());
+        }
+        return result;
+    }
+
+    embryo.geo.Position.fromDegreesAndDecimalMinutes = function (position) {
+        return embryo.geo.Position.create(lon, lat);
+    }
+
+
+    module.factory('Position', function () {
+        /**
+         * Can be used with
+         * - two parameters (longitude, latitude) in the format "degree and decimal minutes" (e.g. 010 12.432W, 12 43.123N)
+         * - two paramters (longitude, latitude) in the format "degrees" (e.g. 10.5 and 12.34)
+         * - on parameter, an object with "lon" and "lat" properties having values following either of the above.
+        */
+        embryo.geo.Position.create = function (){
+            var lon, lat;
+            if(arguments.length == 1 && typeof arguments[0] === "object"){
+                assertObjectFieldValue(arguments[0], "lon");
+                assertObjectFieldValue(arguments[0], "lat");
+                lon = arguments[0].lon, lat = arguments[0].lat;
+            } else if(arguments.length == 2){
+                lon = arguments[0], lat = arguments[1];
+            }
+
+            if(typeof lon === "string"  && typeof lat === "string"){
+                lon = embryo.geo.Position.parseLongitude(lon);
+                lat = embryo.geo.Position.parseLatitude(lat);
+            }
+            return new embryo.geo.Position(lon, lat);
+        }
+        return embryo.geo.Position;
+    })
+
     embryo.geo.Circle = function(centerPosition, radius){
         this.center = centerPosition;
         this.radius = radius;
     }
+
+    embryo.geo.Circle = function(centerPosition, radius){
+        this.center = centerPosition;
+        this.radius = radius;
+    }
+
+    module.factory('Circle', function () {
+        embryo.geo.Circle.create = function (centerPosition, radius){
+            return new embryo.geo.Circle(centerPosition, radius);
+        }
+        return embryo.geo.Circle;
+    })
+
+    // Find the points where this circle and the circle argument intersects
+    embryo.geo.Circle.prototype.circleIntersectionPoints = function (circle1) {
+        var circle0 = this;
+
+        // calculations inspired by: http://www.vb-helper.com/howto_net_circle_circle_intersection.html
+        // Find the distance between the centers.
+        var dist = circle0.center.rhumbLineDistanceTo(circle1.center);
+
+        // See how many solutions there are.
+        if(dist > circle0.radius + circle1.radius){
+            throw new Error("No intersection points. Circles to far apart.");
+        }else if(dist < Math.abs(circle0.radius - circle1.radius)){
+            throw new Error("No intersection points, one circle contains the other.");
+        }else if (dist == 0 && circle0.radius == circle1.radius){
+            throw new Error("No intersection points, the circles coincide.");
+        }
+
+        //Find a and h.
+        // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
+        var a = (Math.pow(circle0.radius, 2) - Math.pow(circle1.radius, 2) + Math.pow(dist,2)) / (2 * dist);
+
+        var h = Math.sqrt(Math.pow(circle0.radius, 2) - Math.pow(a, 2));
+
+        // Find P2.
+        // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
+        var bearing = circle0.center.rhumbLineBearingTo(circle1.center);
+        var P2 = circle0.center.transformPosition(bearing, a);
+        //var lon = circle0.center.lon + a * (circle1.center.lon - circle0.center.lon) / dist;
+        //var lat = circle0.center.lat + a * (circle1.center.lat - circle0.center.lat) / dist;
+        //var P2 = new embryo.geo.Position(lon, lat);
+
+        // Get one of the points P3.
+        // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
+        //var intersections = {
+        //    p1 : new embryo.geo.Position(P2.lon + h * (circle1.center.lat - circle0.center.lat) / dist,
+        //        P2.lat - h * (circle1.center.lon - circle0.center.lon) / dist)
+        //}
+        var intersections = {
+            p1 : P2.transformPosition(bearing - 90, h)
+        }
+
+        // if two intersections, then calculate it.
+        // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
+        if(dist != circle0.radius + circle1.radius){
+            //intersections.p2 = new embryo.geo.Position(
+            //    P2.lon - h * (circle1.center.lat - circle0.center.lat) / dist,
+            //    P2.lat + h * (circle1.center.lon - circle0.center.lon) / dist)
+            intersections.p2 = P2.transformPosition(bearing + 90, h);
+        }
+        return intersections;
+    }
+
+    embryo.geo.Circle.prototype.calculateTangents = function(externalPoint){
+        // calculations inspired by: http://www.vb-helper.com/howto_net_find_circle_tangents.html
+
+        var circle = this;
+
+        var dist  = circle.center.rhumbLineDistanceTo(externalPoint);
+        if (dist < circle.radius){
+            throw new Error("Point is inside circle. Can not find tangents");
+        }
+
+
+        var L = Math.sqrt(Math.pow(dist,2) - Math.pow(circle.radius,2))
+
+        // Find the points of intersection between the original circle and the circle with
+        // center external_point and radius L.
+        var intersectionPoints = circle.circleIntersectionPoints({
+            center:  externalPoint,
+            radius: L
+        });
+
+        if(intersectionPoints.p1 && !intersectionPoints.p2){
+            throw new Error("Only one intersection point found. Can not calculate tangents");
+        }
+
+        return [{
+            point1 : externalPoint,
+            point2 : intersectionPoints.p1
+        },{
+            point1 : externalPoint,
+            point2 : intersectionPoints.p2
+        }]
+    }
+
+    embryo.geo.Circle.prototype.calculateExternalTangents = function(circle2){
+        // inspired by : http://www.vb-helper.com/howto_net_circle_circle_tangents.html
+
+        var circle1 = this;
+
+        //TODO if one circle inside the other, then use special calculation or throw error
+
+        var c1, c2;
+        if(circle1.radius < circle2.radius){
+            c1 = circle1, c2 = circle2;
+        }else{
+            c1 = circle2, c2 = circle1;
+        }
+
+        // ***************************
+        // * Find the outer tangents *
+        // ***************************
+
+        var circle2a = new embryo.geo.Circle(c2.center, c2.radius - c1.radius)
+        var tangents = circle2a.calculateTangents(c1.center);
+
+        // Offset the tangent vector's points.
+        var bearingToTangent1 = circle2a.center.bearingTo(tangents[0].point2, embryo.geo.Heading.RL);
+        var tangent1 = {
+            point1 : c1.center.transformPosition(bearingToTangent1, c1.radius),
+            point2 : tangents[0].point2.transformPosition(bearingToTangent1, c1.radius)
+        }
+
+        // Offset the tangent vector's points.
+        var bearingToTangent2 = circle2a.center.bearingTo(tangents[1].point2, embryo.geo.Heading.RL);
+        var tangent2 = {
+            point1 : c1.center.transformPosition(bearingToTangent2, c1.radius),
+            point2 : tangents[1].point2.transformPosition(bearingToTangent2, c1.radius)
+        }
+
+        return [tangent1, tangent2]
+    }
+
 
 
     embryo.geo.Rectangle = function (cornerPositions) {
@@ -571,130 +873,4 @@
 
         return new embryo.geo.Rectangle(newPositions);
     }
-
-
-
-    // Find the points where this circle and the circle argument intersects
-    embryo.geo.Circle.prototype.circleIntersectionPoints = function (circle1) {
-            var circle0 = this;
-
-            // calculations inspired by: http://www.vb-helper.com/howto_net_circle_circle_intersection.html
-            // Find the distance between the centers.
-            var dist = circle0.center.rhumbLineDistanceTo(circle1.center);
-
-            // See how many solutions there are.
-            if(dist > circle0.radius + circle1.radius){
-                throw new Error("No intersection points. Circles to far apart.");
-            }else if(dist < Math.abs(circle0.radius - circle1.radius)){
-                throw new Error("No intersection points, one circle contains the other.");
-            }else if (dist == 0 && circle0.radius == circle1.radius){
-                throw new Error("No intersection points, the circles coincide.");
-            }
-
-        //Find a and h.
-            // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
-            var a = (Math.pow(circle0.radius, 2) - Math.pow(circle1.radius, 2) + Math.pow(dist,2)) / (2 * dist);
-
-            var h = Math.sqrt(Math.pow(circle0.radius, 2) - Math.pow(a, 2));
-
-            // Find P2.
-            // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
-            var bearing = circle0.center.rhumbLineBearingTo(circle1.center);
-            var P2 = circle0.center.transformPosition(bearing, a);
-            //var lon = circle0.center.lon + a * (circle1.center.lon - circle0.center.lon) / dist;
-            //var lat = circle0.center.lat + a * (circle1.center.lat - circle0.center.lat) / dist;
-            //var P2 = new embryo.geo.Position(lon, lat);
-
-            // Get one of the points P3.
-            // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
-            //var intersections = {
-            //    p1 : new embryo.geo.Position(P2.lon + h * (circle1.center.lat - circle0.center.lat) / dist,
-            //        P2.lat - h * (circle1.center.lon - circle0.center.lon) / dist)
-            //}
-            var intersections = {
-                p1 : P2.transformPosition(bearing - 90, h)
-            }
-
-            // if two intersections, then calculate it.
-            // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
-            if(dist != circle0.radius + circle1.radius){
-                //intersections.p2 = new embryo.geo.Position(
-                //    P2.lon - h * (circle1.center.lat - circle0.center.lat) / dist,
-                //    P2.lat + h * (circle1.center.lon - circle0.center.lon) / dist)
-                intersections.p2 = P2.transformPosition(bearing + 90, h);
-            }
-            return intersections;
-        }
-
-    embryo.geo.Circle.prototype.calculateTangents = function(externalPoint){
-        // calculations inspired by: http://www.vb-helper.com/howto_net_find_circle_tangents.html
-
-        var circle = this;
-
-        var dist  = circle.center.rhumbLineDistanceTo(externalPoint);
-        if (dist < circle.radius){
-            throw new Error("Point is inside circle. Can not find tangents");
-        }
-
-
-        var L = Math.sqrt(Math.pow(dist,2) - Math.pow(circle.radius,2))
-
-        // Find the points of intersection between the original circle and the circle with
-        // center external_point and radius L.
-        var intersectionPoints = circle.circleIntersectionPoints({
-            center:  externalPoint,
-            radius: L
-        });
-
-        if(intersectionPoints.p1 && !intersectionPoints.p2){
-            throw new Error("Only one intersection point found. Can not calculate tangents");
-        }
-
-        return [{
-            point1 : externalPoint,
-            point2 : intersectionPoints.p1
-        },{
-            point1 : externalPoint,
-            point2 : intersectionPoints.p2
-        }]
-    }
-
-    embryo.geo.Circle.prototype.calculateExternalTangents = function(circle2){
-        // inspired by : http://www.vb-helper.com/howto_net_circle_circle_tangents.html
-
-        var circle1 = this;
-
-        //TODO if one circle inside the other, then use special calculation or throw error
-
-        var c1, c2;
-        if(circle1.radius < circle2.radius){
-            c1 = circle1, c2 = circle2;
-        }else{
-            c1 = circle2, c2 = circle1;
-        }
-
-        // ***************************
-        // * Find the outer tangents *
-        // ***************************
-
-        var circle2a = new embryo.geo.Circle(c2.center, c2.radius - c1.radius)
-        var tangents = circle2a.calculateTangents(c1.center);
-
-        // Offset the tangent vector's points.
-        var bearingToTangent1 = circle2a.center.bearingTo(tangents[0].point2, embryo.geo.Heading.RL);
-        var tangent1 = {
-            point1 : c1.center.transformPosition(bearingToTangent1, c1.radius),
-            point2 : tangents[0].point2.transformPosition(bearingToTangent1, c1.radius)
-        }
-
-        // Offset the tangent vector's points.
-        var bearingToTangent2 = circle2a.center.bearingTo(tangents[1].point2, embryo.geo.Heading.RL);
-        var tangent2 = {
-            point1 : c1.center.transformPosition(bearingToTangent2, c1.radius),
-            point2 : tangents[1].point2.transformPosition(bearingToTangent2, c1.radius)
-        }
-
-        return [tangent1, tangent2]
-    }
-
 })();
