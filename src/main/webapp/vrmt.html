@@ -40,6 +40,7 @@
     <script src="vrmt/map/position.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-directives.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/map/vrmt-directives.js" defer="defer" type="text/javascript"></script>
     <!-- endbuild -->
 
 </head>
@@ -51,12 +52,11 @@
 
 <div class="container-fluid" ng-controller="AppController">
     <div class="row">
-        <div x-ng-include="'vrmt/partials/sidebar.html'"></div>
         <div x-ng-include="'vrmt/partials/map.html'"></div>
+        <div x-ng-include="'vrmt/partials/sidebar.html'"></div>
+        <div x-ng-include="'vrmt/partials/timeline.html'"></div>
     </div>
 </div>
 
-
-<!--<div x-ng-include="'partials/common/footer.html'"></div>-->
 </body>
 </html>

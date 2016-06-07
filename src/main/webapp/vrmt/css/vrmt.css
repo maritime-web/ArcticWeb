@@ -52,28 +52,79 @@ body {
     margin: 1px;
 }
 
-/** Map and sidebar **/
+/** sidebar **/
 
 .sidebar {
-    z-index: 100;
-    height: 100%;
+    padding: 0;
+}
+
+.sidebar-heading-panel {
+    padding: 0 0 0 10px;
+}
+
+.sidebar-heading-panel > .row {
+    padding-bottom: 10px;
+}
+
+.sidebar-content {
     background-color: #fff;
     padding: 3px;
     border-radius: 3px;
 }
 
-/** Maps **/
+.sidebar-grid {
+    padding-left: 5px;
+    padding-right: 5px;
+}
 
+.sidebar-grid-heading {
+    border-bottom: solid thin lightgray;
+    font-weight: bold;
+}
+
+.sidebar-grid-row {
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+.sidebar-visibility-button {
+    position: absolute;
+    top: 25px;
+    width: 20px;
+    height: 20px;
+}
+.sidebar-visibility-button-shown {
+    right: 10px;
+}
+
+.sidebar-visibility-button-hidden {
+    left: 0;
+    background-color: rgba(0, 60, 136, 0.5);
+    border-radius: 4px;
+    padding-left: 5px;
+    margin-left: 1px;
+}
+
+/** Timeline **/
+.timeline {
+    background-color: #fff;
+    padding: 5px 5px 0;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+/** Maps **/
 .map {
     padding: 1px;
     margin-right: 0;
-    height: 90%;
+    height: 95%;
     position: absolute;
 }
 
 
 .map-current-pos-btn {
-    right: 12px;
+    right: 0.5em;
     top: 80px;
     font-size: 1.5em;
     position: absolute;
@@ -83,7 +134,6 @@ body {
     border-radius: 4px;
     background-color: rgba(255, 255, 255, 0.4);
     opacity: 0.8;
-
 }
 
 .map-current-pos-btn:hover {
@@ -129,8 +179,6 @@ body {
     list-style-type: none;
 }
 
-
-
 .map-scale-line {
     right: 50px;
     top: 18px;
@@ -158,6 +206,28 @@ body {
     background-color: rgba(0, 60, 136, 0.5);
 }
 
+/* Overriding OL3 style*/
+.ol-attribution ul{
+    font-size: small;
+}
+
+.ol-attribution {
+    top: 11em;
+    bottom: auto;
+}
+
+.ol-custom-overviewmap {
+    right: 0.5em;
+    left: auto;
+    top: 8.5em;
+    bottom: auto;
+}
+
+.ol-zoom {
+    left: auto;
+    right: 0.5em;
+}
+
 .layer-switcher {
     top: 10px;
     right: 20px;
@@ -167,6 +237,7 @@ body {
     font-size: 1em;
     width: 240px;
 }
+
 
 /*
 Making room for the beta ribbon banner
@@ -201,17 +272,3 @@ body:after {
     z-index: 9999;
 }
 
-.ol-attribution ul{
-    font-size: small;
-}
-
-.ol-custom-overviewmap {
-    right: 0.5em;
-    left: auto;
-    bottom: 2.5em;
-}
-
-.ol-zoom {
-    left: auto;
-    right: 0.5em;
-}
