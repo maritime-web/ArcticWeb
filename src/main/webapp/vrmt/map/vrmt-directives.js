@@ -4,15 +4,17 @@ angular.module('vrmt.map')
         return {
             restrict: 'E',
             require: '^olMap',
-            scope: {},
+            scope: {
+                route: '='
+            },
             link: function (scope, element, attrs, ctrl) {
-
+                var route = angular.isDefined(scope.route.wps) ? scope.route : undefined ;
                 var routeLayer;
 
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
 
-                    // Clean up when the layer is destroyed
+                    // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(routeLayer)) {
                             map.removeLayer(routeLayer);
@@ -32,7 +34,7 @@ angular.module('vrmt.map')
                                 width: 2
                             }),
                             image: new ol.style.Circle({
-                                radius: 7,
+                                radius: 4,
                                 fill: new ol.style.Fill({
                                     color: '#6c1507'
                                 })
@@ -40,26 +42,37 @@ angular.module('vrmt.map')
                         })
                     });
 
-                    var markers = [];
-                    markers[0] = ol.proj.transform([-40.03, 61.07], 'EPSG:4326', 'EPSG:3857');
-                    markers[1] = ol.proj.transform([-37.21, 64.04], 'EPSG:4326', 'EPSG:3857');
-                    markers[2] = ol.proj.transform([-33.02, 65.02], 'EPSG:4326', 'EPSG:3857');
-                    markers[3] = ol.proj.transform([-31.43, 67.51], 'EPSG:4326', 'EPSG:3857');
-
-                    markers.forEach(function (m) {
-                        var pointFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(m)
-                        });
-
-                        source.addFeature(pointFeature);
+                    scope.$watch("route", function (newRoute) {
+                        if (angular.isDefined(newRoute)) {
+                            addOrReplaceRoute(newRoute);
+                        }
                     });
 
-                    // Create feature with linestring
-                    var line = new ol.geom.LineString(markers, 'XY');
-                    var feature = new ol.Feature({
-                        geometry: line
-                    });
-                    source.addFeature(feature);
+                    addOrReplaceRoute(route);
+
+                    function addOrReplaceRoute(route) {
+                        if (angular.isDefined(route)) {
+                            source.clear();
+
+                            var markers = [];
+                            route.wps.forEach(function (wp) {
+                                var m = ol.proj.transform([wp.longitude, wp.latitude], 'EPSG:4326', 'EPSG:3857');
+                                markers.push(m);
+                                var pointFeature = new ol.Feature({
+                                    geometry: new ol.geom.Point(m)
+                                });
+
+                                source.addFeature(pointFeature);
+                            });
+
+                            // Create feature with linestring
+                            var line = new ol.geom.LineString(markers, 'XY');
+                            var feature = new ol.Feature({
+                                geometry: line
+                            });
+                            source.addFeature(feature);
+                        }
+                    }
 
                     routeLayer.setVisible(true);
                     map.addLayer(routeLayer);
@@ -71,46 +84,67 @@ angular.module('vrmt.map')
         return {
             restrict: 'E',
             require: '^olMap',
-            scope: {},
+            scope: {
+                vessel: '='
+            },
             link: function (scope, element, attrs, ctrl) {
+                var vesselLayer = createVesselLayer();
+                addOrReplaceVessel(scope.vessel);
 
-                var vesselLayer;
+                function createVesselLayer() {
+                    return new ol.layer.Vector({
+                        source: new ol.source.Vector(),
+                        style: createVesselStyle()
+                    });
+                }
+
+                function createVesselStyle() {
+                    return new ol.style.Style({
+                        image: new ol.style.Icon( ({
+                            anchor: [0.85, 0.5],
+                            opacity: 0.85,
+                            src: 'img/vessel_purple.png'
+                        }))
+                    });
+                }
+
+                function addOrReplaceVessel(vessel) {
+                    if (vessel && vessel.aisVessel) {
+                        addOrReplaceVesselFeature(vessel.aisVessel.lat, vessel.aisVessel.lon);
+                        updateStyle(((vessel.aisVessel.cog - 90) * (Math.PI / 180)));
+                    }
+                }
+
+                function addOrReplaceVesselFeature(lat, lon) {
+                    var source = vesselLayer.getSource();
+                    source.clear();
+                    var vesselFeature = new ol.Feature({
+                        geometry: new ol.geom.Point(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'))
+                    });
+
+                    source.addFeature(vesselFeature);
+                }
+
+                function updateStyle(radian) {
+                    vesselLayer.getStyle().getImage().setRotation(radian);
+                }
+
+                scope.$watch("vessel", function (newVessel) {
+                    if (newVessel && newVessel.aisVessel) {
+                        addOrReplaceVessel(newVessel);
+                    }
+                });
 
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
+                    map.addLayer(vesselLayer);
 
-                    // Clean up when the layer is destroyed
+                    // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(vesselLayer)) {
                             map.removeLayer(vesselLayer);
                         }
                     });
-
-                    var source = new ol.source.Vector();
-
-                    var vesselStyle = new ol.style.Style({
-                        image: new ol.style.Icon( ({
-                            anchor: [0.85, 0.5],
-                            opacity: 0.85,
-                            // rotation: vessel.radian,
-                            src: 'img/vessel_purple.png'
-                        }))
-                    });
-
-
-                    vesselLayer = new ol.layer.Vector({
-                        source: source,
-                        style: vesselStyle
-                    });
-
-                    var vesselFeature = new ol.Feature({
-                        geometry: new ol.geom.Point(ol.proj.transform([-40.03, 61.07], 'EPSG:4326', 'EPSG:3857'))
-                    });
-
-                    source.addFeature(vesselFeature);
-
-                    vesselLayer.setVisible(true);
-                    map.addLayer(vesselLayer);
                 })
             }
         };

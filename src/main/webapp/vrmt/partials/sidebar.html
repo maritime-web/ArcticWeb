@@ -5,25 +5,33 @@
            ng-class="{'fa-chevron-left': !sidebar.hidden, 'fa-chevron-right': sidebar.hidden}" aria-hidden="true"></i>
     </div>
 
-    <div class="sidebar-content" ng-hide="sidebar.hidden">
+    <div ng-hide="sidebar.hidden">
 
-        <div class="sidebar-heading-panel">
-            <h3><i class="fa fa-ship" aria-hidden="true"
-                   style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT</h3>
-            <div class="row">
-                <div class="col-xs-3">
-                    <img src="img/vessel_purple.png">
+        <div class="panel-group">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3>
+                        <i class="fa fa-ship" aria-hidden="true" style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT
+                    </h3>
                 </div>
-                <div class="col-xs-9">
-                    <span>02.06.2016 13:00 - 14:00</span>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-3">
-                    <span style="background-color: yellow; color: transparent">aaa</span>
-                </div>
-                <div class="col-xs-9">
-                    <span>Index: 1700</span>
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <img src="img/vessel_purple.png">
+                        </div>
+                        <div class="col-xs-9">
+                            <span>02.06.2016 13:00 - 14:00</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <span style="background-color: yellow; color: transparent">aaa</span>
+                        </div>
+                        <div class="col-xs-9">
+                            <span>Index: 1700</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,8 +1,8 @@
 
 angular.module('vrmt.app')
 
-    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService',
-        function ($scope, $http, $window, $timeout, MapService) {
+    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService',
+        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService) {
             /* sidebar control */
             $scope.sidebar = {
                 monitorAndReportActive: false,
@@ -36,14 +36,28 @@ angular.module('vrmt.app')
             $scope.moveVessel = function ($event) {
                 $event.preventDefault();
                 $scope.choosenTime = $event.offsetX;
-            }
+            };
             
             // Map state and layers
             $scope.mapState = {};
             $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
-            $scope.mapWeatherLayers = MapService.createStdWeatherLayerGroup();
-            $scope.mapMiscLayers = MapService.createStdMiscLayerGroup();
+
             
+            var mmsi = embryo.authentication.shipMmsi;
+
+            $scope.route = {};
+
+            RouteService.getActive(mmsi, function (r) {
+                $scope.route = r;
+                console.log('Route name: ' + $scope.route.name);
+            });
+
+            $scope.vessel = {};
+            VesselService.details(mmsi, function (v) {
+                console.log("Got vessel info for " + mmsi);
+                $scope.vessel = v;
+            });
+
         }]);
 
 function createTimelineSegments() {
