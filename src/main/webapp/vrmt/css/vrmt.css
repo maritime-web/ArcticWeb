@@ -58,20 +58,6 @@ body {
     padding: 0;
 }
 
-.sidebar-heading-panel {
-    padding: 0 0 0 10px;
-}
-
-.sidebar-heading-panel > .row {
-    padding-bottom: 10px;
-}
-
-.sidebar-content {
-    background-color: #fff;
-    padding: 3px;
-    border-radius: 3px;
-}
-
 .sidebar-grid {
     padding-left: 5px;
     padding-right: 5px;
@@ -271,4 +257,3 @@ body:after {
     transform: rotate(-45deg);
     z-index: 9999;
 }
-

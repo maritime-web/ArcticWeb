@@ -1,8 +1,9 @@
-
 angular.module('vrmt.app')
 
-    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService',
-        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService) {
+    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService', 'RiskAssesmentService',
+        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService, RiskAssesmentService) {
+            var mmsi = embryo.authentication.shipMmsi;
+
             /* sidebar control */
             $scope.sidebar = {
                 monitorAndReportActive: false,
@@ -12,9 +13,44 @@ angular.module('vrmt.app')
                 hidden: false,
                 toggleVisibility: function () {
                     this.hidden = !this.hidden;
+                },
+                meta: {
+                    vesselName: mmsi,
+                    routeView: {id: null, name: null},
+                    assesmentViews: [],
+                    assesmentLocations: [],
+                    currentAssesmentLocation: null,
+                    currentAssesment: null,
+                    chooseAssesment: function (assesment) {
+                        this.currentAssesment = assesment;
+                    }
                 }
             };
-            
+
+            $scope.$watch('sidebar.meta.routeView', function (newRoute) {
+                if (newRoute) {
+                    console.log("Route changed: " + newRoute.name);
+                    RiskAssesmentService.getLatestRiskAssesmentsForRoute(newRoute.id).then(function (assesments) {
+                        $scope.sidebar.meta.assesmentViews = [];
+                        assesments.forEach(function (assesment) {
+                            $scope.sidebar.meta.assesmentViews.push({
+                                location: assesment.location.name,
+                                index: assesment.getIndex(),
+                                lastAssessed: assesment.time,
+                                factorAssesments: assesment.factorAssesments
+                            })
+                        });
+                        $scope.sidebar.meta.currentAssesment = $scope.sidebar.meta.assesmentViews[0];
+                    })
+                }
+            });
+
+            $scope.$watch('sidebar.meta.currentAssesmentLocation', function (newLocation) {
+                RiskAssesmentService.getRiskAssesment(newLocation).then(function (assesment) {
+                    $scope.sidebar.meta.currentAssesment = assesment;
+                })
+            });
+
             /* timeline control */
             $scope.timeline = {
                 hidden: false
@@ -27,9 +63,9 @@ angular.module('vrmt.app')
             var offset = $scope.timelineDimensions.offset;
             var distanceBetween = 20;
             var width = $scope.timelineDimensions.width;
-            for (var i = 0; (i*distanceBetween + offset) < (width - offset); i++) {
+            for (var i = 0; (i * distanceBetween + offset) < (width - offset); i++) {
                 $scope.times[i] = {
-                    x1: i*distanceBetween + offset
+                    x1: i * distanceBetween + offset
                 };
             }
 
@@ -37,25 +73,32 @@ angular.module('vrmt.app')
                 $event.preventDefault();
                 $scope.choosenTime = $event.offsetX;
             };
-            
+
             // Map state and layers
             $scope.mapState = {};
             $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
 
-            
-            var mmsi = embryo.authentication.shipMmsi;
 
             $scope.route = {};
+            $scope.assesmentLocations = {};
 
             RouteService.getActive(mmsi, function (r) {
                 $scope.route = r;
-                console.log('Route name: ' + $scope.route.name);
+                $scope.sidebar.meta.routeView = {id: r.id, name: r.name};
+
+                RiskAssesmentService.getRouteAssesmentLocations(r.id)
+                    .then(function (locations) {
+                        $scope.assesmentLocations = locations;
+                        $scope.sidebar.meta.assesmentLocations = locations;
+                        $scope.sidebar.meta.currentAssesmentLocation = locations[0];
+                    });
             });
 
             $scope.vessel = {};
             VesselService.details(mmsi, function (v) {
                 console.log("Got vessel info for " + mmsi);
                 $scope.vessel = v;
+                $scope.sidebar.meta.vesselName = v.aisVessel.name || mmsi;
             });
 
         }]);
@@ -102,7 +145,7 @@ function createTimelineSegments() {
 }
 
 function indexToPixels(baseline, index, maxIndex) {
-    return (baseline/maxIndex) * index;
+    return (baseline / maxIndex) * index;
 }
 
 function createDimensions() {

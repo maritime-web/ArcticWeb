@@ -10,27 +10,35 @@
         <div class="panel-group">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3>
-                        <i class="fa fa-ship" aria-hidden="true" style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT
-                    </h3>
+                    <h4>
+                        <i class="fa fa-ship" aria-hidden="true"
+                           style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT
+                    </h4>
                 </div>
                 <div class="panel-body">
-
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <img src="img/vessel_purple.png">
-                        </div>
-                        <div class="col-xs-9">
-                            <span>02.06.2016 13:00 - 14:00</span>
+                    <div>
+                        <div>
+                            <img src="img/vessel_purple.png"><span>{{sidebar.meta.vesselName}}</span>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-xs-3">
-                            <span style="background-color: yellow; color: transparent">aaa</span>
-                        </div>
-                        <div class="col-xs-9">
-                            <span>Index: 1700</span>
-                        </div>
+                    <h4 class="text-center">Assesments for route <strong>"{{sidebar.meta.routeView.name}}"</strong><button class="pull-right btn-primary">Change</button></h4>
+                    <div class="table-responsive">
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Index</th>
+                                    <th>Last Assessed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-click="sidebar.meta.chooseAssesment(assesment)" ng-class="{'active': sidebar.meta.currentAssesment.location == assesment.location}"  ng-repeat="assesment in sidebar.meta.assesmentViews">
+                                    <td>{{assesment.location}}</td>
+                                    <td><index-color index="assesment.index"></index-color> {{assesment.index}}</td>
+                                    <td>{{assesment.lastAssessed | date: 'yyyy-MM-dd HH:mm'}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -52,20 +60,10 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>Ice conditions</td>
-                            <td>5/10 - 2 year ice</td>
-                            <td>500</td>
-                        </tr>
-                        <tr>
-                            <td>Time of season</td>
-                            <td>June</td>
-                            <td>300</td>
-                        </tr>
-                        <tr>
-                            <td>Landing site</td>
-                            <td>Paulet island</td>
-                            <td>300</td>
+                        <tr ng-repeat="factorAssesment in sidebar.meta.currentAssesment.factorAssesments">
+                            <td>{{factorAssesment.factor}}</td>
+                            <td>{{factorAssesment.value}}</td>
+                            <td>{{factorAssesment.index}}</td>
                         </tr>
                         </tbody>
                     </table>

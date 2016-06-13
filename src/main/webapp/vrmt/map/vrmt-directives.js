@@ -149,5 +149,30 @@ angular.module('vrmt.map')
             }
         };
     }])
+    .directive('indexColor', [function () {
+        return {
+            restrict: 'E',
+            template: "<span style='background-color: {{color}}; color: transparent'>aaa</span>",
+            scope: {
+                index: '='
+            },
+            link: function (scope) {
+                scope.color = null;//calculateColorForIndex(scope.index);
 
+                function calculateColorForIndex(index) {
+                    if (index < 1000) {
+                        return "green";
+                    } else if (index > 2000) {
+                        return "red";
+                    } else {
+                        return "yellow";
+                    }
+                }
+
+                scope.$watch('index', function(newIndex) {
+                    scope.color = calculateColorForIndex(newIndex);
+                });
+            }
+        }
+    }])
 ;
