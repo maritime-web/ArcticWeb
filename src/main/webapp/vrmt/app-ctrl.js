@@ -1,10 +1,42 @@
 angular.module('vrmt.app')
 
-    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService', 'RiskAssesmentService',
-        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService, RiskAssesmentService) {
-            var mmsi = embryo.authentication.shipMmsi;
+    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService', 'RiskAssesmentService', '$modal',
+        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService, RiskAssesmentService, $modal) {
 
-            /* sidebar control */
+            /** 
+             * Initialize variables 
+             */
+            var mmsi = embryo.authentication.shipMmsi;
+            $scope.route = {};
+            $scope.assesmentLocationEvent = {};
+            $scope.assesmentLocations = [];
+            $scope.vessel = {};
+
+            /** 
+             * Load data 
+             */
+            VesselService.details(mmsi, function (v) {
+                console.log("Got vessel info for " + mmsi);
+                $scope.vessel = v;
+            });
+
+
+            RouteService.getActive(mmsi, function (r) {
+                $scope.route = r;
+                loadAssesmentLocations();
+            });
+
+            function loadAssesmentLocations() {
+                RiskAssesmentService.getRouteAssesmentLocations($scope.route.id)
+                    .then(function (locations) {
+                        $scope.assesmentLocations = locations;
+                    });
+            }
+
+
+            /** 
+             * Sidebar control 
+             */
             $scope.sidebar = {
                 monitorAndReportActive: false,
                 safetyMeasuresActive: false,
@@ -27,31 +59,52 @@ angular.module('vrmt.app')
                 }
             };
 
-            $scope.$watch('sidebar.meta.routeView', function (newRoute) {
-                if (newRoute) {
+            function AssesmentView(assesment) {
+                this.location = assesment.location.id + ': ' + assesment.location.name;
+                this.index = assesment.index || '-';
+                this.lastAssessed = assesment.time || '-';
+                this.factorAssesments = assesment.factorAssesments || [];
+            }
+
+            $scope.$watch('route', function (newRoute, oldRoute) {
+                if (newRoute && newRoute !== oldRoute) {
                     console.log("Route changed: " + newRoute.name);
+                    $scope.sidebar.meta.routeView = {id: newRoute.id, name: newRoute.name};
+
                     RiskAssesmentService.getLatestRiskAssesmentsForRoute(newRoute.id).then(function (assesments) {
                         $scope.sidebar.meta.assesmentViews = [];
                         assesments.forEach(function (assesment) {
-                            $scope.sidebar.meta.assesmentViews.push({
-                                location: assesment.location.name,
-                                index: assesment.getIndex(),
-                                lastAssessed: assesment.time,
-                                factorAssesments: assesment.factorAssesments
-                            })
+                            console.log("assesment");
+                            console.log(assesment);
+                            $scope.sidebar.meta.assesmentViews.push(new AssesmentView(assesment))
                         });
                         $scope.sidebar.meta.currentAssesment = $scope.sidebar.meta.assesmentViews[0];
                     })
                 }
             });
 
+            $scope.$watch('assesmentLocations', function (newLocations) {
+                if (newLocations && newLocations.length > 0) {
+                    $scope.sidebar.meta.assesmentLocations = newLocations;
+                    $scope.sidebar.meta.currentAssesmentLocation = newLocations[0];
+                }
+            });
+            
             $scope.$watch('sidebar.meta.currentAssesmentLocation', function (newLocation) {
-                RiskAssesmentService.getRiskAssesment(newLocation).then(function (assesment) {
-                    $scope.sidebar.meta.currentAssesment = assesment;
+                RiskAssesmentService.getRiskAssesment($scope.route.id, newLocation).then(function (assesment) {
+                    $scope.sidebar.meta.currentAssesment = new AssesmentView(assesment);
                 })
             });
 
-            /* timeline control */
+            $scope.$watch('vessel', function (newVessel) {
+                if (newVessel && newVessel.aisVessel) {
+                    $scope.sidebar.meta.vesselName = newVessel.aisVessel.name || mmsi;
+                }
+            });
+
+            /** 
+             * timeline control 
+             */
             $scope.timeline = {
                 hidden: false
             };
@@ -74,34 +127,45 @@ angular.module('vrmt.app')
                 $scope.choosenTime = $event.offsetX;
             };
 
-            // Map state and layers
+            /**
+             * Map state and layers
+             */
             $scope.mapState = {};
             $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
 
 
-            $scope.route = {};
-            $scope.assesmentLocations = {};
+            /** 
+             * Assesment location creation 
+             */
+            $scope.$watch("assesmentLocationEvent['event']", function (newAssesmentLocationEvent, oldAssesmentLocationEvent) {
+                if (!newAssesmentLocationEvent || newAssesmentLocationEvent == oldAssesmentLocationEvent) return;
 
-            RouteService.getActive(mmsi, function (r) {
-                $scope.route = r;
-                $scope.sidebar.meta.routeView = {id: r.id, name: r.name};
+                var modalInstance = $modal.open({
+                    templateUrl: "addAssesmentLocation",
+                    controller: 'ModalInstanceCtrl',
+                    resolve: {
+                        event: function () {
+                            return newAssesmentLocationEvent;
+                        }
+                    }
+                });
 
-                RiskAssesmentService.getRouteAssesmentLocations(r.id)
-                    .then(function (locations) {
-                        $scope.assesmentLocations = locations;
-                        $scope.sidebar.meta.assesmentLocations = locations;
-                        $scope.sidebar.meta.currentAssesmentLocation = locations[0];
-                    });
+                modalInstance.result.then(function (assesmentLocationParameters) {
+                    assesmentLocationParameters.routeId = $scope.route.id;
+                    console.log("assesmentLocationParameters");
+                    console.log(assesmentLocationParameters);
+                    RiskAssesmentService.createAssesmentLocation(assesmentLocationParameters);
+                    loadAssesmentLocations();
+                }, function (dismissReason) {
+                    console.log("Assesment Location dismissed with reason '" + dismissReason + "'");
+                })
             });
 
-            $scope.vessel = {};
-            VesselService.details(mmsi, function (v) {
-                console.log("Got vessel info for " + mmsi);
-                $scope.vessel = v;
-                $scope.sidebar.meta.vesselName = v.aisVessel.name || mmsi;
-            });
+        }])
 
-        }]);
+    .controller("ModalInstanceCtrl", function ($scope, $modalInstance, event) {
+        $scope.loc = event;
+    });
 
 function createTimelineSegments() {
     return [

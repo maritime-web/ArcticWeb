@@ -91,6 +91,12 @@ body {
     margin-left: 1px;
 }
 
+h4.text-center  {
+    padding: 11px 16px; /* Extra pixel top and bottom for border on buttons */
+    line-height: 1.33;
+    margin: 0;
+}
+
 /** Timeline **/
 .timeline {
     background-color: #fff;

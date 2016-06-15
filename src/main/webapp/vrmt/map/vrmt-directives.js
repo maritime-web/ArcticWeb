@@ -5,10 +5,11 @@ angular.module('vrmt.map')
             restrict: 'E',
             require: '^olMap',
             scope: {
-                route: '='
+                route: '=',
+                assesmentLocationEvent: '='
             },
             link: function (scope, element, attrs, ctrl) {
-                var route = angular.isDefined(scope.route.wps) ? scope.route : undefined ;
+                var route = angular.isDefined(scope.route.wps) ? scope.route : undefined;
                 var routeLayer;
 
                 var olScope = ctrl.getOpenlayersScope();
@@ -19,6 +20,12 @@ angular.module('vrmt.map')
                         if (angular.isDefined(routeLayer)) {
                             map.removeLayer(routeLayer);
                         }
+                        if (onMoveKey) {
+                            map.unByKey(onMoveKey);
+                        }
+                        if (onclickKey) {
+                            map.unByKey(onclickKey);
+                        }
                     });
 
                     var source = new ol.source.Vector();
@@ -26,57 +33,154 @@ angular.module('vrmt.map')
                     routeLayer = new ol.layer.Vector({
                         source: source,
                         style: new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: 'rgba(94, 68, 64, 1)'
-                            }),
                             stroke: new ol.style.Stroke({
-                                color: '#6c1507',
-                                width: 2
+                                color: '#FF0000',
+                                width: 2,
+                                lineDash: [5, 5, 0, 5]
                             }),
                             image: new ol.style.Circle({
                                 radius: 4,
-                                fill: new ol.style.Fill({
-                                    color: '#6c1507'
+                                stroke: new ol.style.Stroke({
+                                    color: '#FF0000',
+                                    width: 1
                                 })
                             })
                         })
                     });
 
                     scope.$watch("route", function (newRoute) {
-                        if (angular.isDefined(newRoute)) {
+                        if (newRoute && newRoute.wps) {
                             addOrReplaceRoute(newRoute);
                         }
                     });
 
-                    addOrReplaceRoute(route);
-
                     function addOrReplaceRoute(route) {
-                        if (angular.isDefined(route)) {
-                            source.clear();
+                        source.clear();
 
-                            var markers = [];
-                            route.wps.forEach(function (wp) {
-                                var m = ol.proj.transform([wp.longitude, wp.latitude], 'EPSG:4326', 'EPSG:3857');
-                                markers.push(m);
-                                var pointFeature = new ol.Feature({
-                                    geometry: new ol.geom.Point(m)
-                                });
-
-                                source.addFeature(pointFeature);
+                        var markers = [];
+                        angular.forEach(route.wps, function (wp) {
+                            var m = ol.proj.transform([wp.longitude, wp.latitude], 'EPSG:4326', 'EPSG:3857');
+                            markers.push(m);
+                            var pointFeature = new ol.Feature({
+                                geometry: new ol.geom.Point(m)
                             });
 
-                            // Create feature with linestring
-                            var line = new ol.geom.LineString(markers, 'XY');
-                            var feature = new ol.Feature({
-                                geometry: line
-                            });
-                            source.addFeature(feature);
-                        }
+                            source.addFeature(pointFeature);
+                        });
+
+                        // Create feature with linestring
+                        var line = new ol.geom.LineString(markers, 'XY');
+                        var feature = new ol.Feature({
+                            geometry: line
+                        });
+                        source.addFeature(feature);
                     }
+
+
+                    var onMoveKey = map.on('pointermove', function(e) {
+                        var pixel = map.getEventPixel(e.originalEvent);
+                        var hit = map.hasFeatureAtPixel(pixel);
+
+                        map.getTarget().style.cursor = hit ? 'pointer' : '';
+                    });
+
+                    var onclickKey = map.on('singleclick', function(e) {
+                        var pixel = map.getEventPixel(e.originalEvent);
+                        var hit = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate == routeLayer;
+                        });
+
+                        if (hit) {
+                            var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
+                                scope.assesmentLocationEvent['event'] = {
+                                    lon: coord[0],
+                                    lat: coord[1]
+                                };
+                        }
+                        scope.$apply();
+
+                    });
 
                     routeLayer.setVisible(true);
                     map.addLayer(routeLayer);
                 })
+            }
+        };
+    }])
+    .directive('assesmentLocations', [function () {
+        return {
+            restrict: 'E',
+            require: '^olMap',
+            scope: {
+                locations: '='
+            },
+            link: function (scope, element, attrs, ctrl) {
+                var locationLayer = createLocationLayer();
+
+                function createLocationLayer() {
+                    return new ol.layer.Vector({
+                        source: new ol.source.Vector()
+                    });
+                }
+
+                function addOrReplaceLocation(location) {
+                    var coord = ol.proj.transform([location.lon, location.lat], 'EPSG:4326', 'EPSG:3857');
+                    var locationFeature = new ol.Feature({
+                        geometry: new ol.geom.Point(coord)
+                    });
+                    locationFeature.setId(location.id);
+                    locationFeature.setStyle(createLocationStyle(location));
+                    locationLayer.getSource().addFeature(locationFeature);
+
+                }
+
+                function createLocationStyle(location) {
+                    var font = 'bold' + ' ' + '12px' + ' ' + 'Arial';
+                    return new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 6,
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255, 0, 0, 0.8)'
+                            }),
+                            stroke: new ol.style.Stroke({
+                                color: 'black',
+                                width: 1
+                            })
+                        }),
+                        text: new ol.style.Text({
+                            textAlign: 'start',
+                            // textBaseline: baseline,
+                            font: font,
+                            text: '' + location.id,
+                            fill: new ol.style.Fill({color: 'green'}),
+                            stroke: new ol.style.Stroke({color: 'white', width: 3}),
+                            offsetX: 10,
+                            offsetY: 9,
+                            rotation: 0
+                        })
+                    });
+                }
+
+
+                scope.$watch("locations", function (newLocations) {
+                    if (newLocations && newLocations.length > 0) {
+                        locationLayer.getSource().clear();
+                        newLocations.forEach(function (location) {
+                            addOrReplaceLocation(location);
+                        });
+                    }
+                });
+
+                var olScope = ctrl.getOpenlayersScope();
+                olScope.getMap().then(function (map) {
+                    map.addLayer(locationLayer);
+                    // Clean up when the scope is destroyed
+                    scope.$on('$destroy', function () {
+                        if (angular.isDefined(locationLayer)) {
+                            map.removeLayer(locationLayer);
+                        }
+                    });
+                });
             }
         };
     }])
@@ -100,7 +204,7 @@ angular.module('vrmt.map')
 
                 function createVesselStyle() {
                     return new ol.style.Style({
-                        image: new ol.style.Icon( ({
+                        image: new ol.style.Icon(({
                             anchor: [0.85, 0.5],
                             opacity: 0.85,
                             src: 'img/vessel_purple.png'
@@ -160,7 +264,9 @@ angular.module('vrmt.map')
                 scope.color = null;//calculateColorForIndex(scope.index);
 
                 function calculateColorForIndex(index) {
-                    if (index < 1000) {
+                    if (index === '-') {
+                        return "transparent";
+                    } else if (index < 1000) {
                         return "green";
                     } else if (index > 2000) {
                         return "red";
@@ -169,7 +275,7 @@ angular.module('vrmt.map')
                     }
                 }
 
-                scope.$watch('index', function(newIndex) {
+                scope.$watch('index', function (newIndex) {
                     scope.color = calculateColorForIndex(newIndex);
                 });
             }
