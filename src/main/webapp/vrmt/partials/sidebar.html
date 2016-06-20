@@ -32,13 +32,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-click="sidebar.meta.chooseAssesment(assesment)" ng-class="{'active': sidebar.meta.currentAssesment.location == assesment.location}"  ng-repeat="assesment in sidebar.meta.assesmentViews">
-                                    <td>{{assesment.location}}</td>
+                                <tr ng-click="sidebar.meta.chooseAssessment(assessment)" ng-class="{'active': sidebar.meta.currentAssessment.location == assessment.location}"  ng-repeat="assessment in sidebar.meta.assessmentViews">
+                                    <td>{{assessment.location}}</td>
                                     <td>
-                                        <div class="col-lg-4 visible-lg" style="padding-left: 0"><index-color index="assesment.index"></index-color></div>
-                                        <div class="col-md-6 col-lg-5 text-right" style="padding-right: 0"><span>{{assesment.index}}</span></div>
+                                        <index-color index="assessment.index"></index-color>
                                     </td>
-                                    <td>{{assesment.lastAssessed | date: 'yyyy-MM-dd HH:mm'}}</td>
+                                    <td>{{assessment.lastAssessed | date: 'yyyy-MM-dd HH:mm'}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -50,7 +49,7 @@
         <accordion close-others="true">
             <accordion-group is-open="sidebar.monitorAndReportActive">
                 <accordion-heading>
-                    DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssesment.location}}</strong> <span class="pull-right glyphicon"
+                    DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.location}}</strong> <span class="pull-right glyphicon"
                                              ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
                 </accordion-heading>
 
@@ -64,15 +63,15 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="factorAssesment in sidebar.meta.currentAssesment.factorAssesments">
-                            <td>{{factorAssesment.factor}}</td>
-                            <td>{{factorAssesment.value}}</td>
-                            <td>{{factorAssesment.index}}</td>
+                        <tr ng-repeat="factorAssessment in sidebar.meta.currentAssessment.factorAssessments">
+                            <td>{{factorAssessment.factor}}</td>
+                            <td>{{factorAssessment.value}}</td>
+                            <td>{{factorAssessment.index}}</td>
                         </tr>
                         </tbody>
                     </table>
                     <div class="pull-right">
-                        <button class="btn btn-primary btn-xs">New Assesment</button>
+                        <button class="btn btn-primary btn-xs" ng-click="sidebar.meta.newAssessment()">New assessment</button>
                     </div>
                 </div>
 
@@ -111,18 +110,18 @@
                 </accordion-heading>
                 <div class="container-fluid sidebar-grid">
                     <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">ASSESMENT OF RISK IN ROUTE CHANGE</div>
+                        <div class="col-xs-6">Assessment OF RISK IN ROUTE CHANGE</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">ASSESMENT</button>
+                                <button class="btn-primary">Assessment</button>
                             </div>
                         </div>
                     </div>
                     <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">ASSESMENT OF RISK IN ENTERING HARBOUR</div>
+                        <div class="col-xs-6">ASSESSMENT OF RISK IN ENTERING HARBOUR</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">ASSESMENT</button>
+                                <button class="btn-primary">Assessment</button>
                             </div>
                         </div>
                     </div>

@@ -27,7 +27,7 @@
 
     <!-- build:css css/arcticweb-vrmt.css -->
     <link href="css/common.css" rel="stylesheet">
-    <link href="css/map.css" rel="stylesheet" type="text/css">
+    <!--<link href="css/map.css" rel="stylesheet" type="text/css">-->
     <link href="vrmt/css/vrmt.css" rel="stylesheet">
     <!-- endbuild -->
 
@@ -41,7 +41,7 @@
     <script src="js/service/storage-services.js" defer="defer"></script>
     <script src="vrmt/app.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/app-ctrl.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/risk-assesment-service.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/risk-assessment-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/position.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-directives.js" defer="defer" type="text/javascript"></script>
@@ -52,7 +52,7 @@
 
 <body>
 <div x-ng-include="'partials/common/authentication.html'"></div>
-<div x-ng-include="'vrmt/partials/addAssesmentLocation.html'"></div>
+<div x-ng-include="'vrmt/partials/addassessmentLocation.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div class="menuDivider"></div>
 
@@ -60,6 +60,7 @@
     <div class="row">
         <div x-ng-include="'vrmt/partials/map.html'"></div>
         <div x-ng-include="'vrmt/partials/sidebar.html'"></div>
+        <div x-ng-include="'vrmt/partials/assessment-editor.html'"></div>
         <div x-ng-include="'vrmt/partials/timeline.html'"></div>
     </div>
 </div>

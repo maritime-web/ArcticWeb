@@ -6,7 +6,7 @@ angular.module('vrmt.map')
             require: '^olMap',
             scope: {
                 route: '=',
-                assesmentLocationEvent: '='
+                assessmentLocationEvent: '='
             },
             link: function (scope, element, attrs, ctrl) {
                 var route = angular.isDefined(scope.route.wps) ? scope.route : undefined;
@@ -92,7 +92,7 @@ angular.module('vrmt.map')
 
                         if (hit) {
                             var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                                scope.assesmentLocationEvent['event'] = {
+                                scope.assessmentLocationEvent['event'] = {
                                     lon: coord[0],
                                     lat: coord[1]
                                 };
@@ -107,7 +107,7 @@ angular.module('vrmt.map')
             }
         };
     }])
-    .directive('assesmentLocations', [function () {
+    .directive('assessmentLocations', [function () {
         return {
             restrict: 'E',
             require: '^olMap',
@@ -174,12 +174,35 @@ angular.module('vrmt.map')
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     map.addLayer(locationLayer);
+
+                    var onclickKey = map.on('singleclick', function(e) {
+                        var pixel = map.getEventPixel(e.originalEvent);
+                        var hit = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate == locationLayer;
+                        });
+
+                        if (hit) {
+                            var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
+                            scope.assessmentLocationEvent['locationChosenEvent'] = {
+                                lon: coord[0],
+                                lat: coord[1]
+                            };
+                        }
+                        scope.$apply();
+
+                    });
+
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(locationLayer)) {
                             map.removeLayer(locationLayer);
                         }
+                        if (onclickKey) {
+                            map.unByKey(onclickKey);
+                        }
+
                     });
+
                 });
             }
         };
@@ -256,27 +279,42 @@ angular.module('vrmt.map')
     .directive('indexColor', [function () {
         return {
             restrict: 'E',
-            template: "<span style='background-color: {{color}}; color: transparent'>aaa</span>",
+            template: "<span style='background-color: {{color}};color: transparent;font-family: Courier New'>{{zeroPad}}</span><span style='background-color: {{color}}; color: {{textColor}}; padding-right: 1px;padding-left: 1px;font-family: Courier New'>{{index}}</span>",
             scope: {
                 index: '='
             },
             link: function (scope) {
-                scope.color = null;//calculateColorForIndex(scope.index);
-
-                function calculateColorForIndex(index) {
+                scope.color = null;
+                scope.textColor = "white";
+                scope.zeroPad = "";
+                function setColorForIndex(index) {
+                    scope.textColor = "white";
                     if (index === '-') {
-                        return "transparent";
+                        scope.color = "transparent";
+                        scope.textColor = "black";
                     } else if (index < 1000) {
-                        return "green";
+                        scope.color = "green";
                     } else if (index > 2000) {
-                        return "red";
+                        scope.color = "red";
                     } else {
-                        return "yellow";
+                        scope.color = "yellow";
+                        scope.textColor = "black";
                     }
                 }
 
+                function adjustZeroPad(newIndex) {
+                    if (angular.isNumber(newIndex)) {
+                        var length = newIndex.toString().length;
+                        scope.zeroPad = "0".repeat(4 - length);
+                    } else {
+                        scope.zeroPad = "0";
+                    }
+
+                }
+
                 scope.$watch('index', function (newIndex) {
-                    scope.color = calculateColorForIndex(newIndex);
+                    setColorForIndex(newIndex);
+                    adjustZeroPad(newIndex);
                 });
             }
         }
