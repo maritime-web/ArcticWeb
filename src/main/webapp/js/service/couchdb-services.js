@@ -14,7 +14,8 @@
 
                 var url = $location.absUrl() ? $location.absUrl().toLocaleLowerCase() : "";
                 if (url.indexOf("localhost:") < 0 && url.indexOf("127.0.0.1:") < 0) {
-                    couchUrl = $location.protocol() + "://" + $location.host() + "/couchdb/" + dbName;
+                    var host = $location.host().replace("arcticweb", "awc");
+                    couchUrl = $location.protocol() + "://" + host + "/" + dbName;
                 } else {
                     couchUrl = $location.protocol() + "://" + $location.host() + ":5984/" + dbName;
                     //couchUrl = $location.protocol() + "://" + $location.host() + "/couchdb/" + dbName;
