@@ -179,6 +179,9 @@
         },
         metersToNm: function (meters) {
             return meters / 1852;
+        },
+        squareMetersToSquareNm: function (squareMeters) {
+            return squareMeters / (1852 * 1852);
         }
     }
 
@@ -460,6 +463,7 @@
         return distanceInNm;
     }
 
+
     /* To be replaced by embryo.geo.Position.formatLongitude*/
     function formatLongitude(longitude) {
         var ns = "E";
@@ -634,12 +638,30 @@
         this.radius = radius;
     }
 
-    module.factory('Circle', function () {
+    module.factory('Circle', ["Position", function (Position) {
         embryo.geo.Circle.create = function (centerPosition, radius){
             return new embryo.geo.Circle(centerPosition, radius);
         }
+
+        embryo.geo.Circle.prototype.toPolygon = function(numberOfVertices){
+            var points = [];
+            var lat1 = embryo.Math.toRadians(this.center.lat);
+            var lon1 = embryo.Math.toRadians(this.center.lon);
+            var R = 6371; // earths mean radius
+            var radiusInKm = embryo.geo.Converter.nmToMeters(this.radius)/1000;
+            for ( var i = 0; i < numberOfVertices; i++) {
+                var bearing = Math.PI * 2 * i / numberOfVertices;
+                var lat2 = Math.asin(Math.sin(lat1) * Math.cos(radiusInKm / R) + Math.cos(lat1) * Math.sin(radiusInKm / R) * Math.cos(bearing));
+                var lon2 = lon1
+                    + Math.atan2(Math.sin(bearing) * Math.sin(radiusInKm / R) * Math.cos(lat1), Math.cos(radiusInKm / R) - Math.sin(lat1)
+                        * Math.sin(lat2));
+                points.push(Position.create(embryo.Math.toDegrees(lon2), embryo.Math.toDegrees(lat2)));
+            }
+            return points;
+        }
+
         return embryo.geo.Circle;
-    })
+    }])
 
     // Find the points where this circle and the circle argument intersects
     embryo.geo.Circle.prototype.circleIntersectionPoints = function (circle1) {
@@ -744,6 +766,8 @@
         // * Find the outer tangents *
         // ***************************
 
+        // FIXME: Should also work for c2 and c1 have equal radius.
+
         var circle2a = new embryo.geo.Circle(c2.center, c2.radius - c1.radius)
         var tangents = circle2a.calculateTangents(c1.center);
 
@@ -764,6 +788,18 @@
         return [tangent1, tangent2]
     }
 
+    /**
+     * Create all combinations of external tangents between any two circles
+     */
+    embryo.geo.Circle.createAllExternalTangents = function (circles){
+        var tangents = [];
+        for(var i = 0; i < circles.length - 1; i++){
+            for(var j = i + 1 ; j < circles.length; j++){
+                tangents.push(circles[i].calculateExternalTangents(circles[j]));
+            }
+        }
+        return tangents;
+    }
 
 
     embryo.geo.Rectangle = function (cornerPositions) {
@@ -873,4 +909,82 @@
 
         return new embryo.geo.Rectangle(newPositions);
     }
+
+    module.factory('Polygon', ["Position", function (Position) {
+        function Polygon(positions){
+            this.positions = positions;
+        }
+
+        Polygon.create = function(positions){
+            return new Polygon(positions);
+        }
+
+        function toTurfPolygon(polygon) {
+            var tmp = [];
+            for (var i in polygon.positions) {
+                tmp.push([polygon.positions[i].lon,polygon.positions[i].lat]);
+            }
+            tmp.push([polygon.positions[0].lon,polygon.positions[0].lat])
+            var feature = turf.polygon(tmp, {"fill": "#00f"});
+            feature.geometry.type = "Polygon";
+            feature.geometry.coordinates = [feature.geometry.coordinates];
+            return feature;
+        }
+
+        function fromTurfToGeoPolygon(turfPolygon) {
+            var positions = [];
+            for (var i in turfPolygon) {
+                positions.push(Position.create(turfPolygon[i][0], turfPolygon[i][1]));
+            }
+            return Polygon.create(positions);
+        }
+
+        function cross(o, a, b) {
+            return (a.lon - o.lon) * (b.lat - o.lat) - (a.lat - o.lat) * (b.lon - o.lon);
+        }
+
+        Polygon.prototype.size = function(){
+            var turfPolygon = toTurfPolygon(this);
+            return embryo.geo.Converter.squareMetersToSquareNm(turf.area(turfPolygon));
+        }
+
+
+        Polygon.convexHull = function (positions){
+            positions.sort(function(p1, p2) {
+                return p1.lon == p2.lon ? p1.lat - p2.lat : p1.lon - p2.lon;
+            });
+            var lower = [];
+            for (var i = 0; i < positions.length; i++) {
+                while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], positions[i]) <= 0) {
+                    lower.pop();
+                }
+                lower.push(positions[i]);
+            }
+            var upper = [];
+            for (var i = positions.length - 1; i >= 0; i--) {
+                while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], positions[i]) <= 0) {
+                    upper.pop();
+                }
+                upper.push(positions[i]);
+            }
+            upper.pop();
+            lower.pop();
+            return Polygon.create(upper.concat(lower));
+        }
+
+        Polygon.union = function (polygons){
+            if(!Array.isArray(polygons)){
+                polygons = [polygons];
+            }
+            var resultingFeature = null;
+            for (var i in polygons) {
+                var turfFeature = toTurfPolygon(polygons[i]);
+                resultingFeature = resultingFeature == null ? turfFeature : resultingFeature = turf.union(turfFeature, resultingFeature);
+            }
+            return resultingFeature == null ? null : fromTurfToGeoPolygon(resultingFeature.geometry.coordinates[0])
+        }
+
+        return Polygon;
+    }])
+
 })();

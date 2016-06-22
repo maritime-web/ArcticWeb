@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['pouchdb', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.position', "embryo.geo.services"]);
+    var module = angular.module('embryo.sar.service', ['embryo.storageServices', 'embryo.authentication.service', 'embryo.position', 'embryo.geo.services', 'embryo.pouchdb.services']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -76,6 +76,73 @@
             }
         }
 
+        SurfaceDrift.calculate2 = function (startPosition, untilTs, surfaceDrifts, searchObject) {
+            var datumDownwindPositions = [];
+            var datumMinPositions = [];
+            var datumMaxPositions = [];
+            var currentPositions = []
+
+            var startTs = startPosition.ts;
+            var validFor = null
+
+            for (var i = surfaceDrifts.length - 1; i >= 0; i--) {
+                // Do we have a next?
+                // How long is the data point valid for?
+                // Is it the last one?
+                if (i == 0) {
+                    // It's the last one - let it last the remainder
+                    validFor = (untilTs - startTs) / 60 / 60 / 1000;
+                } else {
+                    var currentTs = surfaceDrifts[i].ts;
+                    if (currentTs > startPosition.ts) {
+                        currentTs = startPosition.ts;
+                    }
+                    validFor = (startTs - currentTs) / 60 / 60 / 1000;
+                    startTs = surfaceDrifts[i].ts;
+                }
+
+                var currentTWC = surfaceDrifts[i].twcSpeed * validFor;
+
+                var startingLocation = null;
+                if (i == 0) {
+                    startingLocation = Position.create(startPosition.lon, startPosition.lat);
+                } else {
+                    startingLocation = datumDownwindPositions[i - 1];
+                }
+
+                var leewayDivergence = searchObject.divergence;
+                var leewaySpeed = searchObject.leewaySpeed(surfaceDrifts[i].leewaySpeed);
+                var leewayDriftDistance = leewaySpeed * validFor;
+
+                var twcDirectionInDegrees = directionDegrees(surfaceDrifts[i].twcDirection);
+                var currentPos = startingLocation.transformPosition(twcDirectionInDegrees, currentTWC);
+                currentPositions.push(currentPos)
+
+                // TODO move somewhere else
+                var downWind = surfaceDrifts[i].downWind;
+                if (!downWind) {
+                    downWind = directionDegrees(surfaceDrifts[i].leewayDirection) - 180;
+                }
+
+                // Are these calculations correct ?
+                // why are previous datumDownwindPosition/datumMinPosition, datumMaxPosition never used.
+                datumDownwindPositions.push(currentPos.transformPosition(downWind, leewayDriftDistance));
+                datumMinPositions.push(currentPos.transformPosition(downWind - leewayDivergence, leewayDriftDistance));
+                datumMaxPositions.push(currentPos.transformPosition(downWind + leewayDivergence, leewayDriftDistance));
+
+            }
+            var result = {
+                lastVectorValidFor : validFor,
+                currentPositions: currentPositions,
+                datumDownwindPositions: datumDownwindPositions,
+                datumMinPositions: datumMinPositions,
+                datumMaxPositions: datumMaxPositions,
+                datumDownwind : datumDownwindPositions[datumDownwindPositions.length - 1],
+                datumMax : datumMaxPositions[datumMaxPositions.length - 1],
+                datumMin : datumMinPositions[datumMinPositions.length - 1]
+            }
+            return result;
+        }
         SurfaceDrift.calculate = function (startPosition, commenceSearchStart, surfaceDrifts, searchObject) {
             var datumDownwindPositions = [];
             var datumMinPositions = [];
@@ -178,10 +245,19 @@
         return RDV;
     });
 
-    module.factory('SearchCircle', function () {
+    module.factory('SearchCircle', ["Position", "Circle", function (Position, Circle) {
         function SearchCircle(data) {
             angular.extend(this, data);
         }
+
+        SearchCircle.prototype.toPolygonOfPositions = function(numberOfVertices){
+            return Circle.create(Position.create(this.datum), this.radius).toPolygon(numberOfVertices)
+        }
+
+        SearchCircle.prototype.toGeoCircle = function(){
+            return Circle.create(Position.create(this.datum), this.radius);
+        }
+
         SearchCircle.validate = function(xError, yError, safetyFactor, rdvDistance, datum) {
             assertValue(xError, "xError");
             assertValue(yError, "yError");
@@ -200,9 +276,15 @@
                 datum : datum.toDegreesAndDecimalMinutes()
             });
         }
+        SearchCircle.create = function(radius, datum){
+            return new SearchCircle({
+                radius : radius,
+                datum : datum.toDegreesAndDecimalMinutes()
+            });
+        }
 
         return SearchCircle;
-    });
+    }]);
 
     module.factory('SearchArea', [function () {
         function SearchArea(data) {
@@ -421,7 +503,69 @@
         }
     ]);
 
-    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle) {
+    module.service('DatumLineSearchAreaCalculator', ["Position", "Circle", "SearchArea", "Polygon", function (Position, Circle, SearchArea, Polygon) {
+
+        function createExternalCircleTangents (dsp1, dsp2){
+            var circles = [dsp1.downWind.circle, dsp1.min.circle,dsp1.max.circle, dsp2.downWind.circle, dsp2.min.circle, dsp2.max.circle];
+            for(var i in circles){
+                circles[i] = circles[i].toGeoCircle();
+            }
+            return Circle.createAllExternalTangents(circles);
+        }
+
+
+        function extractPositionsFromTangents (tangents){
+            var positions = [];
+            for(var i in tangents){
+                positions.push(tangents[i][0].point1)
+                positions.push(tangents[i][0].point2)
+                positions.push(tangents[i][1].point1)
+                positions.push(tangents[i][1].point2)
+            }
+            return positions;
+        }
+
+
+        var service ={
+
+            //createTangents
+
+            calculate : function(dsps){
+                var numberOfVertices = 360;
+
+                var polygons = []
+
+                for(var index = 0; index < dsps.length - 1; index++) {
+                    var dsp1 = dsps[index];
+                    var dsp2 = dsps[index + 1];
+                    var tangents = createExternalCircleTangents(dsp1, dsp2)
+                    var pos = extractPositionsFromTangents(tangents);
+                    var tangentsHull = Polygon.convexHull(pos);
+
+                    var positions = tangentsHull.positions;
+                    positions = positions.concat(dsp1.downWind.circle.toPolygonOfPositions(numberOfVertices));
+                    positions = positions.concat(dsp1.min.circle.toPolygonOfPositions(numberOfVertices));
+                    positions = positions.concat(dsp1.max.circle.toPolygonOfPositions(numberOfVertices));
+                    positions = positions.concat(dsp2.downWind.circle.toPolygonOfPositions(numberOfVertices));
+                    positions = positions.concat(dsp2.min.circle.toPolygonOfPositions(numberOfVertices));
+                    positions = positions.concat(dsp2.max.circle.toPolygonOfPositions(numberOfVertices));
+                    var hull = Polygon.convexHull(positions);
+                    polygons.push(hull)
+                }
+
+                var polygon = Polygon.union(polygons);
+
+                return {
+                    polygons : [polygon.positions],
+                    size : polygon.size()
+                }
+            }
+        }
+        return service;
+    }]);
+
+    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "DatumLineSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, DatumLineSearchAreaCalculator) {
 
         function DatumLineOutput(data) {
             angular.extend(this, data);
@@ -442,7 +586,7 @@
                 result.currentPositions = drift.currentPositions;
 
                 var rdv = RDV.build(startPoint, drift.datumDownwindPositions, result.timeElapsed);
-                var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+                var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
                 result.downWind = {
                     rdv: rdv,
                     circle: circle,
@@ -450,7 +594,7 @@
                 }
 
                 rdv = RDV.build(startPoint, drift.datumMaxPositions, result.timeElapsed);
-                circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
                 result.max = {
                     rdv: rdv,
                     circle: circle,
@@ -458,7 +602,7 @@
                 }
 
                 rdv = RDV.build(startPoint, drift.datumMinPositions, result.timeElapsed);
-                circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
                 result.min = {
                     rdv: rdv,
                     circle: circle,
@@ -467,9 +611,11 @@
                 dspResults.push(result);
             }
 
+            var area = DatumLineSearchAreaCalculator.calculate(dspResults);
             // Calculate Smallest square / polygon around
             return new DatumLineOutput({
-                dsps : dspResults
+                dsps : dspResults,
+                searchArea : area
             });
         }
         return DatumLineOutput;
@@ -478,7 +624,33 @@
 
     module.factory('BackTrackOutput', [function () {
         function BackTrackOutput() {
+            angular.extend(this, data);
         }
+
+        BackTrackOutput.calculate = function(input){
+
+            var result = TimeElapsed.build(input.objectPosition, input.startTs);
+
+            var startPoint = Position.create(dsp)
+            var searchObject = findSearchObjectType(input.searchObject);
+
+
+            var surfaceDrifts = SurfaceDrift.revertDirections(input.surfaceDrifts);
+            var drift = SurfaceDrift.build(input.objectPosition, input.startTs, surfaceDrifts, searchObject);
+            result.currentPositions = drift.currentPositions;
+
+            var rdv = RDV.build(startPoint, drift.datumDownwindPositions, result.timeElapsed);
+            var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+            result.downWind = {
+                rdv: rdv,
+                circle: circle,
+                driftPositions: drift.datumDownwindPositions
+            }
+
+
+            return new BackTrackOutput(result);
+        }
+
         return BackTrackOutput;
     }]);
 
@@ -1142,12 +1314,12 @@
         return service;
     }]);
 
-    module.factory('LivePouch', ['pouchDB', 'CouchUrlResolver', function (pouchDB, CouchUrlResolver) {
+    module.factory('LivePouch', ['PouchDBFactory', function (PouchDBFactory) {
         var dbName = 'embryo-live';
-        var couchUrl = CouchUrlResolver.resolveCouchUrl(dbName);
+        var liveDb = PouchDBFactory.createLocalPouch(dbName);
+        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
 
-        var liveDb = pouchDB(dbName);
-        var sync = liveDb.sync(couchUrl, {
+        var sync = liveDb.sync(remoteDb, {
             live: true,
             retry: true
         })
@@ -1155,26 +1327,28 @@
         return liveDb;
     }]);
 
-    module.factory('UserPouch', ['pouchDB', 'CouchUrlResolver', function (pouchDB, CouchUrlResolver) {
+    module.factory('UserPouch', ['PouchDBFactory','$log', function (PouchDBFactory, $log) {
         // make sure this works in development environment as well as other environments
         var dbName = 'embryo-user';
-        var couchUrl = CouchUrlResolver.resolveCouchUrl(dbName);
+        var userDb = PouchDBFactory.createLocalPouch(dbName);
+        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
 
-        var userDB = new PouchDB(dbName);
-
-        var handler = userDB.replicate.from(couchUrl, {
+         var handler = userDb.replicate.from(remoteDb, {
             retry: true
-        })
+         })
 
-        // TODO setup scheduled replication
-        handler.on("complete", function (){
-            console.log("Done replicating users");
-        })
-        handler.on("error", function (error){
-            console.log(error);
-        })
+         // TODO setup scheduled replication
+         handler.on("complete", function (){
+            $log.info("Done replicating users");
+         })
+         handler.on("error", function (error){
+            $log.info(error);
+         })
 
-        return userDB;
+
+        return userDb;
     }]);
+
+
 
 })();

@@ -111,69 +111,72 @@
                             <td>RDV</td>
                             <td>Radius</td>
                         </tr>
-                        <tr x-ng-if="sar.output.datum">
+                        <tr x-ng-if="sar.output.circle">
                             <td>DW</td>
-                            <td>{{sar.output.datum.lat}}</td>
-                            <td>{{sar.output.datum.lon}}</td>
+                            <td>{{sar.output.circle.datum.lat}}</td>
+                            <td>{{sar.output.circle.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.radius, -2)}} nm</td>
+                            <td>{{formatDecimal(sar.output.circle.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.downWind">
                             <td>DW</td>
-                            <td>{{sar.output.downWind.datum.lat}}</td>
-                            <td>{{sar.output.downWind.datum.lon}}</td>
+                            <td>{{sar.output.downWind.circle.datum.lat}}</td>
+                            <td>{{sar.output.downWind.circle.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.downWind.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.downWind.radius, -2)}} nm</td>
+                            <td>{{formatDecimal(sar.output.downWind.circle.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.min">
                             <td>Min</td>
-                            <td>{{sar.output.min.datum.lat}}</td>
-                            <td>{{sar.output.min.datum.lon}}</td>
+                            <td>{{sar.output.min.circle.datum.lat}}</td>
+                            <td>{{sar.output.min.circle.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.min.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.min.radius, -2)}} nm</td>
+                            <td>{{formatDecimal(sar.output.min.circle.radius, -2)}} nm</td>
                         </tr>
                         <tr x-ng-if="sar.output.max">
                             <td>Max</td>
-                            <td>{{sar.output.max.datum.lat}}</td>
-                            <td>{{sar.output.max.datum.lon}}</td>
+                            <td>{{sar.output.max.circle.datum.lat}}</td>
+                            <td>{{sar.output.max.circle.datum.lon}}</td>
                             <td>{{formatDecimal(sar.output.max.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.max.radius, -2)}} nm</td>
+                            <td>{{formatDecimal(sar.output.max.circle.radius, -2)}} nm</td>
                         </tr>
                     </table>
 
                     <h6>Search Area</h6>
-                    <div class="row">
-                        <div class="col-md-4"></div>
-                        <div class="col-md-4 nopadding">Latitude</div>
-                        <div class="col-md-4 nopadding">Longitude</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">A</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">B</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">C</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-4">D</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
-                        <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                    <div x-ng-if="sar.output.searchArea.A">
+                        <div class="row">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-4 nopadding">Latitude</div>
+                            <div class="col-md-4 nopadding">Longitude</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">A</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">B</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">C</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">D</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
+                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                        </div>
                     </div>
                     <div class="row" style="margin-top:5px">
                         <div class="col-md-4">Size</div>
                         <div class="col-md-4 nopadding"></div>
                         <div class="col-md-4 nopadding">
-                            <span>{{formatDecimal(sar.output.searchArea.size, -2)}} nm<sup>2</sup></span></div>
+                            <span>{{formatDecimal(sar.output.searchArea.size, 0)}} nm<sup>2</sup></span></div>
                     </div>
 
+                    <!--
                     <h6>Search Area Progression in minutes after CSS</h6>
                     <div class="row">
                         <div class="col-md-12">
@@ -184,7 +187,7 @@
                                    step="5"
                                    style="width: 95%;"/>
                         </div>
-                    </div>
+                    </div>-->
 
                     <div class="row sarButtons"
                          x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">

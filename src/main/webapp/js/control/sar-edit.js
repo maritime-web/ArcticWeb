@@ -41,6 +41,42 @@ $(function () {
         };
     });
 
+    module.directive('gteq', function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, element, attr, ngModelController) {
+                var path = attr.gteq.split('.');
+
+                function comparedTo() {
+                    var value = scope;
+                    for (var index in path) {
+                        var v = path[index];
+                        value = value[v];
+                    }
+                    return value
+                }
+
+                function valid(value1, value2) {
+                    return value1 > value2;
+                }
+
+                //For DOM -> model validation
+                ngModelController.$parsers.unshift(function (value) {
+                    var otherValue = comparedTo();
+                    ngModelController.$setValidity('gteq', valid(value, otherValue));
+                    return value;
+                });
+
+                //For model -> DOM validation
+                ngModelController.$formatters.unshift(function (value) {
+                    var otherValue = comparedTo();
+                    ngModelController.$setValidity('gteq', valid(value, otherValue));
+                    return value;
+                });
+            }
+        };
+    });
+
     function SarTypeData(text, img) {
         this.text = text;
         this.img = img;
@@ -313,9 +349,7 @@ $(function () {
         }
 
         $scope.add = function(){
-            console.log("add")
             $scope.dsp.surfaceDrifts.push({});
-            console.log($scope.dsp.surfaceDrifts);
         }
 
         $scope.removeLast = function(){
@@ -434,9 +468,6 @@ $(function () {
     targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 79 feet";
 
     function targetTypes(sruType) {
-
-        console.log("targetTypes(" + sruType + ")")
-
         if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
             return [
                 embryo.sar.effort.TargetTypes.PersonInWater,

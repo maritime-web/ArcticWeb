@@ -269,6 +269,27 @@ function SarLayer() {
         return features;
     }
 
+    function addSarPolygonSearchArea(layer, sar, active) {
+        if (!sar || !sar.output || !sar.output.searchArea || !sar.output.searchArea.polygons) {
+            return;
+        }
+
+        var points = [];
+        for (var j in sar.output.searchArea.polygons){
+            var polygon = sar.output.searchArea.polygons[j];
+            for (var index in polygon) {
+                var pos = polygon[index];
+                points.push(embryo.map.createPoint(pos.lon, pos.lat));
+            }
+            layer.addFeatures([new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LinearRing(points), {
+                type: "area",
+                active: active,
+                sarId: sar._id
+            })])
+        }
+    }
+
+
     function addDriftVector(layer, positions) {
         var points = []
         var length = positions.length;
@@ -397,7 +418,7 @@ function SarLayer() {
     this.drawSar = function (sar) {
         var active = sar.status != embryo.SARStatus.ENDED;
 
-        if(sar.output.searchArea){
+        if(sar.output.searchArea && sar.output.searchArea.A){
             this.layers.sar.addFeatures(createSearchArea(sar, active));
         }
 
@@ -415,6 +436,7 @@ function SarLayer() {
                 this.drawDatumPoint(sar._id, sar.input.dsps[index], dsp, active);
             }
             this.addDspLine(this.layers.sar, sar.input.dsps);
+            addSarPolygonSearchArea(this.layers.sar, sar, active);
 
         }
     }

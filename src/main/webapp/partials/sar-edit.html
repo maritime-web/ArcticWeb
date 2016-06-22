@@ -25,6 +25,13 @@
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
 
                 <div class="form-group">
+                    <label class="control-label col-xs-3">Identifier</label>
+
+                    <div class="col-xs-4 txt"><span>{{sar.no}}</span></div>
+                </div>
+                <hr/>
+
+                <div class="form-group">
                     <label class="control-label col-xs-3">Sar Operation Type</label>
 
                     <div class="col-xs-5">
@@ -49,8 +56,7 @@
 
                     <p x-ng-if="sar.type === sarTypes.DatumLine">
                         {{sarTypeDatas[sar.type].text}} is used when an object is missing and the last known position
-                        (LKP) is
-                        unknown, but an assumed route is known.
+                        (LKP) is unknown, but an assumed route is known.
                     </p>
 
                     <p x-ng-if="sar.type === sarTypes.BackTrack">
@@ -66,7 +72,6 @@
 
                 <div class="col-xs-12">
                     <span class="pull-right">
-                        <button type="button" class="btn btn-sm" x-ng-click="back()">Back</button> &nbsp;
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="next()">Next</button>
                     </span>
                 </div>
@@ -79,23 +84,16 @@
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
 
                 <h5>{{tmp.sarTypeData.text}}</h5>
-                <div class="form-group">
-                    <label class="control-label col-xs-3">Identifier</label>
-
-                    <div class="col-xs-4 txt"><span>{{sar.no}}</span></div>
-                </div>
-                <hr/>
 
                 <div x-ng-if="sar.type === sarTypes.DatumLine">
                     <h5>Drift Search Positions</h5>
-
-
                     <table class="table dsps" x-ng-if="sar.dsps && sar.dsps.length > 0">
                         <thead>
                         <tr>
                             <th>DSP</th>
                             <th>Time</th>
                             <th>Position</th>
+                            <th>Position Error (X)</th>
                             <th></th>
                             <th></th>
                         </tr>
@@ -105,6 +103,7 @@
                             <td>{{$index + 1}}</td>
                             <td>{{formatTs(dsp.ts)}}</td>
                             <td>{{formatPos(dsp)}}</td>
+                            <td>{{dsp.xError ? dsp.xError + ' nm' : ''}}</td>
                             <td>
                                 <button type="button" class="btn btn-sm" x-ng-click="editDSP($index)">Edit</button></td>
                             <td>
@@ -131,14 +130,7 @@
                     <h5>Last known position</h5>
 
                     <div class="form-group">
-                        <label class="control-label col-xs-3">Time</label>
-
-                        <div class="col-xs-4">
-                            <datetimepicker x-ng-model="sar.lastKnownPosition.ts"/>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-xs-3">Latitude</label>
+                        <label class="control-label col-xs-2">Latitude</label>
 
                         <div class="col-xs-3">
                             <input latitude2 x-ng-model="sar.lastKnownPosition.lat" type="text"
@@ -150,6 +142,19 @@
                         <div class="col-xs-3">
                             <input longitude2 x-ng-model="sar.lastKnownPosition.lon" type="text"
                                    class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">Time</label>
+
+                        <div class="col-xs-4">
+                            <datetimepicker x-ng-model="sar.lastKnownPosition.ts"/>
+                        </div>
+                        <label class="control-label col-xs-3">Position Error (X), nm</label>
+
+                        <div class="col-xs-2">
+                            <input x-ng-model="sar.xError" name="xError" type="number" class="form-control input-sm"
+                                   required/>
                         </div>
                     </div>
                     <hr/>
@@ -194,11 +199,27 @@
                             <tbody>
                             <tr ng-form="surfaceDriftPointForm" x-ng-repeat="surfaceDriftPoint in sar.surfaceDriftPoints">
                                 <td>
-                                    <datetimepicker name="surfaceDriftPointTs" x-ng-model="surfaceDriftPoint.ts"
-                                                    lteq="sar.lastKnownPosition.ts"/>
-                                <span x-ng-if="surfaceDriftPointForm.surfaceDriftPointTs.$error.lteq" class="error-block">
-                                    Surface drift point must be before last known position.
-                                </span>
+                                    <div x-ng-if="$index == 0">
+                                        <datetimepicker name="surfaceDriftPointTs" x-ng-model="surfaceDriftPoint.ts"
+                                                        lteq="sar.lastKnownPosition.ts"/>
+                                        <span x-ng-if="surfaceDriftPointForm.surfaceDriftPointTs.$error.lteq" class="error-block">
+                                            Surface drift point must be before last known position.
+                                        </span>
+                                    </div>
+                                    <div x-ng-if="$index == 1">
+                                        <datetimepicker name="surfaceDriftTs2" x-ng-model="surfaceDriftPoint.ts"
+                                                        gteq="sar.lastKnownPosition.ts"/>
+                                        <span x-ng-if="surfaceDriftPointForm.surfaceDriftTs2.$error.gteq" class="error-block">
+                                            Surface drift point must be after last known position.
+                                        </span>
+                                    </div>
+                                    <div x-ng-if="$index > 1">
+                                        <datetimepicker name="surfaceDriftTs3" x-ng-model="surfaceDriftPoint.ts"
+                                                        gteq="sar.surfaceDriftPoints[$index - 1].ts"/>
+                                        <span x-ng-if="surfaceDriftPointForm.surfaceDriftTs3.$error.gteq" class="error-block">
+                                            Surface drift point must be after the previous one.
+                                        </span>
+                                    </div>
                                 </td>
                                 <td><input x-ng-model="surfaceDriftPoint.twcSpeed" type="text"
                                            class="form-control input-sm" placeholder="5 knots"
@@ -228,13 +249,141 @@
                 <h5>Other variables</h5>
 
                 <div class="form-group">
-                    <label class="control-label col-xs-3">Initial Position Error (X), nm</label>
+                    <label class="control-label col-xs-3">SRU Navigational Error (Y), nm</label>
 
                     <div class="col-xs-4">
-                        <input x-ng-model="sar.xError" name="xError" type="number" class="form-control input-sm"
+                        <input x-ng-model="sar.yError" name="yError" type="number" class="form-control input-sm"
+                               required/>
+                    </div>
+                    <span class="help-block">Note: GPS = 0.1 nm</span>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-3">Safety factor, Fs</label>
+
+                    <div class="col-xs-4">
+                        <input x-ng-model="sar.safetyFactor" name="safetyFactor" type="number"
+                               class="form-control input-sm" required/>
+                    </div>
+                </div>
+
+                <hr/>
+                <h5>Search object</h5>
+
+                <div class="form-group">
+                    <div class="col-xs-7" for="sar.searchObject">
+                        <select ng-model="sar.searchObject" id="sar.searchObject" name="sar.searchObject" required
+                                class="input-sm form-control"
+                                x-ng-options="searchObject.id as searchObject.text for searchObject in searchObjects">
+                        </select>
+                    </div>
+                    <span class="help-block">{{sar.searchObject.x}} x U<span x-ng-if="sar.searchObject.y >= 0"> + {{sar.searchObject.y}}</span>
+                        <span x-ng-if="sar.searchObject.y < 0"> - {{-1*sar.searchObject.y}}</span>, Divergence {{sar.searchObject.divergence}}
+                    </span>
+                </div>
+
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-sm" x-ng-click="back()">Back</button> &nbsp;
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="createSarOperation()"
+                                x-ng-disabled="sarOperationForm.$invalid">Next
+                        </button>
+                    </span>
+                </div>
+            </form>
+            <form x-ng-if="page.name == 'BackTrack'" name="btForm" class="form-horizontal" novalidate>
+                <hr/>
+                <div x-ng-show="alertMessages" class="alert alert-danger">
+                    <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
+                </div>
+                <div x-ng-show="message" class="alert alert-info">{{message}}</div>
+
+                <h5>{{tmp.sarTypeData.text}}</h5>
+
+                <h5>Position for observed Object</h5>
+                <div class="form-group">
+                    <label class="control-label col-xs-2">Latitude</label>
+                    <div class="col-xs-3">
+                        <input latitude2 x-ng-model="sar.objectPosition.lat" type="text"
+                               class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                    </div>
+
+                    <label class="control-label col-xs-3">Longitude</label>
+                    <div class="col-xs-3">
+                        <input longitude2 x-ng-model="sar.objectPosition.lon" type="text"
+                               class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-xs-2">Time</label>
+                    <div class="col-xs-4">
+                        <datetimepicker x-ng-model="sar.objectPosition.ts"/>
+                    </div>
+
+                    <label class="control-label col-xs-3">Position Error (X), nm</label>
+                    <div class="col-xs-2">
+                        <input x-ng-model="sar.objectPosition.xError" name="xError" type="number" class="form-control input-sm"
                                required/>
                     </div>
                 </div>
+                <hr/>
+
+                <div>
+                    <h5>Surface drift</h5>
+                    <div>
+                        <div class="form-group">
+                            <div class="col-xs-offset-5 col-xs-7">
+                                <span class="pull-right">
+                                    <button type="button" class="btn btn-sm" x-ng-click="addPoint()">Add point</button>
+                                    <button type="button" class="btn btn-sm" x-ng-click="removePoint()"
+                                            x-ng-disabled="sar.surfaceDrifts.length <= 1">Remove last
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <table class="table surfaceDriftPoints">
+                            <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>TWC</th>
+                                <th>TWC direction</th>
+                                <th>Leeway</th>
+                                <th>Leeway direction</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr ng-form="surfaceDriftForm" x-ng-repeat="surfaceDrift in sar.surfaceDrifts">
+                                <td>
+                                    <datetimepicker name="surfaceDriftTs" x-ng-model="surfaceDrift.ts"
+                                                    lteq="sar.objectPosition.ts"/>
+                                <span x-ng-if="surfaceDriftForm.surfaceDriftTs.$error.lteq" class="error-block">
+                                    Surface drift point must be before last known position.
+                                </span>
+                                </td>
+                                <td><input x-ng-model="surfaceDrift.twcSpeed" type="text"
+                                           class="form-control input-sm" placeholder="5 knots"
+                                           required/></td>
+                                <td>
+                                    <input x-ng-model="surfaceDrift.twcDirection" type="text"
+                                           class="form-control input-sm"
+                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           typeahead-template-url="directionTemplate.html" placeholder="W/270°" required/>
+                                </td>
+                                <td><input x-ng-model="surfaceDrift.leewaySpeed" type="text"
+                                           class="form-control input-sm" placeholder="15 knots" required/></td>
+                                <td><input x-ng-model="surfaceDrift.leewayDirection" type="text"
+                                           class="form-control input-sm"
+                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           typeahead-template-url="directionTemplate.html" placeholder="NE/45°" required/>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <hr/>
+                <h5>Other variables</h5>
 
                 <div class="form-group">
                     <label class="control-label col-xs-3">SRU Navigational Error (Y), nm</label>
@@ -284,23 +433,28 @@
                     <h5>Drift Search Position</h5>
 
                     <div class="form-group">
-                        <label class="control-label col-xs-3">Time</label>
-
-                        <div class="col-xs-4">
-                            <datetimepicker name="ts" x-ng-model="dsp.ts" required/>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label col-xs-3">Latitude</label>
-
+                        <label class="control-label col-xs-2">Latitude</label>
                         <div class="col-xs-3">
                             <input latitude2 x-ng-model="dsp.lat" type="text"
                                    class="form-control input-sm lat" placeholder="61 15.856N" required/>
                         </div>
-                        <label class="control-label col-xs-2">Longitude</label>
+
+                        <label class="control-label col-xs-3">Longitude</label>
                         <div class="col-xs-3">
                             <input longitude2 x-ng-model="dsp.lon" type="text"
                                    class="form-control input-sm lon" placeholder="049 53.844W" required/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">Time</label>
+                        <div class="col-xs-4">
+                            <datetimepicker name="ts" x-ng-model="dsp.ts" required/>
+                        </div>
+
+                        <label class="control-label col-xs-3">Position Error (X), nm</label>
+                        <div class="col-xs-2">
+                            <input x-ng-model="dsp.xError" name="xError" type="number" class="form-control input-sm"
+                                   required/>
                         </div>
                     </div>
                     <hr/>
@@ -463,11 +617,13 @@
                 </span>
 
                 Search Area:<br/>
-                A: {{formatPos(sarOperation.output.searchArea.A)}}<br/>
-                B: {{formatPos(sarOperation.output.searchArea.B)}}<br/>
-                C: {{formatPos(sarOperation.output.searchArea.C)}}<br/>
-                D: {{formatPos(sarOperation.output.searchArea.D)}}<br/>
-                Total size: {{formatDecimal(sarOperation.output.searchArea.totalSize, -2)}} nm2<br/>
+                <span x-ng-if="sarOperation.output.searchArea.A">
+                    A: {{formatPos(sarOperation.output.searchArea.A)}}<br/>
+                    B: {{formatPos(sarOperation.output.searchArea.B)}}<br/>
+                    C: {{formatPos(sarOperation.output.searchArea.C)}}<br/>
+                    D: {{formatPos(sarOperation.output.searchArea.D)}}<br/>
+                </span>
+                Total size: {{formatDecimal(sarOperation.output.searchArea.size)}} nm<sup>2</sup><br/>
 
                 <div class="col-xs-12">
                     <span class="pull-right">

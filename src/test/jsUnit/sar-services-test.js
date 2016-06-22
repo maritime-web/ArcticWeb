@@ -527,7 +527,7 @@ describe('embryo.sar.service', function () {
         }));
     });
 
-    describe('DatumPointLine integration test', function () {
+    describe('DatumLineOutput integration test', function () {
 
         /**
          * Test the calculation succeeds with input values ana that search area is established.
@@ -544,6 +544,7 @@ describe('embryo.sar.service', function () {
                         ts: Date.now() - 2 * 60 * 60 * 1000,
                         lon: "059 00.000W",
                         lat: "61 00.000N",
+                        xError : 1,
                         surfaceDrifts: [{
                             ts: Date.now() - 60 * 60 * 1000,
                             twcSpeed: 5,
@@ -555,10 +556,10 @@ describe('embryo.sar.service', function () {
                         ts: Date.now() - 60 * 60 * 1000,
                         lon: "058 00.000W",
                         lat: "61 00.000N",
+                        xError : 1,
                         reuseSurfaceDrifts : true
                     }
                 ],
-                xError: 1.0,
                 yError: 0.1,
                 safetyFactor: 1.0,
                 searchObject: searchObjectTypes[0].id
@@ -568,6 +569,8 @@ describe('embryo.sar.service', function () {
             var output = DatumLineOutput.calculate(input);
 
             expect(output).toBeDefined();
+            expect(output.dsps).toBeDefined();
+            expect(output.dsps.length).toBe(2);
             // ASSERT DATUM
 /*            expect(output.downWind.circle.datum.lat).toBe("61 03.328N");
             expect(output.downWind.circle.datum.lon).toBe("050 52.939W");
@@ -604,6 +607,66 @@ describe('embryo.sar.service', function () {
              expect(sarOperation.searchArea.size).toBeCloseTo(1.3742403439070814 * 1.3742403439070814 * 4, 4);*/
         }));
     });
+
+    describe('DatumLineSearchAreaCalculator', function () {
+
+        /**
+         * Test the calculation succeeds with input values ana that search area is established.
+         */
+        it('create datum line SAR operation with two DSPs, each with the surface drift point values', inject(function (DatumLineSearchAreaCalculator, SearchCircle, Position) {
+            var dsps = [{
+                downWind : { circle : SearchCircle.create(1.5, Position.create("014 12.124W", "11 12.123N"))},
+                min : { circle : SearchCircle.create(3, Position.create("015 12.124W", "12 12.123N"))},
+                max : { circle : SearchCircle.create(2, Position.create("013 12.124W", "10 12.123N"))},
+            },{
+                downWind : { circle : SearchCircle.create(2.1, Position.create("018 12.124W", "11 12.123N"))},
+                min : { circle : SearchCircle.create(3.2, Position.create("019 12.124W", "12 12.123N"))},
+                max : { circle : SearchCircle.create(2.4, Position.create("017 12.124W", "10 12.123N"))}
+            }]
+
+            //var sarOperation = null;
+            var area = DatumLineSearchAreaCalculator.calculate(dsps);
+
+            expect(area).toBeDefined();
+            //expect(output.dsps).toBeDefined();
+            //expect(output.dsps.length).toBe(2);
+            // ASSERT DATUM
+            /*            expect(output.downWind.circle.datum.lat).toBe("61 03.328N");
+             expect(output.downWind.circle.datum.lon).toBe("050 52.939W");
+             expect(output.downWind.circle.radius).toBeCloseTo(2.532633, 4);
+             expect(output.downWind.rdv.direction).toBeCloseTo(45.780030, 4);
+             expect(output.downWind.rdv.distance).toBeCloseTo(4.7754450, 4);
+             expect(output.downWind.rdv.speed).toBeCloseTo(4.775445, 4);
+
+             expect(output.max.circle.datum.lat).toBe("61 03.413N");
+             expect(output.max.circle.datum.lon).toBe("050 53.115W");
+             expect(output.max.circle.radius).toBeCloseTo(2.5325631, 4);
+             expect(output.max.rdv.direction).toBeCloseTo(44.331598, 4);
+             expect(output.max.rdv.distance).toBeCloseTo(4.7752103, 4);
+             expect(output.max.rdv.speed).toBeCloseTo(4.7752103, 4);
+
+             expect(output.min.circle.datum.lat).toBe("61 03.297N");
+             expect(output.min.circle.datum.lon).toBe("050 52.699W");
+             expect(output.min.circle.radius).toBeCloseTo(2.5515123, 4);
+             expect(output.min.rdv.direction).toBeCloseTo(47.008245, 4);
+             expect(output.min.rdv.distance).toBeCloseTo(4.8383743, 4);
+             expect(output.min.rdv.speed).toBeCloseTo(4.8383743, 4);
+
+             expect(formatLatitude(sarOperation.searchArea.A.lat)).toBe("60 59.801N");
+             expect(formatLongitude(sarOperation.searchArea.A.lon)).toBe("050 50.788W");
+
+             expect(formatLatitude(sarOperation.searchArea.B.lat)).toBe("61 02.460N");
+             expect(formatLongitude(sarOperation.searchArea.B.lon)).toBe("051 00.292W");
+
+             expect(formatLatitude(sarOperation.searchArea.C.lat)).toBe("61 06.878N");
+             expect(formatLongitude(sarOperation.searchArea.C.lon)).toBe("050 55.017W");
+
+             expect(formatLatitude(sarOperation.searchArea.D.lat)).toBe("61 04.229N");
+             expect(formatLongitude(sarOperation.searchArea.D.lon)).toBe("050 45.497W");
+             expect(sarOperation.searchArea.size).toBeCloseTo(1.3742403439070814 * 1.3742403439070814 * 4, 4);*/
+        }));
+    });
+
 
     /*
         function createTestRdv(increment){

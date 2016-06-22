@@ -41,11 +41,11 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SARLayerControl", ['SarService', 'LivePouch', '$log', 'PositionService',
-        function (SarService, LivePouch, $log, PositionService) {
+    module.controller("SARLayerControl", ['$scope', 'SarService', 'LivePouch', '$log',
+        function ($scope, SarService, LivePouch, $log) {
         var sarDocuments = [];
 
-        SarLayerSingleton.getInstance(PositionService).modified = function (zoneUpdate) {
+        SarLayerSingleton.getInstance().modified = function (zoneUpdate) {
             $log.debug("zone updated on map");
             $log.debug(zoneUpdate);
             LivePouch.get(zoneUpdate._id).then(function (zone) {
@@ -68,7 +68,7 @@ $(function () {
         SarService.sarSelected("SARLayerControl", function (sarId) {
             if (sarId) {
                 LivePouch.get(sarId).then(function (sar) {
-                    SarLayerSingleton.getInstance(PositionService).zoomToSarOperation(sar);
+                    SarLayerSingleton.getInstance().zoomToSarOperation(sar);
                 });
             }
         });
@@ -91,7 +91,7 @@ $(function () {
                     }
                 }
                 sarDocuments = documents;
-                SarLayerSingleton.getInstance(PositionService).draw(sarDocuments);
+                SarLayerSingleton.getInstance().draw(sarDocuments);
                 $log.debug("loadSarDocuments");
                 $log.debug(sarDocuments)
             }).catch(function (err) {
@@ -101,7 +101,7 @@ $(function () {
             });
         }
 
-        LivePouch.changes({
+        var changes = LivePouch.changes({
             since: 'now',
             live: true,
             filter: function (doc) {
@@ -115,6 +115,11 @@ $(function () {
             // To achieve cleaner code, we therefore just load all SAR documents again
             // and redraw them, when one document is updated, created or deleted.
             loadSarDocuments();
+        });
+
+        $scope.$on("$destroy", function() {
+            console.log("cancel")
+            changes.cancel();
         });
 
         loadSarDocuments();
@@ -158,15 +163,19 @@ $(function () {
 
             loadSarOperations();
 
-            LivePouch.changes({
+            var changes = LivePouch.changes({
                 since: 'now',
                 live: true,
-                include_docs: true,
                 filter: function (doc) {
                     return doc["@type"] && doc["@type"] == embryo.sar.Type.SearchArea;
                 }
             }).on('change', function () {
                 loadSarOperations();
+            });
+
+            $scope.$on("$destroy", function() {
+                console.log("cancel operations")
+                changes.cancel();
             });
 
 
@@ -194,6 +203,7 @@ $(function () {
             $scope.SARStatusTxt = SARStatusTxt;
             $scope.SARStatusLabel = SARStatusLabel;
             $scope.SARStatus = embryo.SARStatus;
+            var changes = null;
 
             var subscription = ViewService.subscribe({
                 name: "OperationControl",
@@ -204,6 +214,9 @@ $(function () {
 
             $scope.$on("$destroy", function () {
                 ViewService.unsubscribe(subscription);
+                if(changes){
+                    changes.cancel();
+                }
             });
 
             SarService.sarSelected("OperationControl", function (sarId) {
@@ -212,6 +225,10 @@ $(function () {
                     $scope.$apply(function () {
                     });
                 }
+                if(changes){
+                    changes.cancel();
+                }
+
 
                 $scope.selected.sarId = sarId;
                 function loadSarOperation(){
@@ -228,8 +245,7 @@ $(function () {
 
                 if (sarId) {
                     loadSarOperation();
-
-                    LivePouch.changes({
+                    changes = LivePouch.changes({
                         since: 'now',
                         live: true,
                         include_docs: true,
@@ -238,7 +254,7 @@ $(function () {
                         key : sarId
                 }).on('change', function () {
                         loadSarOperation();
-                    });
+                });
 
                 } else {
                     $scope.selected.sar = null;
@@ -280,6 +296,7 @@ $(function () {
 
             $scope.AllocationStatusTxt = AllocationStatusTxt;
             $scope.AllocationStatusLabel = AllocationStatusLabel;
+            var changes = null;
 
 
             var subscription = ViewService.subscribe({
@@ -291,12 +308,18 @@ $(function () {
 
             $scope.$on("$destroy", function () {
                 ViewService.unsubscribe(subscription);
+                if(changes){
+                    changes.cancel();
+                }
             });
 
             SarService.sarSelected("EffortAllocationControl", function (sarId) {
+                if(changes){
+                    changes.cancel();
+                }
                 if (sarId) {
                     loadEffortAllocations(sarId);
-                    listen4EffortAllocationChanges(sarId);
+                    changes = listen4EffortAllocationChanges(sarId);
                 }
             });
 
@@ -335,7 +358,7 @@ $(function () {
             }
 
             function listen4EffortAllocationChanges(sarId) {
-                LivePouch.changes({
+                return LivePouch.changes({
                     since: 'now',
                     live: true,
                     include_docs: true,
@@ -382,6 +405,12 @@ $(function () {
             return coordinator.mmsi == Subject.getDetails().shipMmsi || coordinator.name === Subject.getDetails().userName;
         }
 
+        $scope.$on("$destroy", function () {
+            if($scope.changes){
+                $scope.changes.cancel();
+            }
+        });
+
         function displayMessages(selectedSarId) {
             // find docs where sarId === selectedSarId
             LivePouch.query('sar/logView', {
@@ -411,7 +440,6 @@ $(function () {
             $scope.changes = LivePouch.changes({
                 since: 'now',
                 live: true,
-                include_docs: true,
                 filter: "_view",
                 view: "sar/logView",
                 key: sarId
