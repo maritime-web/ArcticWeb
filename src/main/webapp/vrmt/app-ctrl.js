@@ -25,7 +25,7 @@ angular.module('vrmt.app')
             var mmsi = embryo.authentication.shipMmsi;
             $scope.vessel = {};
             $scope.route = {};
-            $scope.assessmentLocationEvent = {};
+            $scope.assessmentLocationState = {};
             $scope.newAssessmentLocation = null;
             $scope.assessmentLocations = [];
             $scope.newRiskAssessment = null;
@@ -104,11 +104,9 @@ angular.module('vrmt.app')
                     vesselName: mmsi,
                     routeView: {id: null, name: null},
                     assessmentViews: [],
-                    assessmentLocations: [],
-                    currentAssessmentLocation: null,
                     currentAssessment: null,
                     chooseAssessment: function (assessment) {
-                        this.currentAssessment = assessment;
+                        $scope.assessmentLocationState['chosen'] = assessment.location;
                     },
                     newAssessment: function () {
                         $scope.assessCreate.show();
@@ -117,8 +115,9 @@ angular.module('vrmt.app')
             };
 
             function AssessmentView(assessment) {
+                this.location = assessment.location;
                 this.locationId = assessment.location.id;
-                this.location = assessment.location.id + '. ' + assessment.location.name;
+                this.locationName = assessment.location.id + '. ' + assessment.location.name;
                 this.index = assessment.index || '-';
                 this.lastAssessed = assessment.time || '-';
                 this.factorAssessments = assessment.factorAssessments || [];
@@ -147,21 +146,24 @@ angular.module('vrmt.app')
 
             $scope.$watch('assessmentLocations', function (newLocations) {
                 if (newLocations && newLocations.length > 0) {
-                    $scope.sidebar.meta.assessmentLocations = newLocations;
-                    $scope.sidebar.meta.currentAssessmentLocation = newLocations[0];
+                    $scope.assessmentLocationState['chosen'] = newLocations[0];
                 }
             });
-
-            $scope.$watch('sidebar.meta.currentAssessmentLocation', function (newLocation) {
-                RiskAssessmentService.getRiskAssessment($scope.route.id, newLocation)
-                    .then(function (assessment) {
-                        $scope.sidebar.meta.currentAssessment = new AssessmentView(assessment);
-                    })
-            });
-
+                           
             $scope.$watch('vessel', function (newVessel) {
                 if (newVessel && newVessel.aisVessel) {
                     $scope.sidebar.meta.vesselName = newVessel.aisVessel.name || mmsi;
+                }
+            });
+
+            $scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
+                if (newValue && newValue !== oldValue) {
+                    RiskAssessmentService.getRiskAssessment($scope.route.id, newValue)
+                        .then(function (assessment) {
+                            $scope.sidebar.meta.currentAssessment = new AssessmentView(assessment);
+                        }, function (reason) {
+                            console.log(reason);
+                        })
                 }
             });
 
@@ -539,7 +541,7 @@ angular.module('vrmt.app')
             /**
              * assessment location creation
              */
-            $scope.$watch("assessmentLocationEvent['event']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
+            $scope.$watch("assessmentLocationState['new']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
                 if (!newAssessmentLocationEvent || newAssessmentLocationEvent == oldAssessmentLocationEvent) return;
 
                 var modalInstance = $modal.open({

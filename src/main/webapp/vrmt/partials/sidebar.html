@@ -32,8 +32,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr ng-click="sidebar.meta.chooseAssessment(assessment)" ng-class="{'active': sidebar.meta.currentAssessment.location == assessment.location}"  ng-repeat="assessment in sidebar.meta.assessmentViews">
-                                    <td>{{assessment.location}}</td>
+                                <tr ng-click="sidebar.meta.chooseAssessment(assessment)" ng-class="{'active': sidebar.meta.currentAssessment.locationId == assessment.locationId}"  ng-repeat="assessment in sidebar.meta.assessmentViews">
+                                    <td>{{assessment.locationName}}</td>
                                     <td>
                                         <index-color index="assessment.index"></index-color>
                                     </td>
@@ -49,7 +49,7 @@
         <accordion close-others="true">
             <accordion-group is-open="sidebar.monitorAndReportActive">
                 <accordion-heading>
-                    DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.location}}</strong> <span class="pull-right glyphicon"
+                    DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.locationName}}</strong> <span class="pull-right glyphicon"
                                              ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
                 </accordion-heading>
 

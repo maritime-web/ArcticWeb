@@ -6,7 +6,7 @@ angular.module('vrmt.map')
             require: '^olMap',
             scope: {
                 route: '=',
-                assessmentLocationEvent: '='
+                assessmentLocationState: '='
             },
             link: function (scope, element, attrs, ctrl) {
                 var route = angular.isDefined(scope.route.wps) ? scope.route : undefined;
@@ -86,13 +86,17 @@ angular.module('vrmt.map')
 
                     var onclickKey = map.on('singleclick', function(e) {
                         var pixel = map.getEventPixel(e.originalEvent);
-                        var hit = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
-                            return layerCandidate == routeLayer;
+                        var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate === routeLayer;
                         });
 
-                        if (hit) {
+                        var hitOther = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate !== routeLayer;
+                        });
+
+                        if (hitThis && !hitOther) {
                             var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                                scope.assessmentLocationEvent['event'] = {
+                                scope.assessmentLocationState['new'] = {
                                     lon: coord[0],
                                     lat: coord[1]
                                 };
@@ -112,14 +116,20 @@ angular.module('vrmt.map')
             restrict: 'E',
             require: '^olMap',
             scope: {
-                locations: '='
+                locations: '=',
+                assessmentLocationState: '='
             },
             link: function (scope, element, attrs, ctrl) {
+
+                /**
+                 * Layer creation functionality
+                 */
                 var locationLayer = createLocationLayer();
 
                 function createLocationLayer() {
                     return new ol.layer.Vector({
-                        source: new ol.source.Vector()
+                        source: new ol.source.Vector(),
+                        style: createLocationStyleFunction()
                     });
                 }
 
@@ -129,13 +139,27 @@ angular.module('vrmt.map')
                         geometry: new ol.geom.Point(coord)
                     });
                     locationFeature.setId(location.id);
-                    locationFeature.setStyle(createLocationStyle(location));
+                    locationFeature.set("assessmentLocation", location, true);
                     locationLayer.getSource().addFeature(locationFeature);
 
                 }
 
-                function createLocationStyle(location) {
-                    var font = 'bold' + ' ' + '12px' + ' ' + 'Arial';
+                function createLocationStyleFunction() {
+                    return function (feature, resolution) {
+                        var location = feature.get("assessmentLocation");
+                        var style = createStyle('' + location.id, 'black', 1);
+                        return [style];
+                    };
+                }
+                function createSelectedLocationStyleFunction() {
+                    return function (feature, resolution) {
+                        var location = feature.get("assessmentLocation");
+                        var style = createStyle('' + location.id, 'blue', 2);
+                        return [style];
+                    };
+                }
+
+                function createStyle(text, strokeColor, strokeWidth) {
                     return new ol.style.Style({
                         image: new ol.style.Circle({
                             radius: 6,
@@ -143,15 +167,14 @@ angular.module('vrmt.map')
                                 color: 'rgba(255, 0, 0, 0.8)'
                             }),
                             stroke: new ol.style.Stroke({
-                                color: 'black',
-                                width: 1
+                                color: strokeColor,
+                                width: strokeWidth
                             })
                         }),
                         text: new ol.style.Text({
                             textAlign: 'start',
-                            // textBaseline: baseline,
-                            font: font,
-                            text: '' + location.id,
+                            font: 'bold 12px Arial',
+                            text: text,
                             fill: new ol.style.Fill({color: 'green'}),
                             stroke: new ol.style.Stroke({color: 'white', width: 3}),
                             offsetX: 10,
@@ -162,6 +185,9 @@ angular.module('vrmt.map')
                 }
 
 
+                /**
+                 * Model listeners
+                 */
                 scope.$watch("locations", function (newLocations) {
                     if (newLocations && newLocations.length > 0) {
                         locationLayer.getSource().clear();
@@ -170,37 +196,46 @@ angular.module('vrmt.map')
                         });
                     }
                 });
+                scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
+                    if (newValue && newValue !== oldValue) {
+                        select.getFeatures().clear();
 
+                        var featureToSelect = locationLayer.getSource().getFeatureById(newValue.id);
+                        select.getFeatures().push(featureToSelect);
+                    }
+                });
+
+                /**
+                 * Interactions
+                 */
+                var select = new ol.interaction.Select({
+                    layers: [locationLayer],
+                    style: createSelectedLocationStyleFunction()
+                });
+
+                select.on('select', function(e){
+                    if (e.selected.length == 1 ) {
+                        scope.assessmentLocationState['chosen'] = e.selected[0].get("assessmentLocation");
+                    }
+
+                    scope.$apply();
+                });
+
+                /**
+                 * Map initialization
+                 */
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     map.addLayer(locationLayer);
-
-                    var onclickKey = map.on('singleclick', function(e) {
-                        var pixel = map.getEventPixel(e.originalEvent);
-                        var hit = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
-                            return layerCandidate == locationLayer;
-                        });
-
-                        if (hit) {
-                            var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                            scope.assessmentLocationEvent['locationChosenEvent'] = {
-                                lon: coord[0],
-                                lat: coord[1]
-                            };
-                        }
-                        scope.$apply();
-
-                    });
-
+                    map.addInteraction(select);
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(locationLayer)) {
                             map.removeLayer(locationLayer);
                         }
-                        if (onclickKey) {
-                            map.unByKey(onclickKey);
+                        if (select) {
+                            map.removeInteraction(select);
                         }
-
                     });
 
                 });

@@ -155,10 +155,17 @@ angular.module('vrmt.app')
                     return entry.location.id == assessmentLocation.id;
                 });
 
-                if (res && res.assessments.length > 0) {
-                    deferred.resolve(res.assessments[res.assessments.length - 1]);
+                if (res) {
+                    var hasAssessments = res.assessments.length > 0;
+                    deferred.resolve(
+                        hasAssessments ? res.assessments[res.assessments.length - 1] : new RiskAssessment({
+                            assessmentLocation: res.location,
+                            factorAssessments: [],
+                            id: 1
+                        })
+                    );
                 } else {
-                    deferred.reject("Could not find any risk assessment for the given location");
+                    deferred.reject("Could not find any risk assessment for the given location '" + assessmentLocation.id + "' on rute '" + routeId + "'");
                 }
             });
 
