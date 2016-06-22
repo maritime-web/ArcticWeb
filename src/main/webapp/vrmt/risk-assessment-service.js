@@ -113,11 +113,7 @@ angular.module('vrmt.app')
             if (assessmentData) {
                 assessmentData = angular.fromJson(assessmentData)
             } else {
-                assessmentData = [
-                    {location: dummyAssessments[0].location, assessments: [dummyAssessments[0]]},
-                    {location: dummyAssessments[1].location, assessments: [dummyAssessments[1]]},
-                    {location: assessmentLocationWithNoAssessments, assessments: []}
-                ]
+                assessmentData = []
             }
             return assessmentData;
         };

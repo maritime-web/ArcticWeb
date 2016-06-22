@@ -133,38 +133,45 @@ angular.module('vrmt.map')
                     });
                 }
 
-                function addOrReplaceLocation(location) {
+                function addOrReplaceLocation(latestAssessment) {
+                    var location = latestAssessment.location;
                     var coord = ol.proj.transform([location.lon, location.lat], 'EPSG:4326', 'EPSG:3857');
                     var locationFeature = new ol.Feature({
                         geometry: new ol.geom.Point(coord)
                     });
                     locationFeature.setId(location.id);
-                    locationFeature.set("assessmentLocation", location, true);
+                    locationFeature.set("assessmentLocation", latestAssessment, true);
                     locationLayer.getSource().addFeature(locationFeature);
-
                 }
 
                 function createLocationStyleFunction() {
                     return function (feature, resolution) {
-                        var location = feature.get("assessmentLocation");
-                        var style = createStyle('' + location.id, 'black', 1);
+                        var latestAssessment = feature.get("assessmentLocation");
+                        var style = createStyle(latestAssessment, 'black', 1);
                         return [style];
                     };
                 }
                 function createSelectedLocationStyleFunction() {
                     return function (feature, resolution) {
-                        var location = feature.get("assessmentLocation");
-                        var style = createStyle('' + location.id, 'blue', 2);
+                        var latestAssessment = feature.get("assessmentLocation");
+                        var style = createStyle(latestAssessment, 'blue', 2);
                         return [style];
                     };
                 }
 
-                function createStyle(text, strokeColor, strokeWidth) {
+                function createStyle(latestAssessment, strokeColor, strokeWidth) {
+                    var text = '' + latestAssessment.location.id;
+                    var fillColor = 'black';
+                    var index = latestAssessment.index;
+                    if (index > 0) fillColor = 'green';
+                    if (index > 1000) fillColor = 'yellow';
+                    if (index > 2000) fillColor = 'red';
+
                     return new ol.style.Style({
                         image: new ol.style.Circle({
                             radius: 6,
                             fill: new ol.style.Fill({
-                                color: 'rgba(255, 0, 0, 0.8)'
+                                color: fillColor
                             }),
                             stroke: new ol.style.Stroke({
                                 color: strokeColor,
@@ -191,8 +198,8 @@ angular.module('vrmt.map')
                 scope.$watch("locations", function (newLocations) {
                     if (newLocations && newLocations.length > 0) {
                         locationLayer.getSource().clear();
-                        newLocations.forEach(function (location) {
-                            addOrReplaceLocation(location);
+                        newLocations.forEach(function (latestAssessment) {
+                            addOrReplaceLocation(latestAssessment);
                         });
                     }
                 });
@@ -200,9 +207,9 @@ angular.module('vrmt.map')
                     if (newValue && newValue !== oldValue) {
                         select.getFeatures().clear();
 
-                        var featureToSelect = locationLayer.getSource().getFeatureById(newValue.id);
+                        var featureToSelect = locationLayer.getSource().getFeatureById(newValue.location.id);
                         select.getFeatures().push(featureToSelect);
-                        showFeatureOnMap(featureToSelect);
+                        panToFeature(featureToSelect);
                     }
                 });
 
@@ -216,7 +223,6 @@ angular.module('vrmt.map')
 
                 select.on('select', function(e){
                     if (e.selected.length == 1 ) {
-                        console.log("Processing selected feature");
                         var selectedFeature = e.selected[0];
                         scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
                     }
@@ -224,7 +230,7 @@ angular.module('vrmt.map')
                     scope.$apply();
                 });
 
-                function showFeatureOnMap(feature) {
+                function panToFeature(feature) {
                     olScope.getMap().then(function (map) {
                         var view = map.getView();
                         var featureExtent = feature.getGeometry().getExtent();

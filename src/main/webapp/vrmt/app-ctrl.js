@@ -27,7 +27,6 @@ angular.module('vrmt.app')
             $scope.route = {};
             $scope.assessmentLocationState = {};
             $scope.newAssessmentLocation = null;
-            $scope.assessmentLocations = [];
             $scope.newRiskAssessment = null;
             $scope.latestRiskAssessments = [];
 
@@ -41,15 +40,9 @@ angular.module('vrmt.app')
 
             RouteService.getActive(mmsi, function (r) {
                 $scope.route = r;
-                loadAssessmentLocations();
+                $scope.assessmentLocationState['route'] = r;
+                // loadLatestAssessments();
             });
-
-            function loadAssessmentLocations() {
-                RiskAssessmentService.getRouteAssessmentLocations($scope.route.id)
-                    .then(function (locations) {
-                        $scope.assessmentLocations = locations;
-                    });
-            }
 
             function loadLatestAssessments() {
                 RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
@@ -58,14 +51,12 @@ angular.module('vrmt.app')
                     })
             }
 
-
             /**
              * Reload data when Rute changes
              */
             $scope.$watch('route', function (newRoute, oldRoute) {
                 if (newRoute && newRoute !== oldRoute) {
                     console.log("Route changed: " + newRoute.name);
-                    loadAssessmentLocations();
                     loadLatestAssessments();
                 }
             });
@@ -82,7 +73,6 @@ angular.module('vrmt.app')
             $scope.$watch('newAssessmentLocation', function (newValue, oldValue) {
                 if (newValue && newValue != oldValue) {
                     console.log("Reloading Assessment Locations");
-                    loadAssessmentLocations();
                     loadLatestAssessments();
                 }
             });
@@ -105,8 +95,8 @@ angular.module('vrmt.app')
                     routeView: {id: null, name: null},
                     assessmentViews: [],
                     currentAssessment: null,
-                    chooseAssessment: function (assessment) {
-                        $scope.assessmentLocationState['chosen'] = assessment.location;
+                    chooseAssessment: function (assessmentView) {
+                        $scope.assessmentLocationState['chosen'] = assessmentView.assessment;
                     },
                     newAssessment: function () {
                         $scope.assessCreate.show();
@@ -115,6 +105,7 @@ angular.module('vrmt.app')
             };
 
             function AssessmentView(assessment) {
+                this.assessment = assessment;
                 this.location = assessment.location;
                 this.locationId = assessment.location.id;
                 this.locationName = assessment.location.id + '. ' + assessment.location.name;
@@ -126,14 +117,20 @@ angular.module('vrmt.app')
             $scope.$watch('latestRiskAssessments', function (newValue, oldValue) {
                 if (newValue && newValue !== oldValue) {
                     $scope.sidebar.meta.assessmentViews = [];
+                    var currentLocationId = $scope.assessmentLocationState['chosen'] ? $scope.assessmentLocationState['chosen'].location.id : -1;
                     newValue.forEach(function (assessment) {
-                        $scope.sidebar.meta.assessmentViews.push(new AssessmentView(assessment))
+                        var assessmentView = new AssessmentView(assessment);
+                        $scope.sidebar.meta.assessmentViews.push(assessmentView);
+                        if (assessment.location.id === currentLocationId) {
+                            $scope.sidebar.meta.currentAssessment = assessmentView;
+                            $scope.assessmentLocationState['chosen'] = assessment;
+                        }
                     });
 
-                    $scope.sidebar.meta.currentAssessment = $scope.sidebar.meta.assessmentViews.find(function (v) {
-                        var current = $scope.sidebar.meta.currentAssessment ? $scope.sidebar.meta.currentAssessment.locationId : null;
-                        return v.locationId === current;
-                    });
+                    if (!$scope.sidebar.meta.currentAssessment && $scope.sidebar.meta.assessmentViews.length > 0) {
+                        $scope.sidebar.meta.currentAssessment = $scope.sidebar.meta.assessmentViews[0];
+                        $scope.assessmentLocationState['chosen'] = newValue[0];
+                    }
                 }
             });
 
@@ -144,12 +141,6 @@ angular.module('vrmt.app')
                 }
             });
 
-            $scope.$watch('assessmentLocations', function (newLocations) {
-                if (newLocations && newLocations.length > 0) {
-                    $scope.assessmentLocationState['chosen'] = newLocations[0];
-                }
-            });
-                           
             $scope.$watch('vessel', function (newVessel) {
                 if (newVessel && newVessel.aisVessel) {
                     $scope.sidebar.meta.vesselName = newVessel.aisVessel.name || mmsi;
@@ -158,12 +149,7 @@ angular.module('vrmt.app')
 
             $scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
                 if (newValue && newValue !== oldValue) {
-                    RiskAssessmentService.getRiskAssessment($scope.route.id, newValue)
-                        .then(function (assessment) {
-                            $scope.sidebar.meta.currentAssessment = new AssessmentView(assessment);
-                        }, function (reason) {
-                            console.log(reason);
-                        })
+                    $scope.sidebar.meta.currentAssessment = new AssessmentView(newValue);
                 }
             });
 
@@ -204,7 +190,7 @@ angular.module('vrmt.app')
                 },
                 chosenLocation: function () {
                     var ca = $scope.sidebar.meta.currentAssessment;
-                    return ca ? ca.location : null;
+                    return ca ? ca.locationName : null;
                 },
                 sum: function () {
                     var res = 0;
