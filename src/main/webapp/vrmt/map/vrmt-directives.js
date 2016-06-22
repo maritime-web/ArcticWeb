@@ -120,7 +120,7 @@ angular.module('vrmt.map')
                 assessmentLocationState: '='
             },
             link: function (scope, element, attrs, ctrl) {
-
+                var olScope = ctrl.getOpenlayersScope();
                 /**
                  * Layer creation functionality
                  */
@@ -202,6 +202,7 @@ angular.module('vrmt.map')
 
                         var featureToSelect = locationLayer.getSource().getFeatureById(newValue.id);
                         select.getFeatures().push(featureToSelect);
+                        showFeatureOnMap(featureToSelect);
                     }
                 });
 
@@ -215,19 +216,31 @@ angular.module('vrmt.map')
 
                 select.on('select', function(e){
                     if (e.selected.length == 1 ) {
-                        scope.assessmentLocationState['chosen'] = e.selected[0].get("assessmentLocation");
+                        console.log("Processing selected feature");
+                        var selectedFeature = e.selected[0];
+                        scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
                     }
 
                     scope.$apply();
                 });
 
+                function showFeatureOnMap(feature) {
+                    olScope.getMap().then(function (map) {
+                        var view = map.getView();
+                        var featureExtent = feature.getGeometry().getExtent();
+                        var mapExtent = view.calculateExtent(map.getSize());
+                        if (!ol.extent.containsExtent(mapExtent, featureExtent)) {
+                            view.fit(feature.getGeometry(), map.getSize(), {minResolution: view.getResolution()});
+                        }
+                    });
+                }
                 /**
                  * Map initialization
                  */
-                var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     map.addLayer(locationLayer);
                     map.addInteraction(select);
+
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(locationLayer)) {
