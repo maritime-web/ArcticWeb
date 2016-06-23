@@ -540,9 +540,15 @@
                 <hr/>
                 {{tmp.sarTypeData.text}} with no {{sarOperation.input.no}}
                 <hr/>
-                Time of last known position: {{formatTs(sarOperation.input.lastKnownPosition.ts)}} UTC<br/>
-                Last known position: {{formatPos(sarOperation.input.lastKnownPosition)}}<br/>
+                <span x-ng-if="sarOperation.input.lastKnownPosition && sarOperation.input.lastKnownPosition.ts">
+                    Last known position (LKP): {{formatPos(sarOperation.input.lastKnownPosition)}}<br/>
+                    Time of last known position: {{formatTs(sarOperation.input.lastKnownPosition.ts)}} UTC<br/>
+                </span>
                 Commence Search Start Time: {{formatTs(sarOperation.input.startTs)}} UTC<br/>
+                Time elapsed: {{sarOperation.output.hoursElapsed}} hour<span
+                    x-ng-if="sarOperation.output.hoursElapsed != 1">s</span>,
+                {{sarOperation.output.minutesElapsed}} minute<span
+                    x-ng-if="sarOperation.output.minutesElapsed != 1">s</span>.<br/>
                 <hr/>
                 <div x-ng-if="sarOperation.input.surfaceDriftPoints.length > 1">
                     Surface drift points:
@@ -585,25 +591,23 @@
                 <span x-ng-if="tmp.searchObject.y > 0">+ {{tmp.searchObject.y}}</span>,
                 Divergence: {{tmp.searchObject.divergence}}<br/>
                 <hr/>
-                Time elapsed: {{sarOperation.output.hoursElapsed}} hour<span
-                    x-ng-if="sarOperation.output.hoursElapsed != 1">s</span>,
-                {{sarOperation.output.minutesElapsed}} minute<span
-                    x-ng-if="sarOperation.output.minutesElapsed != 1">s</span>.<br/>
                 <span x-ng-if="sarOperation.output && sarOperation.output.rdv">
-                Datum calculated from applying leeway and total water current: {{formatPos(sarOperation.output.circle.datum)}}<br/>
-                With the following Residual Drift Vector<br/>
-                RDV Direction: {{formatDecimal(sarOperation.output.rdv.direction, -2)}}°<br/>
-                RDV Distance: {{formatDecimal(sarOperation.output.rdv.distance, -2)}} nm<br/>
-                RDV Speed: {{formatDecimal(sarOperation.output.rdv.speed, -2)}} kn/h<br/>
-                With radius: {{formatDecimal(sarOperation.output.circle.radius, -2)}} nm<br/>
+                    Datum calculated from applying leeway and total water current: {{formatPos(sarOperation.output.circle.datum)}}<br/>
+                    With the following Residual Drift Vector<br/>
+                    RDV Direction: {{formatDecimal(sarOperation.output.rdv.direction, -2)}}°<br/>
+                    RDV Distance: {{formatDecimal(sarOperation.output.rdv.distance, -2)}} nm<br/>
+                    RDV Speed: {{formatDecimal(sarOperation.output.rdv.speed, -2)}} kn/h<br/>
+                    With radius: {{formatDecimal(sarOperation.output.circle.radius, -2)}} nm<br/>
+                    <hr/>
                 </span>
                 <span x-ng-if="sarOperation.output && sarOperation.output.downWind.rdv">
-                Datum calculated from applying leeway and total water current: {{formatPos(sarOperation.output.downWind.circle.datum)}}<br/>
-                With the following Residual Drift Vectors<br/>
-                Downwind RDV Direction: {{formatDecimal(sarOperation.output.downWind.rdv.direction, -2)}}°<br/>
-                Downwind RDV Distance: {{formatDecimal(sarOperation.output.downWind.rdv.distance, -2)}} nm<br/>
-                Downwind RDV Speed: {{formatDecimal(sarOperation.output.downWind.rdv.speed, -2)}} kn/h<br/>
-                With downwind radius: {{formatDecimal(sarOperation.output.downWind.circle.radius, -2)}} nm<br/>
+                    Datum calculated from applying leeway and total water current: {{formatPos(sarOperation.output.downWind.circle.datum)}}<br/>
+                    With the following Residual Drift Vectors<br/>
+                    Downwind RDV Direction: {{formatDecimal(sarOperation.output.downWind.rdv.direction, -2)}}°<br/>
+                    Downwind RDV Distance: {{formatDecimal(sarOperation.output.downWind.rdv.distance, -2)}} nm<br/>
+                    Downwind RDV Speed: {{formatDecimal(sarOperation.output.downWind.rdv.speed, -2)}} kn/h<br/>
+                    With downwind radius: {{formatDecimal(sarOperation.output.downWind.circle.radius, -2)}} nm<br/>
+                    <hr/>
                 </span>
                 <span x-ng-repeat="dsp in sarOperation.output.dsps">
                     Drift Search Point {{$index + 1}}<br/>
@@ -626,10 +630,13 @@
                 Total size: {{formatDecimal(sarOperation.output.searchArea.size)}} nm<sup>2</sup><br/>
 
                 <div class="col-xs-12">
-                    <span class="pull-right">
+                    <span class="pull-right" x-ng-if="!tmp.viewOnly">
                         <button type="button" class="btn btn-sm" x-ng-click="back()">Back</button>
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="finish()">Finish</button>
-                        <button type="button" class="btn btn-sm" x-ng-click="cancel()">Cancel</button>
+                        <button type="button" class="btn btn-sm" x-ng-click="close($event)">Cancel</button>
+                    </span>
+                    <span class="pull-right" x-ng-if="tmp.viewOnly">
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)">Close</button>
                     </span>
                 </div>
             </div>

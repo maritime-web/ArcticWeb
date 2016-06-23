@@ -94,16 +94,22 @@ $(function () {
 
             $scope.alertMessages = [];
 
-            function initNewSar() {
-                var now = Date.now();
+            function initSarTypeSelection() {
                 $scope.sar = {
                     type: embryo.sar.Operation.RapidResponse,
                     no: SarOperationFactory.createSarId(),
-                    searchObject: $scope.searchObjects[0].id,
-                    yError: 0.1,
-                    safetyFactor: 1.0,
-                    startTs: now + 1000 * 60 * 60
                 }
+
+                $scope.sarOperation = {}
+
+            }
+
+            function initNewSar() {
+                var now = Date.now();
+                $scope.sar.searchObject= $scope.searchObjects[0].id;
+                $scope.sar.yError = 0.1;
+                $scope.sar.safetyFactor = 1.0;
+                $scope.sar.startTs = now + 1000 * 60 * 60;
 
                 $scope.sarOperation = {}
 
@@ -117,7 +123,7 @@ $(function () {
                 if ($scope.sar.type != embryo.sar.Operation.DatumLine) {
                     if (!$scope.sar.lastKnownPosition) {
                         $scope.sar.lastKnownPosition = {};
-                }
+                    }
                     if (!$scope.sar.lastKnownPosition.ts) {
                         $scope.sar.lastKnownPosition.ts = now;
                     }
@@ -129,6 +135,7 @@ $(function () {
             title: "Create SAR",
             type: "newSar",
             show: function (context) {
+                $scope.alertMessages = [];
                 $scope.page = {
                     name : context && context.page ? context.page : 'typeSelection'
                 }
@@ -136,9 +143,17 @@ $(function () {
                     LivePouch.get(context.sarId).then(function (sarOperation) {
                         $scope.sarOperation = sarOperation;
                         $scope.sar = sarOperation.input;
+                        if(context.page == "sarResult"){
+                            console.log($scope.sarOperation)
+                            $scope.tmp = {
+                                searchObject : SarService.findSearchObjectType($scope.sarOperation.input.searchObject),
+                                viewOnly : true
+                            }
+                            console.log($scope.tmp)
+                        }
                     })
                 } else {
-                    initNewSar();
+                    initSarTypeSelection();
                 }
 
                 this.doShow = true;
@@ -204,6 +219,9 @@ $(function () {
 
         $scope.next = function () {
             $scope.page.name = 'sarInputs';
+            if(!$scope.sar.searchObject){
+                initNewSar()
+            }
         }
 
         $scope.addDSP = function() {

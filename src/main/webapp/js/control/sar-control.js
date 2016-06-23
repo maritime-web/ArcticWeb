@@ -220,6 +220,7 @@ $(function () {
             });
 
             SarService.sarSelected("OperationControl", function (sarId) {
+                $scope.tmp = {}
                 $scope.selected.open = !!sarId;
                 if (!$scope.$$phase) {
                     $scope.$apply(function () {
@@ -238,8 +239,7 @@ $(function () {
                     }).then(function (res) {
                         $scope.selected.sar = res;
                         $scope.sar = res;
-                        $log.debug("operationcontrol");
-                        $log.debug(res);
+                        $scope.tmp.searchObject = SarService.findSearchObjectType($scope.sar.input.searchObject);
                     })
                 }
 
@@ -274,6 +274,10 @@ $(function () {
 
             $scope.edit = function () {
                 $scope.newSarProvider.show({sarId: $scope.sar._id});
+            };
+
+            $scope.view = function () {
+                $scope.newSarProvider.show({sarId: $scope.sar._id, page: "sarResult"});
             };
 
             $scope.newCoordinator = function () {

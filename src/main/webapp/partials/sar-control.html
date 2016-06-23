@@ -70,9 +70,15 @@
                             </span>
                         </div>
                     </div>
+                    <h6>Search Object</h6>
+                    {{tmp.searchObject.text}}<br/>
 
                     <h6>Date and Time</h6>
-                    <div class="row">
+                    <div class="row" x-ng-repeat="dsp in sar.input.dsps">
+                        <div class="col-md-7">Drift Search Position {{$index + 1}}:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(dsp.ts)}}</div>
+                    </div>
+                    <div class="row" x-ng-if="sar.input.lastKnownPosition.ts">
                         <div class="col-md-7">Last Known Position (LKP):</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.lastKnownPosition.ts)}}</div>
                     </div>
@@ -87,59 +93,6 @@
                             minute<span x-ng-if="sar.output.minutesElapsed != 1">s</span>.
                         </div>
                     </div>
-
-                    <h6>Last Surface Drifts dw continuation</h6>
-                    <div class="row">
-                        <div class="col-md-7">Direction</div>
-                        <div class="col-md-5 nopadding">{{formatDecimal(sar.output.rdv ? sar.output.rdv.direction :
-                            sar.output.downWind.rdv.direction, -2)}}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-7">Speed</div>
-                        <div class="col-md-5 nopadding">{{formatDecimal(sar.output.rdv.speed ? sar.output.rdv.speed :
-                            sar.output.downWind.rdv.speed, -2)}} kn
-                        </div>
-                    </div>
-
-                    <h6>Position of Datum to LKP</h6>
-                    <table class="table table-condensed ctrl">
-                        <tr>
-                            <td></td>
-                            <td>Latitude</td>
-                            <td>Longitude</td>
-                            <td>RDV</td>
-                            <td>Radius</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.circle">
-                            <td>DW</td>
-                            <td>{{sar.output.circle.datum.lat}}</td>
-                            <td>{{sar.output.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.downWind">
-                            <td>DW</td>
-                            <td>{{sar.output.downWind.circle.datum.lat}}</td>
-                            <td>{{sar.output.downWind.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.downWind.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.downWind.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.min">
-                            <td>Min</td>
-                            <td>{{sar.output.min.circle.datum.lat}}</td>
-                            <td>{{sar.output.min.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.min.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.min.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.max">
-                            <td>Max</td>
-                            <td>{{sar.output.max.circle.datum.lat}}</td>
-                            <td>{{sar.output.max.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.max.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.max.circle.radius, -2)}} nm</td>
-                        </tr>
-                    </table>
 
                     <h6>Search Area</h6>
                     <div x-ng-if="sar.output.searchArea.A">
@@ -189,15 +142,17 @@
                         </div>
                     </div>-->
 
-                    <div class="row sarButtons"
-                         x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                    <div class="row sarButtons">
                         <div class="col-md-12">
                             <span class="pull-right">
-                                <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
-                                    SAR
-                                </button>
-                                <button type="button" class="btn btn-primary btn-xs" x-ng-click="edit()">Reopen
-                                    SAR calculations
+                                <span x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                                    <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
+                                        SAR
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-xs" x-ng-click="edit()">Recalculate
+                                    </button>
+                                </span>
+                                <button type="button" class="btn btn-primary btn-xs" x-ng-click="view()">View details
                                 </button>
                             </span>
                         </div>
