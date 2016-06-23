@@ -50,7 +50,7 @@
             sinAlpha = cosU1 * cosU2 * sinLambda / sinSigma;
             cosSqAlpha = 1 - sinAlpha * sinAlpha;
             cos2SigmaM = cosSigma - 2 * sinU1 * sinU2 / cosSqAlpha;
-            if (Number.isNaN(cos2SigmaM)) {
+            if (angular.isNumber(cos2SigmaM) && isNaN(cos2SigmaM)) {
                 cos2SigmaM = 0; // equatorial line
             }
             C = f / 16 * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha));
