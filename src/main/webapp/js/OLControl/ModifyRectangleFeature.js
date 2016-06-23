@@ -498,7 +498,7 @@ embryo.Control.ModifyRectangleFeature = OpenLayers.Class(OpenLayers.Control, {
                     movePoint(newRect, 2);
                     movePoint(newRect, 3);
                 } catch (error) {
-                    console.log(error);
+                    //console.log(error);
                 }
             }
             this.layer.drawFeature(this.feature, this.standalone ? undefined : 'select');

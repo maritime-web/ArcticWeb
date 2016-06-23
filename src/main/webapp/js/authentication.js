@@ -270,7 +270,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
 
     } ]);
 
-    moduleDirectives.directive('requiresUnauthenticated', [ 'Subject', '$animate', function (Subject, $animate) {
+    moduleDirectives.directive('requiresUnauthenticated', [ 'Subject', function (Subject) {
         return {
             restrict: 'A',
             replace: true,

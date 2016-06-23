@@ -40,6 +40,7 @@ function closeCollapse(id) {
     }
 }
 
+/* To be replaced by embryo.geo.Position.formatLongitude*/
 function formatLongitude(longitude) {
     var ns = "E";
     if (longitude < 0) {
@@ -57,6 +58,7 @@ function formatLongitude(longitude) {
     return (hours / 1000.0).toFixed(3).substring(2) + " " + lonStr + ns;
 }
 
+/* To be replaced by embryo.geo.Position.formatLatitude*/
 function formatLatitude(latitude) {
     var ns = "N";
     if (latitude < 0) {

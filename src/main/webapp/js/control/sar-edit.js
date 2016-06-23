@@ -41,6 +41,42 @@ $(function () {
         };
     });
 
+    module.directive('gteq', function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, element, attr, ngModelController) {
+                var path = attr.gteq.split('.');
+
+                function comparedTo() {
+                    var value = scope;
+                    for (var index in path) {
+                        var v = path[index];
+                        value = value[v];
+                    }
+                    return value
+                }
+
+                function valid(value1, value2) {
+                    return value1 > value2;
+                }
+
+                //For DOM -> model validation
+                ngModelController.$parsers.unshift(function (value) {
+                    var otherValue = comparedTo();
+                    ngModelController.$setValidity('gteq', valid(value, otherValue));
+                    return value;
+                });
+
+                //For model -> DOM validation
+                ngModelController.$formatters.unshift(function (value) {
+                    var otherValue = comparedTo();
+                    ngModelController.$setValidity('gteq', valid(value, otherValue));
+                    return value;
+                });
+            }
+        };
+    });
+
     function SarTypeData(text, img) {
         this.text = text;
         this.img = img;
@@ -53,8 +89,8 @@ $(function () {
     sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
     sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/generic.png")
 
-    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch',
-        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch) {
+    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory',
+        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory) {
 
             $scope.alertMessages = [];
 
@@ -62,7 +98,7 @@ $(function () {
                 var now = Date.now();
                 $scope.sar = {
                     type: embryo.sar.Operation.RapidResponse,
-                    no: SarService.createSarId(),
+                    no: SarOperationFactory.createSarId(),
                     searchObject: $scope.searchObjects[0].id,
                     yError: 0.1,
                     safetyFactor: 1.0,
@@ -93,7 +129,9 @@ $(function () {
             title: "Create SAR",
             type: "newSar",
             show: function (context) {
-                $scope.page = context && context.page ? context.page : 'typeSelection'
+                $scope.page = {
+                    name : context && context.page ? context.page : 'typeSelection'
+                }
                 if (context.sarId) {
                     LivePouch.get(context.sarId).then(function (sarOperation) {
                         $scope.sarOperation = sarOperation;
@@ -137,27 +175,64 @@ $(function () {
 
         }
 
+        $scope.formatTs = formatTime;
+        $scope.formatDecimal = embryo.Math.round10;
+        $scope.formatPos = function (position) {
+            if (!position || (!position.lat && !position.lon)) {
+                return ""
+            }
+            return position.lat + ", " + position.lon;
+        };
+
+
         $scope.back = function () {
-            switch ($scope.page) {
+            switch ($scope.page.name) {
                 case ("sarResult") :
                 {
                     $scope.alertMessages = []
-                    $scope.page = 'sarInputs';
+                    $scope.page.name = 'sarInputs';
                     break;
                 }
                 case ("sarInputs") :
                 {
                     $scope.alertMessages = []
-                    $scope.page = 'typeSelection';
+                    $scope.page.name = 'typeSelection';
                     break;
                 }
             }
         }
 
         $scope.next = function () {
-            $scope.page = 'sarInputs';
+            $scope.page.name = 'sarInputs';
         }
 
+        $scope.addDSP = function() {
+            var now = Date.now();
+            if(!$scope.sar.dsps || $scope.sar.dsps.length == 0){
+                $scope.dsp = {
+                    ts : now - 2 * 1000 * 60 * 60
+                }
+            } else if ($scope.sar.dsps.length == 1){
+                $scope.dsp = {
+                    ts : now - 1000 * 60 * 60,
+                    reuseSurfaceDrifts : true
+                }
+            } else {
+                $scope.dsp = {
+                    ts : now,
+                    reuseSurfaceDrifts : true
+                }
+            }
+            delete $scope.dspToEditIndex;
+            $scope.page.name = "DSP";
+        }
+        $scope.removeDSP = function(dsps, $index){
+            dsps.splice($index, 1);
+        }
+        $scope.editDSP = function($index){
+            $scope.dspToEditIndex = $index;
+            $scope.page.name = "DSP";
+        }
 
         $scope.createSarOperation = function () {
             var sarInput = $scope.sar;
@@ -165,28 +240,32 @@ $(function () {
             UserPouch.allDocs({
                 include_docs: true
             }).then(function (result) {
-                console.log(result)
                 var users = SarService.extractDbDocs(result);
-                console.log("users")
-                console.log(users)
 
                 try {
                     $scope.alertMessages = [];
                     // retain PouchDB fields like _id and _rev
-                    var calculatedOperation = SarService.createSarOperation(sarInput);
+                    var calculatedOperation = SarOperationFactory.createSarOperation(sarInput);
                     $scope.sarOperation['@type'] = calculatedOperation['@type'];
                     $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
                     $scope.sarOperation.input = calculatedOperation.input;
                     $scope.sarOperation.output = calculatedOperation.output;
 
                     $scope.tmp.searchObject = SarService.findSearchObjectType($scope.sarOperation.input.searchObject);
-                    $scope.page = 'sarResult';
+                    $scope.page.name = 'sarResult';
+                    if (!$scope.$$phase) {
+                        $scope.$apply(function () {
+                        });
+                    }
                 } catch (error) {
                     if (typeof error === 'object' && error.message) {
                         $scope.alertMessages.push("Internal error: " + error.message);
-                        throw error;
                     } else if (typeof error === 'string') {
                         $scope.alertMessages.push("Internal error: " + error);
+                    }
+                    if (!$scope.$$phase) {
+                        $scope.$apply(function () {
+                        });
                     }
                 }
             });
@@ -194,15 +273,6 @@ $(function () {
 
         }
 
-        $scope.formatTs = formatTime;
-        $scope.formatPos = function (position) {
-            if (!position) {
-                return ""
-            }
-            return "(" + formatLatitude(position.lat) + ", " + formatLongitude(position.lon) + ")";
-        }
-
-        $scope.formatDecimal = embryo.Math.round10;
 
         $scope.addPoint = function () {
             $scope.sar.surfaceDriftPoints.push({});
@@ -253,7 +323,57 @@ $(function () {
                 });
             });
         }
+    }]);
 
+
+    module.controller("SarDspController", ['$scope', function ($scope) {
+        if($scope.dspToEditIndex >= 0){
+            $scope.dsp = clone($scope.sar.dsps[$scope.dspToEditIndex]);
+            if(!$scope.dsp.surfaceDrifts && $scope.dspToEditIndex == 0){
+                $scope.dsp.surfaceDrifts = [{}];
+            } else if(!$scope.dsp.surfaceDrifts && !$scope.dsp.hasOwnProperty("reuseSurfaceDrifts")){
+                $scope.dsp.reuseSurfaceDrifts = true;
+            }
+        } else {
+            if(!$scope.sar.dsps || $scope.sar.dsps.length == 0){
+                $scope.dsp.surfaceDrifts = [{}];
+            } else if ($scope.sar.dsps.length > 0){
+                $scope.dsp.reuseSurfaceDrifts = true;
+            }
+        }
+
+        $scope.changeReuse = function(){
+            if(!$scope.dsp.reuseSurfaceDrifts && !$scope.dsp.surfaceDrifts){
+                $scope.dsp.surfaceDrifts = [{}];
+            }
+        }
+
+        $scope.add = function(){
+            $scope.dsp.surfaceDrifts.push({});
+        }
+
+        $scope.removeLast = function(){
+            $scope.dsp.surfaceDrifts.splice($scope.dsp.surfaceDrifts.length - 1, 1);
+        }
+
+        $scope.ok = function(dsp) {
+            if($scope.dsp && $scope.dsp.reuseSurfaceDrifts){
+                delete $scope.dsp.surfaceDrifts;
+            }
+
+            if($scope.dspToEditIndex >= 0){
+                $scope.sar.dsps[$scope.dspToEditIndex] = dsp;
+            }else {
+                if(!$scope.sar.dsps){
+                    $scope.sar.dsps = [];
+                }
+                $scope.sar.dsps.push(dsp);
+            }
+            $scope.page.name = "sarInputs";
+        }
+        $scope.cancel = function(){
+            $scope.page.name = "sarInputs";
+        }
     }]);
 
     module.controller("SARCoordinatorController", ['$scope', 'LivePouch', 'SarService', function ($scope, LivePouch, SarService) {
@@ -348,9 +468,6 @@ $(function () {
     targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 79 feet";
 
     function targetTypes(sruType) {
-
-        console.log("targetTypes(" + sruType + ")")
-
         if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
             return [
                 embryo.sar.effort.TargetTypes.PersonInWater,
@@ -417,8 +534,8 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch',
-        function ($scope, ViewService, SarService, LivePouch) {
+    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory',
+        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];

@@ -20,8 +20,9 @@ module.exports = function(config) {
                 'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-process.js',
                 'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-validate.js',
                 'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-angular.js',
-            'src/main/webapp/js/cached/map/cdn.cloudflare/pouchdb/4.0.0/pouchdb.min.js',
-            'src/test/lib/angularjs/1.2.14/angular-mocks.js',
+				'src/main/webapp/js/ext/turf.min.js',
+				'src/main/webapp/js/cached/map/cdn.cloudflare/pouchdb/4.0.0/pouchdb.min.js',
+            	'src/test/lib/angularjs/1.2.14/angular-mocks.js',
                 'src/main/webapp/js/utils.js',
 				'src/main/webapp/js/embryo-for-test.js',
 				'src/main/webapp/js/menu.js',
@@ -63,7 +64,7 @@ module.exports = function(config) {
 
 		// web server port
 		// CLI --port 9876
-		port : 9876,
+		port : 6556,
 
 		// enable / disable colors in the output (reporters and logs)
 		// CLI --colors --no-colors
