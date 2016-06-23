@@ -757,6 +757,8 @@
             return sar.output.circle.datum;
         } else if (sar.input.type == embryo.sar.Operation.DatumPoint) {
             return sar.output.downWind.circle.datum;
+        } else if (sar.input.type == embryo.sar.Operation.DatumLine){
+            return sar.output.dsps[0].downWind.circle.datum;
         }
         return sar.output.circle.datum;
     };
@@ -764,13 +766,22 @@
         //In NM?
         var quadrantLength = Math.sqrt(areaSize);
 
-        var sarA = embryo.geo.Position.create(sarArea.A.lon, sarArea.A.lat);
-        var sarB = embryo.geo.Position.create(sarArea.B.lon, sarArea.B.lat);
-        var sarD = embryo.geo.Position.create(sarArea.D.lon, sarArea.D.lat);
         var center = embryo.geo.Position.create(datum.lon, datum.lat);
 
-        var bearingAB = sarA.rhumbLineBearingTo(sarB);
-        var bearingDA = sarD.rhumbLineBearingTo(sarA);
+        var bearingAB = null;
+        var bearingDA = null;
+
+        if(sarArea.A && sarArea.B && sarArea.D){
+            var sarA = embryo.geo.Position.create(sarArea.A.lon, sarArea.A.lat);
+            var sarB = embryo.geo.Position.create(sarArea.B.lon, sarArea.B.lat);
+            var sarD = embryo.geo.Position.create(sarArea.D.lon, sarArea.D.lat);
+            bearingAB = sarA.rhumbLineBearingTo(sarB);
+            bearingDA = sarD.rhumbLineBearingTo(sarA);
+        } else {
+            bearingAB = 90;
+            bearingDA = 180;
+        }
+
         var zonePosBetweenAandB = center.transformPosition(bearingAB, quadrantLength / 2);
 
         var zoneArea = {};
@@ -1172,7 +1183,6 @@
             },
             calculateEffortAllocations: function (allocationInputs, sar) {
                 var s = clone(sar);
-                s.input.lastKnownPosition = Position.create(s.input.lastKnownPosition);
                 //s.output = getCalculator(s.input.type, PositionService).convertPositionsToDegrees(s.output)
                 var result = new EffortAllocationCalculator().calculate(allocationInputs, s);
                 var area = clone(result.area);
