@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.storageServices', 'embryo.authentication.service', 'embryo.position', 'embryo.geo.services', 'embryo.pouchdb.services']);
+    var module = angular.module('embryo.sar.service', ['embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.pouchdb.services']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -833,6 +833,8 @@
             }
         }
 
+        corners.sort(toTheNorth)
+
         function label(key, label) {
             return {
                 key: key,
@@ -1078,14 +1080,22 @@
     }
 
 
+
     ExpandingSquareCalculator.prototype.calculate = function (zone, sp) {
         var posA = this.cornerPosition(zone, "A");
         var posB = this.cornerPosition(zone, "B");
+        var posD = this.cornerPosition(zone, "D");
 
-        var datum = sp.sar.output.datum ? sp.sar.output.datum : sp.sar.output.downWind.datum;
-        var initialBearing = posA.rhumbLineBearingTo(posB);
+        var distAB = posA.rhumbLineDistanceTo(posB);
+        var distAD = posA.rhumbLineDistanceTo(posD);
 
-        var wayPoints = this.createWaypoints(zone, new embryo.geo.Position(datum.lon, datum.lat), initialBearing);
+        var bearingAB = posA.rhumbLineBearingTo(posB);
+        var bearingAD = posA.rhumbLineBearingTo(posD);
+
+        var centerAB = posA.transformPosition(bearingAB, distAB/2);
+        var center = centerAB.transformPosition(bearingAD, distAD/2);
+
+        var wayPoints = this.createWaypoints(zone, center, bearingAB);
 
         var searchPattern = {
             _id: "sarSp-" + Date.now(),
@@ -1107,8 +1117,8 @@
 
 
     // USED IN sar-edit.js and sar-controller.js
-    module.service('SarService', ['$log', '$timeout', 'Subject', 'PositionService', 'Position',
-        function ($log, $timeout, Subject, PositionService, Position) {
+    module.service('SarService', ['$log', '$timeout', 'Subject', 'Position',
+        function ($log, $timeout, Subject, Position) {
 
         var selectedSarById;
         var listeners = {};
@@ -1177,13 +1187,8 @@
 
                 return this.findLatestModified(zones, isZone);
             },
-            validateSarInput: function (input) {
-                // this was written to prevent Chrome browser running in indefinite loops
-                getCalculator(input.type, PositionService).validate(input);
-            },
             calculateEffortAllocations: function (allocationInputs, sar) {
                 var s = clone(sar);
-                //s.output = getCalculator(s.input.type, PositionService).convertPositionsToDegrees(s.output)
                 var result = new EffortAllocationCalculator().calculate(allocationInputs, s);
                 var area = clone(result.area);
 
@@ -1221,10 +1226,10 @@
             },
             toGeoPositions : function(area){
                 return {
-                    A : PositionService.stringsToPositions(area.A),
-                    B : PositionService.stringsToPositions(area.B),
-                    C : PositionService.stringsToPositions(area.C),
-                    D : PositionService.stringsToPositions(area.D)
+                    A : Position.create(area.A),
+                    B : Position.create(area.B),
+                    C : Position.create(area.C),
+                    D : Position.create(area.D)
                 }
             },
             generateSearchPattern: function (z, sp) {
@@ -1232,7 +1237,7 @@
                 zone.area = service.toGeoPositions(zone.area);
                 if(sp.sar && sp.sar.output){
                     sp.sar = clone(sp.sar);
-                    sp.sar.output.datum = PositionService.stringsToDegrees(sp.sar.output.datum);
+                    sp.sar.output.datum = Position.create(sp.sar.output.datum);
                 }
                 var calculator = SearchPatternCalculator.getCalculator(sp.type);
                 return calculator.calculate(zone, sp);

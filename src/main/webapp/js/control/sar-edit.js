@@ -867,15 +867,15 @@ $(function () {
                     pattern(SearchPattern.CreepingLine, "Creeping line search"),
                     pattern(SearchPattern.ExpandingSquare, "Expanding square search"),
                     pattern(SearchPattern.SectorPattern, "Sector pattern search"),
-                    pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
-                    pattern(SearchPattern.TrackLine, "Track line search, non-return"),
+                    //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
+                    //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
                 ]
 
                 $scope.spImages = {};
                 $scope.spImages[SearchPattern.ParallelSweep] = "img/sar/parallelsweepsearch.png";
                 $scope.spImages[SearchPattern.CreepingLine] = "img/sar/creepinglinesearch.png";
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
-                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/.png";
+                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/.jpg";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
                 $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
 
