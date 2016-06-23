@@ -77,14 +77,14 @@ angular.module('vrmt.map')
                     }
 
 
-                    var onMoveKey = map.on('pointermove', function(e) {
+                    var onMoveKey = map.on('pointermove', function (e) {
                         var pixel = map.getEventPixel(e.originalEvent);
                         var hit = map.hasFeatureAtPixel(pixel);
 
                         map.getTarget().style.cursor = hit ? 'pointer' : '';
                     });
 
-                    var onclickKey = map.on('singleclick', function(e) {
+                    var onclickKey = map.on('singleclick', function (e) {
                         var pixel = map.getEventPixel(e.originalEvent);
                         var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
                             return layerCandidate === routeLayer;
@@ -96,10 +96,10 @@ angular.module('vrmt.map')
 
                         if (hitThis && !hitOther) {
                             var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                                scope.assessmentLocationState['new'] = {
-                                    lon: coord[0],
-                                    lat: coord[1]
-                                };
+                            scope.assessmentLocationState['new'] = {
+                                lon: coord[0],
+                                lat: coord[1]
+                            };
                         }
                         scope.$apply();
 
@@ -151,6 +151,7 @@ angular.module('vrmt.map')
                         return [style];
                     };
                 }
+
                 function createSelectedLocationStyleFunction() {
                     return function (feature, resolution) {
                         var latestAssessment = feature.get("assessmentLocation");
@@ -221,8 +222,8 @@ angular.module('vrmt.map')
                     style: createSelectedLocationStyleFunction()
                 });
 
-                select.on('select', function(e){
-                    if (e.selected.length == 1 ) {
+                select.on('select', function (e) {
+                    if (e.selected.length == 1) {
                         var selectedFeature = e.selected[0];
                         scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
                     }
@@ -241,6 +242,7 @@ angular.module('vrmt.map')
                         }
                     });
                 }
+
                 /**
                  * Map initialization
                  */
@@ -248,15 +250,13 @@ angular.module('vrmt.map')
                     map.addLayer(locationLayer);
                     map.addInteraction(select);
 
-                    var onclickKey = map.on('singleclick', function(e) {
-                        console.log("Location clicked");
+                    var onclickKey = map.on('singleclick', function (e) {
                         var pixel = map.getEventPixel(e.originalEvent);
                         var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
                             return layerCandidate === locationLayer;
                         });
 
                         if (hitThis) {
-                            console.log("updating locationClick");
                             scope.assessmentLocationState['locationClick'] = {
                                 x: e.originalEvent.clientX,
                                 y: e.originalEvent.clientY
@@ -390,6 +390,46 @@ angular.module('vrmt.map')
                 scope.$watch('index', function (newIndex) {
                     setColorForIndex(newIndex);
                     adjustZeroPad(newIndex);
+                });
+            }
+        }
+    }])
+    .directive("outsideClick", ['$document', function ($document) {
+        return {
+            link: function ($scope, $element, $attributes) {
+                var scopeExpression = $attributes.outsideClick;
+                var onDocumentClick = function (event) {
+                    var isChild = $element.find(event.target).length > 0;
+
+                    if (!isChild) {
+                        $scope.$apply(scopeExpression);
+                    }
+                };
+
+                $document.on("click", onDocumentClick);
+
+                $element.on('$destroy', function () {
+                    $document.off("click", onDocumentClick);
+                });
+            }
+        }
+    }])
+    .directive("onEscape", ['$document', function ($document) {
+        return {
+            link: function ($scope, $element, $attributes) {
+                var scopeExpression = $attributes.onEscape;
+                var onEsc = function (event) {
+                    var isEsc = event.which === 27;
+
+                    if (isEsc) {
+                        $scope.$apply(scopeExpression);
+                    }
+                };
+
+                $document.on("keydown", onEsc);
+
+                $element.on('$destroy', function () {
+                    $document.off("keydown", onEsc);
                 });
             }
         }

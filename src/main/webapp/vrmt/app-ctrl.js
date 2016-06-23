@@ -497,9 +497,6 @@ angular.module('vrmt.app')
              * Assessment location functions
              */
             $scope.$watch("assessmentLocationState['locationClick']", function (newValue, oldValue) {
-                console.log("assessmentLocationState['locationClick'] changed");
-                console.log(newValue);
-                console.log(oldValue);
                 if (newValue && newValue !== oldValue) {
                     $scope.locationFunctions.style.top = newValue.y + "px";
                     $scope.locationFunctions.style.left = newValue.x + "px";
@@ -518,7 +515,10 @@ angular.module('vrmt.app')
                             $scope.assessCreate.hide = false;
                         }
                     }
-                ]
+                ],
+                close: function () {
+                    this.hide = true;
+                }
 
             };
 
