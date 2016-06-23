@@ -50,14 +50,11 @@ function SarLayer() {
                 return 0.2 * opacityFactor[that.active];
             },
             label: function (feature) {
-                if (feature.attributes.type == "areaLabel") {
+                if (feature.attributes.type == "areaLabel" || feature.attributes.type == "lkpLabel") {
                     return that.zoomLevel >= 1 ? feature.attributes.label : "";
                 }
-                if (feature.attributes.type == "zone") {
+                if (feature.attributes.type == "zone" || feature.attributes.type == "circleLabel") {
                     return that.zoomLevel >= 2 ? feature.attributes.label : "";
-                }
-                if (feature.attributes.type == "circleLabel" || feature.attributes.type == "lkpLabel") {
-                    return that.zoomLevel >= 3 ? feature.attributes.label : "";
                 }
                 if (feature.attributes.type == embryo.sar.Type.Log) {
                     return that.zoomLevel >= 2 ? feature.attributes.label : "";
@@ -291,6 +288,11 @@ function SarLayer() {
 
 
     function addDriftVector(layer, positions) {
+        if(!positions || positions.length == 0){
+            console.log(positions)
+            return
+        }
+
         var points = []
         var length = positions.length;
         for (var i = 0; i < length; i++) {
@@ -304,10 +306,10 @@ function SarLayer() {
         layer.addFeatures(features);
     }
 
-    function addLKP(layer, lkp, sarId) {
+    function addLabelPoint(layer, lkp, label, sarId) {
         var position = embryo.geo.Position.create(lkp);
         var features = [new OpenLayers.Feature.Vector(embryo.map.createPoint(position.lon, position.lat), {
-            label: "LKP",
+            label: label,
             type: "lkpLabel",
             sarId: sarId
         })];
@@ -315,6 +317,10 @@ function SarLayer() {
     }
 
     function prepareDriftVectors(lkp, twcPositions, leewayPositions) {
+        if(!twcPositions || !leewayPositions){
+            return null;
+        }
+
         var points = []
         if (lkp) {
             var position = embryo.geo.Position.create(lkp);
@@ -344,7 +350,11 @@ function SarLayer() {
         return this.containsFeature(featureFilter, this.layers.sar);
     };
 
-    function addSearchRing(id, features, circle, label, active) {
+    function addSearchRing(id, features, circle, active) {
+        if(!circle){
+            return
+        }
+
         var radiusInKm = nmToMeters(circle.radius) / 1000;
         var attributes = {
             type: 'circle',
@@ -353,17 +363,19 @@ function SarLayer() {
         }
         var datum = embryo.geo.Position.create(circle.datum)
         features.addFeatures(embryo.adt.createRing(datum.lon, datum.lat, radiusInKm, 1, attributes));
+    }
 
-        var center = embryo.map.createPoint(datum.lon, datum.lat);
-        features.addFeatures(new OpenLayers.Feature.Vector(center, {
+    function addRdv(layer, lkp, datum, label, id) {
+        addDriftVector(layer, [lkp, datum]);
+
+        var datumd = embryo.geo.Position.create(datum)
+
+        var center = embryo.map.createPoint(datumd.lon, datumd.lat);
+        layer.addFeatures([new OpenLayers.Feature.Vector(center, {
             type: 'circleLabel',
             label: label,
             sarId: id
-        }));
-    }
-
-    function addRdv(layer, lkp, datum) {
-        addDriftVector(layer, [lkp, datum]);
+        })]);
     }
 
 
@@ -390,22 +402,30 @@ function SarLayer() {
     }
 
     this.drawDatumPoint = function(id, startPosition, data, active){
-        addSearchRing(id, this.layers.sar, data.downWind.circle, "Datum down wind", active);
-        addSearchRing(id, this.layers.sar, data.min.circle, "Datum min", active);
-        addSearchRing(id, this.layers.sar, data.max.circle, "Datum max", active);
-
-        addRdv(this.layers.sar, startPosition, data.downWind.circle.datum);
-        addRdv(this.layers.sar, startPosition, data.min.circle.datum);
-        addRdv(this.layers.sar, startPosition, data.max.circle.datum);
-        addDriftVector(this.layers.sar, prepareDriftVectors(startPosition, data.currentPositions, data.downWind.driftPositions))
-        addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.min.driftPositions))
-        addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.max.driftPositions))
+        if(data.currentPositions && data.downWind.driftPositions){
+            addSearchRing(id, this.layers.sar, data.downWind.circle, active);
+            addDriftVector(this.layers.sar, prepareDriftVectors(startPosition, data.currentPositions, data.downWind.driftPositions))
+        }
+        if(data.currentPositions && data.min.driftPositions){
+            addSearchRing(id, this.layers.sar, data.min.circle, active);
+            addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.min.driftPositions))
+            addRdv(this.layers.sar, startPosition, data.min.circle.datum, "Datum min", id);
+        }
+        if(data.currentPositions && data.max.driftPositions){
+            addSearchRing(id, this.layers.sar, data.max.circle, active);
+            addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.max.driftPositions))
+            addRdv(this.layers.sar, startPosition, data.max.circle.datum, "Datum max", id);
+        }
+        addRdv(this.layers.sar, startPosition, data.downWind.circle.datum, "Datum down wind", id);
     }
 
-    this.addDspLine = function(layer, dsps){
+    this.addDspLine = function(layer, dsps, sarId){
         var points = []
         for (var index in dsps) {
-            var dspPos = embryo.geo.Position.create(dsps[index]);
+            var dsp  = dsps[index];
+            addLabelPoint(this.layers.sar, dsp, "DSP " + (1 + parseInt(index)), sarId);
+
+            var dspPos = embryo.geo.Position.create(dsp);
             points.push(embryo.map.createPoint(dspPos.lon, dspPos.lat));
         }
         var features = [new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points), {
@@ -423,19 +443,21 @@ function SarLayer() {
         }
 
         if (sar.output.circle) {
-            addLKP(this.layers.sar, sar.input.lastKnownPosition, sar._id);
-            addSearchRing(sar._id, this.layers.sar, sar.output.circle, "Datum", active);
-            addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.circle.datum);
-            addDriftVector(this.layers.sar, prepareDriftVectors(sar.input.lastKnownPosition, sar.output.currentPositions, sar.output.driftPositions))
+            addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);
+            addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.circle.datum, "Datum",sar._id);
+            if(sar.output.driftPositions){
+                addSearchRing(sar._id, this.layers.sar, sar.output.circle, active);
+                addDriftVector(this.layers.sar, prepareDriftVectors(sar.input.lastKnownPosition, sar.output.currentPositions, sar.output.driftPositions))
+            }
         } else if (sar.output.downWind) {
-            addLKP(this.layers.sar, sar.input.lastKnownPosition, sar._id);
+            addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);
             this.drawDatumPoint(sar._id, sar.input.lastKnownPosition, sar.output, active);
         } else if (sar.output.dsps){
             for(var index in sar.output.dsps){
                 var dsp = sar.output.dsps[index];
                 this.drawDatumPoint(sar._id, sar.input.dsps[index], dsp, active);
             }
-            this.addDspLine(this.layers.sar, sar.input.dsps);
+            this.addDspLine(this.layers.sar, sar.input.dsps, sar._id);
             addSarPolygonSearchArea(this.layers.sar, sar, active);
 
         }

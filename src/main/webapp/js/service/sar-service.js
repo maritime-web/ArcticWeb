@@ -1290,22 +1290,37 @@
                 if (sa['@type'] != embryo.sar.Type.SearchArea){
                     return sa;
                 }
-
-                var result = clone(sa);
-
                 var details = Subject.getDetails();
                 if(details.userName === sa.coordinator.name || (details.shipMmsi && details.shipMmsi == sa.coordinator.mmsi)){
                     return sa;
                 }
                 var searchArea = clone(sa);
-                if(searchArea.output.datum){
-                    delete searchArea.output.datum;
-                    delete searchArea.output.rdv;
-                    delete searchArea.output.radius;
-                } else if (searchArea.output.downWind){
-                    delete searchArea.output.downWind;
-                    delete searchArea.output.min;
-                    delete searchArea.output.max;
+                if(searchArea.output.driftPositions) {
+                    delete searchArea.output.driftPositions;
+                }if(searchArea.output.currentPositions) {
+                    delete searchArea.output.currentPositions;
+                }if(searchArea.output.downWind){
+                    delete searchArea.output.downWind.driftPositions;
+                }
+                if (searchArea.output.min){
+                    delete searchArea.output.min.driftPositions;
+                }
+                if (searchArea.output.max){
+                    delete searchArea.output.max.driftPositions;
+                }
+                if(searchArea.output.dsps){
+                    for(var index in searchArea.output.dsps){
+                        var dsp =  searchArea.output.dsps[index];
+                        if(dsp.downWind){
+                            delete dsp.downWind.driftPositions;
+                        }
+                        if (dsp.min){
+                            delete dsp.min.driftPositions;
+                        }
+                        if (dsp.max){
+                            delete dsp.max.driftPositions;
+                        }
+                    }
                 }
                 return searchArea;
             }
