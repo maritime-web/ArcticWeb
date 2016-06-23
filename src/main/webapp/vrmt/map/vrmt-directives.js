@@ -230,6 +230,7 @@ angular.module('vrmt.map')
                     scope.$apply();
                 });
 
+
                 function panToFeature(feature) {
                     olScope.getMap().then(function (map) {
                         var view = map.getView();
@@ -247,6 +248,23 @@ angular.module('vrmt.map')
                     map.addLayer(locationLayer);
                     map.addInteraction(select);
 
+                    var onclickKey = map.on('singleclick', function(e) {
+                        console.log("Location clicked");
+                        var pixel = map.getEventPixel(e.originalEvent);
+                        var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate === locationLayer;
+                        });
+
+                        if (hitThis) {
+                            console.log("updating locationClick");
+                            scope.assessmentLocationState['locationClick'] = {
+                                x: e.originalEvent.clientX,
+                                y: e.originalEvent.clientY
+                            };
+                        }
+                        scope.$apply();
+
+                    });
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(locationLayer)) {
@@ -254,6 +272,9 @@ angular.module('vrmt.map')
                         }
                         if (select) {
                             map.removeInteraction(select);
+                        }
+                        if (onclickKey) {
+                            map.unByKey(onclickKey);
                         }
                     });
 
