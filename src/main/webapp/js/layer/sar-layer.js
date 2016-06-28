@@ -289,7 +289,6 @@ function SarLayer() {
 
     function addDriftVector(layer, positions) {
         if(!positions || positions.length == 0){
-            console.log(positions)
             return
         }
 
@@ -316,20 +315,15 @@ function SarLayer() {
         layer.addFeatures(features);
     }
 
-    function prepareDriftVectors(lkp, twcPositions, leewayPositions) {
-        if(!twcPositions || !leewayPositions){
+    function prepareDriftVectors(positions) {
+        if(!positions){
             return null;
         }
 
         var points = []
-        if (lkp) {
-            var position = embryo.geo.Position.create(lkp);
-            points.push(position);
-        }
-        var length = twcPositions ? twcPositions.length : 0;
+        var length = positions ? positions.length : 0;
         for (var i = 0; i < length; i++) {
-            points.push(embryo.geo.Position.create(twcPositions[i]));
-            points.push(embryo.geo.Position.create(leewayPositions[i]))
+            points.push(embryo.geo.Position.create(positions[i]));
         }
         return points;
     }
@@ -402,18 +396,18 @@ function SarLayer() {
     }
 
     this.drawDatumPoint = function(id, startPosition, data, active){
-        if(data.currentPositions && data.downWind.driftPositions){
+        if(data.downWind.rdv.positions){
             addSearchRing(id, this.layers.sar, data.downWind.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(startPosition, data.currentPositions, data.downWind.driftPositions))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.downWind.rdv.positions))
         }
-        if(data.currentPositions && data.min.driftPositions){
+        if(data.min.rdv.positions){
             addSearchRing(id, this.layers.sar, data.min.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.min.driftPositions))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.min.rdv.positions.slice(1)))
             addRdv(this.layers.sar, startPosition, data.min.circle.datum, "Datum min", id);
         }
-        if(data.currentPositions && data.max.driftPositions){
+        if(data.max.rdv.positions){
             addSearchRing(id, this.layers.sar, data.max.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(null, data.currentPositions, data.max.driftPositions))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.max.rdv.positions.slice(0)))
             addRdv(this.layers.sar, startPosition, data.max.circle.datum, "Datum max", id);
         }
         addRdv(this.layers.sar, startPosition, data.downWind.circle.datum, "Datum down wind", id);
@@ -445,9 +439,9 @@ function SarLayer() {
         if (sar.output.circle) {
             addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.circle.datum, "Datum",sar._id);
-            if(sar.output.driftPositions){
+            if(sar.output.rdv.positions){
                 addSearchRing(sar._id, this.layers.sar, sar.output.circle, active);
-                addDriftVector(this.layers.sar, prepareDriftVectors(sar.input.lastKnownPosition, sar.output.currentPositions, sar.output.driftPositions))
+                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions))
             }
         } else if (sar.output.downWind) {
             addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);

@@ -567,8 +567,8 @@ $(function () {
             $scope.typeText = typeText;
             $scope.sruTypes = [
                 embryo.sar.effort.SruTypes.MerchantVessel,
-                /*                embryo.sar.effort.SruTypes.SmallerVessel,
-                 embryo.sar.effort.SruTypes.Ship*/
+                embryo.sar.effort.SruTypes.SmallerVessel,
+                 embryo.sar.effort.SruTypes.Ship
             ]
 
             $scope.visibilityValues = [1, 3, 5, 10, 15, 20];
@@ -1007,7 +1007,7 @@ $(function () {
         $scope.saveUnit = function () {
             // If active, then make a new copy in status draft
             // the copy will replace the active zone, when itself being activated
-            // TODO move much of this code into SarService where easier to unit test.
+            // TODO move much of this code into EffortAllocation where easier to unit test.
             var sru = clone($scope.sru);
             sru.name = $scope.participant.user.name;
             sru.mmsi = $scope.participant.user.mmsi;

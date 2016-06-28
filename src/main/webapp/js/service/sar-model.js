@@ -576,7 +576,7 @@
         return sweepWidths
     }
 
-    module.service('SmallerVesselSweepWidths', [function () {
+    module.service('SmallerVesselSweepWidthTable', [function () {
         function createSweepWidths() {
             var smallShipSweepWidths = {};
             smallShipSweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = {
@@ -805,7 +805,7 @@
     }]);
 
 
-    module.service('SmallerVesselSweepWidths', [function () {
+    module.service('LargerVesselSweepWidthTable', [function () {
         function createSweepWidths() {
             var largeShipSweepWidths = {};
             largeShipSweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = {
@@ -1069,77 +1069,21 @@
         return service;
     }]);
 
-    module.service('MerchantSweepWidths', [function () {
-        function createIamsarMerchantSweepWidths () {
-            var sweepWidths = {};
-            // Sweep values for visibilities 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-4
-            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0.4, 0.5, 0.6, 0.7, 0.7];
-            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [2.3, 3.2, 4.2, 4.9, 5.5];
-            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [2.5, 3.6, 5.0, 6.2, 6.9];
-            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [2.6, 4.0, 5.1, 6.4, 7.3];
-            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [2.7, 4.2, 5.2, 6.5, 7.5];
-            sweepWidths[embryo.sar.effort.TargetTypes.Boat17] = [1.1, 1.4, 1.9, 2.1, 2.3];
-            sweepWidths[embryo.sar.effort.TargetTypes.Boat23] = [2.0, 2.9, 4.3, 5.2, 5.8];
-            sweepWidths[embryo.sar.effort.TargetTypes.Boat40] = [2.8, 4.5, 7.6, 9.4, 11.6];
-            sweepWidths[embryo.sar.effort.TargetTypes.Boat79] = [3.2, 5.6, 10.7, 14.7, 18.1];
-            return sweepWidths;
-        }
-
+    module.service('SweepWidthTableFactory', ['SmallerVesselSweepWidthTable', 'LargerVesselSweepWidthTable', 'MerchantSweepWidths',
+        function (SmallerVesselSweepWidthTable,  LargerVesselSweepWidthTable, MerchantSweepWidths) {
         var service = {
-            lookup : function(targetType, visibility){
-                return createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
-            },
-            /**
-             * returns possible sweep width values in nautical miles for a SRU type
-             */
-            visibilityOptions : function(){
-                return [3, 5, 10, 15, 20]
-            },
-            /**
-             * returns search object types for a SRU type
-             */
-            searchObjectOptions : function(){
-                Object.keys(createIamsarMerchantSweepWidths())
-            }
-        };
-
-        return service;
-    }]);
-
-    module.service('SweepWidthsFactory', ['MerchantSweepWidths', function (MerchantSweepWidths) {
-        var service = {
-            lookupSweepWidth : function(sruType){
+            getTable : function(sruType){
+                if (sruType === embryo.sar.effort.SruTypes.SmallerVessel) {
+                    return MerchantSweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.Ship) {
+                    return LargerVesselSweepWidthTable;
+                }
                 if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-                    return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
+                    return MerchantSweepWidths;
                 }
-
-
-                if (sruType === embryo.sar.effort.SruTypes.SmallerVessel || sruType === embryo.sar.effort.SruTypes.Ship) {
-                    return embryo.sar.effort.createSweepWidths()[sruType][targetType][visibility];
-                }
+                return null
             },
-
-            /**
-             * returns possible sweep width values in nautical miles for a SRU type
-             */
-            visibilityOptions : function(sruType){
-                if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-                    return [3, 5, 10, 15, 20]
-                }
-
-                //sruType === embryo.sar.effort.SruTypes.FixedWingAircraft || sruType === embryo.sar.effort.SruTypes.Helicopter
-                return [1, 3, 5, 10, 15, 20]
-            },
-            /**
-             * returns search object types for a SRU type
-             */
-            searchObjectOptions : function(sruType){
-                var TargetTypes = embryo.sar.effort.TargetTypes;
-
-                //sruType === embryo.sar.effort.SruTypes.FixedWingAircraft || sruType === embryo.sar.effort.SruTypes.Helicopter
-                return [1, 3, 5, 10, 15, 20]
-            }
-
         };
 
         return service;

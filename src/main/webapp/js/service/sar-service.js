@@ -45,28 +45,79 @@
         return TimeElapsed;
     });
 
-    module.factory('SurfaceDrift', ["Position", function (Position) {
-        function SurfaceDrift(data) {
+    module.factory('DriftVector', [function () {
+        function DriftVector(data) {
             angular.extend(this, data);
         }
+        DriftVector.prototype.add = function(vector2){
+            var vector1 = this;
+            var startLocation = vector1.positions[0];
+            var vector1EndPos = startLocation.transformPosition(vector1.direction, vector1.distance);
+            var vector2EndPos = vector1EndPos.transformPosition(vector2.direction, vector2.distance);
 
-        SurfaceDrift.prototype.positionsAsDegreesAndDecimalMinutes = function(){
-            var result = {
-                currentPositions: Position.toDegreesAndDecimalMinutes(this.currentPositions),
-                datumDownwindPositions: Position.toDegreesAndDecimalMinutes(this.datumDownwindPositions),
-                datumMinPositions: Position.toDegreesAndDecimalMinutes(this.datumMinPositions),
-                datumMaxPositions: Position.toDegreesAndDecimalMinutes(this.datumMaxPositions)
+            if(vector1.validFor !== vector2.validFor){
+                throw new Error("vectors must have been applied for equally long");
             }
-            result.datumDownwind = result.datumDownwindPositions[result.datumDownwindPositions.length - 1];
-            result.datumMax = result.datumMaxPositions[result.datumMaxPositions.length - 1];
-            result.datumMin = result.datumMinPositions[result.datumMinPositions.length - 1]
-            return new SurfaceDrift(result);
+
+            return DriftVector.create({
+                positions : [startLocation, vector1EndPos,vector2EndPos],
+                distance : startLocation.rhumbLineDistanceTo(vector2EndPos),
+                direction : startLocation.rhumbLineBearingTo(vector2EndPos),
+                validFor : vector1.validFor,
+            })
         }
-        SurfaceDrift.validate = function (startPosition, commenceSearchStart, surfaceDrifts, searchObject) {
-            assertValue(startPosition, "startPosition");
-            assertValue(commenceSearchStart, "commenceSearchStart");
-            assertValue(surfaceDrifts, "surfaceDrifts");
-            assertValue(searchObject, "searchObject");
+        DriftVector.prototype.getLastPosition = function(){
+            return this.positions[this.positions.length - 1];
+        }
+        DriftVector.prototype.limitPositionsTo = function(number){
+            var increment = (this.positions.length - 1) / (number - 1);
+            var result = []
+            for(var index = 0; index < this.positions.length; index += increment){
+                result.push(this.positions[index]);
+            }
+            return DriftVector.create({
+                positions : result,
+                distance : this.distance,
+                direction : this.direction,
+                validFor : this.validFor
+            })
+        }
+        DriftVector.prototype.divergence = function(divergence){
+            // We don't need all intermediate positions in final result as only resulting TWC and Leeway vectors are shown
+            // Therefore just leave out all intermediate positions and only return start and end pos en resulting DriftVector
+            var newBearing = this.direction + divergence;
+            var newEndPos = this.positions[0].transformPosition(newBearing, this.distance);
+            return DriftVector.create({
+                positions : [this.positions[0], newEndPos],
+                distance : this.distance,
+                direction : newBearing,
+                validFor : this.validFor
+            })
+        }
+
+        DriftVector.validate = function(data){
+            assertObjectFieldValue(data, "positions");
+            assertObjectFieldValue(data, "distance");
+            assertObjectFieldValue(data, "direction");
+            assertObjectFieldValue(data, "validFor");
+        }
+
+        DriftVector.create = function (data) {
+            DriftVector.validate(data);
+
+            angular.extend(data, {
+                speed : data.distance / data.validFor
+            })
+            return new DriftVector(data)
+        }
+        return DriftVector;
+    }]);
+
+    module.factory('SurfaceDrifts', ['Position', 'DriftVector', function (Position, DriftVector) {
+        function SurfaceDrifts(surfaceDrifts){
+            this.values = surfaceDrifts
+        }
+        SurfaceDrifts.validate = function (surfaceDrifts) {
             for (var i = 0; i < surfaceDrifts.length; i++) {
                 assertObjectFieldValue(surfaceDrifts[i], "ts");
                 assertObjectFieldValue(surfaceDrifts[i], "twcSpeed");
@@ -76,174 +127,74 @@
             }
         }
 
-        SurfaceDrift.calculate2 = function (startPosition, untilTs, surfaceDrifts, searchObject) {
-            var datumDownwindPositions = [];
-            var datumMinPositions = [];
-            var datumMaxPositions = [];
-            var currentPositions = []
-
-            var startTs = startPosition.ts;
-            var validFor = null
-
-            for (var i = surfaceDrifts.length - 1; i >= 0; i--) {
-                // Do we have a next?
-                // How long is the data point valid for?
-                // Is it the last one?
-                if (i == 0) {
-                    // It's the last one - let it last the remainder
-                    validFor = (untilTs - startTs) / 60 / 60 / 1000;
-                } else {
-                    var currentTs = surfaceDrifts[i].ts;
-                    if (currentTs > startPosition.ts) {
-                        currentTs = startPosition.ts;
-                    }
-                    validFor = (startTs - currentTs) / 60 / 60 / 1000;
-                    startTs = surfaceDrifts[i].ts;
-                }
-
-                var currentTWC = surfaceDrifts[i].twcSpeed * validFor;
-
-                var startingLocation = null;
-                if (i == 0) {
-                    startingLocation = Position.create(startPosition.lon, startPosition.lat);
-                } else {
-                    startingLocation = datumDownwindPositions[i - 1];
-                }
-
-                var leewayDivergence = searchObject.divergence;
-                var leewaySpeed = searchObject.leewaySpeed(surfaceDrifts[i].leewaySpeed);
-                var leewayDriftDistance = leewaySpeed * validFor;
-
-                var twcDirectionInDegrees = directionDegrees(surfaceDrifts[i].twcDirection);
-                var currentPos = startingLocation.transformPosition(twcDirectionInDegrees, currentTWC);
-                currentPositions.push(currentPos)
-
-                // TODO move somewhere else
-                var downWind = surfaceDrifts[i].downWind;
-                if (!downWind) {
-                    downWind = directionDegrees(surfaceDrifts[i].leewayDirection) - 180;
-                }
-
-                // Are these calculations correct ?
-                // why are previous datumDownwindPosition/datumMinPosition, datumMaxPosition never used.
-                datumDownwindPositions.push(currentPos.transformPosition(downWind, leewayDriftDistance));
-                datumMinPositions.push(currentPos.transformPosition(downWind - leewayDivergence, leewayDriftDistance));
-                datumMaxPositions.push(currentPos.transformPosition(downWind + leewayDivergence, leewayDriftDistance));
-
-            }
-            var result = {
-                lastVectorValidFor : validFor,
-                currentPositions: currentPositions,
-                datumDownwindPositions: datumDownwindPositions,
-                datumMinPositions: datumMinPositions,
-                datumMaxPositions: datumMaxPositions,
-                datumDownwind : datumDownwindPositions[datumDownwindPositions.length - 1],
-                datumMax : datumMaxPositions[datumMaxPositions.length - 1],
-                datumMin : datumMinPositions[datumMinPositions.length - 1]
-            }
-            return result;
+        SurfaceDrifts.create = function(surfaceDrifts){
+            SurfaceDrifts.validate(surfaceDrifts);
+            return new SurfaceDrifts(surfaceDrifts);
         }
-        SurfaceDrift.calculate = function (startPosition, commenceSearchStart, surfaceDrifts, searchObject) {
-            var datumDownwindPositions = [];
-            var datumMinPositions = [];
-            var datumMaxPositions = [];
-            var currentPositions = []
 
+        SurfaceDrifts.prototype.generateValidFor = function(startPosition, commenceSearchStart){
+            assertValue(startPosition, "startPosition");
+            assertValue(commenceSearchStart, "commenceSearchStart");
+
+            var surfaceDrifts = this.values;
+            var validFor = [];
             var startTs = startPosition.ts;
-            var validFor = null
-
             for (var i = 0; i < surfaceDrifts.length; i++) {
-                // Do we have a next?
-                // How long is the data point valid for?
-                // Is it the last one?
                 if (i == surfaceDrifts.length - 1) {
                     // It's the last one - let it last the remainder
-                    validFor = (commenceSearchStart - startTs) / 60 / 60 / 1000;
+                    validFor.push((commenceSearchStart - startTs) / 60 / 60 / 1000);
                 } else {
                     var currentTs = surfaceDrifts[i].ts;
                     if (currentTs < startPosition.ts) {
                         currentTs = startPosition.ts;
                     }
                     startTs = surfaceDrifts[i + 1].ts;
-                    validFor = (startTs - currentTs) / 60 / 60 / 1000;
+                    validFor.push((startTs - currentTs) / 60 / 60 / 1000);
                 }
-
-                var currentTWC = surfaceDrifts[i].twcSpeed * validFor;
-
-                var startingLocation = null;
-                if (i == 0) {
-                    startingLocation = Position.create(startPosition.lon, startPosition.lat);
-                } else {
-                    startingLocation = datumDownwindPositions[i - 1];
-                }
-
-                var leewayDivergence = searchObject.divergence;
-                var leewaySpeed = searchObject.leewaySpeed(surfaceDrifts[i].leewaySpeed);
-                var leewayDriftDistance = leewaySpeed * validFor;
-
-                var twcDirectionInDegrees = directionDegrees(surfaceDrifts[i].twcDirection);
-                var currentPos = startingLocation.transformPosition(twcDirectionInDegrees, currentTWC);
-                currentPositions.push(currentPos)
-
-                // TODO move somewhere else
-                var downWind = surfaceDrifts[i].downWind;
-                if (!downWind) {
-                    downWind = directionDegrees(surfaceDrifts[i].leewayDirection) - 180;
-                }
-
-                // Are these calculations correct ?
-                // why are previous datumDownwindPosition/datumMinPosition, datumMaxPosition never used.
-                datumDownwindPositions.push(currentPos.transformPosition(downWind, leewayDriftDistance));
-                datumMinPositions.push(currentPos.transformPosition(downWind - leewayDivergence, leewayDriftDistance));
-                datumMaxPositions.push(currentPos.transformPosition(downWind + leewayDivergence, leewayDriftDistance));
-
             }
-            var result = {
-                lastVectorValidFor : validFor,
-                currentPositions: currentPositions,
-                datumDownwindPositions: datumDownwindPositions,
-                datumMinPositions: datumMinPositions,
-                datumMaxPositions: datumMaxPositions,
-                datumDownwind : datumDownwindPositions[datumDownwindPositions.length - 1],
-                datumMax : datumMaxPositions[datumMaxPositions.length - 1],
-                datumMin : datumMinPositions[datumMinPositions.length - 1]
+            this.validFor = validFor;
+            return this.validFor;
+        };
+        SurfaceDrifts.nextTWCPosition = function (fromPos, validFor, surfaceDrift){
+            var currentTWC = surfaceDrift.twcSpeed * validFor;
+            var twcDirectionInDegrees = directionDegrees(surfaceDrift.twcDirection);
+            return fromPos.transformPosition(twcDirectionInDegrees, currentTWC);
+        };
+        SurfaceDrifts.nextLeewayPosition = function (fromPos, validFor, surfaceDrift, searchObject){
+            var speed = searchObject.leewaySpeed(surfaceDrift.leewaySpeed);
+            var driftDistance = speed * validFor;
+            var directionInDegrees = directionDegrees(surfaceDrift.leewayDirection) - 180;
+            return fromPos.transformPosition(directionInDegrees, driftDistance);
+        };
+        SurfaceDrifts.prototype.calculateDrift = function(fnNextPosition, startPosition, commenceSearchStart, searchObject){
+            assertValue(startPosition, "startPosition");
+
+            this.generateValidFor(startPosition, commenceSearchStart);
+
+            var startLocation = Position.create(startPosition.lon, startPosition.lat);
+            var positions = [startLocation];
+
+            for (var i = 0; i < this.values.length; i++) {
+                var fromPos = i == 0 ? startLocation : positions[i - 1];
+                positions.push(fnNextPosition(fromPos, this.validFor[i], this.values[i], searchObject));
             }
-            return result;
+            return DriftVector.create({
+                positions : positions,
+                distance : startLocation.rhumbLineDistanceTo(positions[positions.length - 1]),
+                direction : startLocation.rhumbLineBearingTo(positions[positions.length - 1]),
+                validFor : (commenceSearchStart - startPosition.ts) / 60/ 60 / 1000
+        });
+
         }
-        SurfaceDrift.build = function(startPosition, commenceSearchStart, surfaceDrifts, searchObject){
-            SurfaceDrift.validate(startPosition, commenceSearchStart, surfaceDrifts, searchObject);
-            var result = SurfaceDrift.calculate(startPosition, commenceSearchStart, surfaceDrifts, searchObject);
-            return new SurfaceDrift(result);
+        SurfaceDrifts.prototype.calculateTWC = function(startPosition, commenceSearchStart){
+            return this.calculateDrift(SurfaceDrifts.nextTWCPosition, startPosition, commenceSearchStart);
         }
-        return SurfaceDrift;
+        SurfaceDrifts.prototype.calculateLeeway = function(startPosition, commenceSearchStart, searchObject){
+            return this.calculateDrift(SurfaceDrifts.nextLeewayPosition, startPosition, commenceSearchStart, searchObject)
+        }
+        return SurfaceDrifts;
     }]);
 
-    module.factory('RDV', function () {
-        function RDV(data) {
-            angular.extend(this, data);
-        }
-
-        RDV.validate = function(lkp, positions, lastVectorValidFor){
-            assertValue(lkp, "lkp");
-            assertValue(positions, "positions");
-            assertValue(lastVectorValidFor, "lastVectorValidFor");
-        }
-
-        RDV.build = function (lkp, positions, lastVectorValidFor) {
-            RDV.validate(lkp, positions, lastVectorValidFor);
-
-            var fromPos = positions.length > 1 ? positions[positions.length - 2] : lkp;
-            var toPos = positions[positions.length - 1];
-
-            var rdv = {}
-            rdv.direction = fromPos.bearingTo(toPos, embryo.geo.Heading.RL);
-            rdv.distance = fromPos.distanceTo(toPos, embryo.geo.Heading.RL);
-            rdv.speed = rdv.distance / lastVectorValidFor;
-            return new RDV(rdv);
-        }
-
-        return RDV;
-    });
 
     module.factory('SearchCircle', ["Position", "Circle", function (Position, Circle) {
         function SearchCircle(data) {
@@ -432,8 +383,8 @@
         return service;
     }]);
 
-    module.factory('RapidResponseOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "RapidResponseSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, RapidResponseSearchAreaCalculator) {
+    module.factory('RapidResponseOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "RapidResponseSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, RapidResponseSearchAreaCalculator) {
 
         function RapidResponseOutput(data) {
             angular.extend(this, data);
@@ -441,24 +392,24 @@
 
         RapidResponseOutput.calculate = function (input) {
             var result = TimeElapsed.build(input.lastKnownPosition, input.startTs);
-            var lkp = Position.create(input.lastKnownPosition)
+            var css = input.startTs;
+            var lkp = input.lastKnownPosition;
             var searchObject = findSearchObjectType(input.searchObject);
-            var drift = SurfaceDrift.build(input.lastKnownPosition, input.startTs, input.surfaceDriftPoints, searchObject);
-            result.currentPositions = Position.toDegreesAndDecimalMinutes(drift.currentPositions);
-
+            var drift = SurfaceDrifts.create(input.surfaceDriftPoints);
             // Only correct input values to RDV if only one surfaceDrift value set.
-            result.rdv = RDV.build(lkp, drift.datumDownwindPositions, drift.lastVectorValidFor);
-            result.circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, result.rdv.distance, drift.datumDownwind);
-            result.driftPositions = Position.toDegreesAndDecimalMinutes(drift.datumDownwindPositions);
-            result.searchArea = RapidResponseSearchAreaCalculator.calculate(drift.datumDownwind, result.circle.radius, result.rdv.direction);
+            result.rdv = drift.calculateTWC(lkp, css, searchObject).add(drift.calculateLeeway(lkp, css, searchObject)).limitPositionsTo(2);
+            var datum = result.rdv.getLastPosition();
+            result.circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, result.rdv.distance, datum);
+            result.rdv.positions = Position.toDegreesAndDecimalMinutes(result.rdv.positions);
+            result.searchArea = RapidResponseSearchAreaCalculator.calculate(datum, result.circle.radius, result.rdv.direction);
             return new RapidResponseOutput(result);
         }
         return RapidResponseOutput;
     }]);
 
 
-    module.factory('DatumPointOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "DatumPointSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, DatumPointSearchAreaCalculator) {
+    module.factory('DatumPointOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "DatumPointSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, DatumPointSearchAreaCalculator) {
 
         function DatumPointOutput(data) {
             angular.extend(this, data);
@@ -466,34 +417,40 @@
 
         DatumPointOutput.calculate = function (input) {
             var result = TimeElapsed.build(input.lastKnownPosition, input.startTs);
-            var lkp = Position.create(input.lastKnownPosition)
+            var lkp = input.lastKnownPosition;
+            var css = input.startTs;
             var searchObject = findSearchObjectType(input.searchObject);
-            var drift = SurfaceDrift.build(input.lastKnownPosition, input.startTs, input.surfaceDriftPoints, searchObject);
-            result.currentPositions = drift.currentPositions;
+            var drift = SurfaceDrifts.create(input.surfaceDriftPoints);
 
-            var rdv = RDV.build(lkp, drift.datumDownwindPositions, drift.lastVectorValidFor);
-            var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+
+            var twc = drift.calculateTWC(lkp, css, searchObject);
+            var leeway = drift.calculateLeeway(lkp, css, searchObject)
+            var rdv = twc.add(leeway).limitPositionsTo(3);
+            var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.downWind = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumDownwindPositions
             }
+            result.downWind.rdv.positions = Position.toDegreesAndDecimalMinutes(result.downWind.rdv.positions);
 
-            rdv = RDV.build(lkp, drift.datumMaxPositions, drift.lastVectorValidFor);
-            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
+            var maxLeeway = leeway.divergence(searchObject.divergence)
+            rdv = twc.limitPositionsTo(2).add(maxLeeway).limitPositionsTo(3);
+            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.max = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumMaxPositions
             }
+            result.max.rdv.positions = Position.toDegreesAndDecimalMinutes(result.max.rdv.positions);
 
-            rdv = RDV.build(lkp, drift.datumMinPositions, drift.lastVectorValidFor);
-            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
+
+            var minLeeway = leeway.divergence(0 - searchObject.divergence)
+            rdv = twc.limitPositionsTo(2).add(minLeeway).limitPositionsTo(3);
+            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.min = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumMinPositions
             }
+            result.min.rdv.positions = Position.toDegreesAndDecimalMinutes(result.min.rdv.positions);
 
             result.searchArea = DatumPointSearchAreaCalculator.calculate(result.min, result.max, result.downWind);
 
@@ -564,8 +521,8 @@
         return service;
     }]);
 
-    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "DatumLineSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, DatumLineSearchAreaCalculator) {
+    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "DatumLineSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, DatumLineSearchAreaCalculator) {
 
         function DatumLineOutput(data) {
             angular.extend(this, data);
@@ -576,38 +533,42 @@
             for (var index in input.dsps) {
                 var dsp = clone(input.dsps[index]);
 
+                var css = input.startTs
                 var result = TimeElapsed.build(dsp, input.startTs);
 
-                var startPoint = Position.create(dsp)
                 var searchObject = findSearchObjectType(input.searchObject);
 
-                var surfaceDrifts = dsp.reuseSurfaceDrifts ? input.dsps[0].surfaceDrifts : dsp.surfaceDrifts;
-                var drift = SurfaceDrift.build(dsp, input.startTs, surfaceDrifts, searchObject);
-                result.currentPositions = drift.currentPositions;
+                var drift = SurfaceDrifts.create(dsp.reuseSurfaceDrifts ? input.dsps[0].surfaceDrifts : dsp.surfaceDrifts);
+                var twc = drift.calculateTWC(dsp, css, searchObject);
+                var leeway = drift.calculateLeeway(dsp, css, searchObject)
+                var rdv = twc.add(leeway);
 
-                var rdv = RDV.build(startPoint, drift.datumDownwindPositions, result.timeElapsed);
-                var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+                var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.downWind = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumDownwindPositions
                 }
+                result.downWind.rdv.positions = Position.toDegreesAndDecimalMinutes(result.downWind.rdv.positions);
 
-                rdv = RDV.build(startPoint, drift.datumMaxPositions, result.timeElapsed);
-                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
+
+                var maxLeeway = leeway.divergence(searchObject.divergence)
+                rdv = twc.add(maxLeeway);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.max = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumMaxPositions
                 }
+                result.max.rdv.positions = Position.toDegreesAndDecimalMinutes(result.max.rdv.positions);
 
-                rdv = RDV.build(startPoint, drift.datumMinPositions, result.timeElapsed);
-                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
+                var minLeeway = leeway.divergence(0-searchObject.divergence)
+                rdv = twc.add(minLeeway);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.min = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumMinPositions
                 }
+                result.min.rdv.positions = Position.toDegreesAndDecimalMinutes(result.min.rdv.positions);
+
                 dspResults.push(result);
             }
 
@@ -699,6 +660,15 @@
         if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
             return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
         }
+
+        if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft) {
+            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
+        }
+
+        if (sruType === embryo.sar.effort.SruTypes.Helicopter) {
+            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
+        }
+
 
         if (sruType === embryo.sar.effort.SruTypes.SmallerVessel || sruType === embryo.sar.effort.SruTypes.Ship) {
             return embryo.sar.effort.createSweepWidths()[sruType][targetType][visibility];
@@ -796,7 +766,7 @@
 
     EffortAllocationCalculator.prototype.calculate = function (input, sar) {
         var wu = this.lookupUncorrectedSweepWidth(input.type, input.target, input.visibility);
-        var fw = this.lookupWeatherCorrectionFactor();
+        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
         var fv = this.lookupVelocityCorrection(input.type);
         var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
         var C = this.calculateCoverageFactor(input.pod)
@@ -814,6 +784,42 @@
         allocation.modified = Date.now();
         return allocation;
     }
+
+
+    // USED IN sar-edit.js and sar-controller.js
+    module.service('EffortAllocationService', ['LivePouch', '$log', function (LivePouch, $log) {
+
+        var service = {
+            deleteAllocationsForSameUser: function (effort, success) {
+                LivePouch.query('sar/effortView', {
+                    key: effort.sarId,
+                    include_docs: true
+                }).then(function (result) {
+                    var efforts = [];
+                    for (var index in result.rows) {
+                        var doc = result.rows[index].doc;
+                        if (doc['@type'] === embryo.sar.Type.EffortAllocation && doc.name == effort.name
+                            && doc._id !== effort._id) {
+
+                            doc._deleted = true;
+                            efforts.push(doc)
+                        } else if (doc['@type'] === embryo.sar.Type.SearchPattern && doc.name === effort.name) {
+                            doc._deleted = true;
+                            efforts.push(doc)
+                        }
+                    }
+                    //delete allocations and search patterns
+                    return LivePouch.bulkDocs(efforts)
+                }).then(success).catch(function (error) {
+                    $log.error("error during deleteEffortAllocationsForSameUser")
+                    $log.error(error)
+                });
+            }
+
+        };
+        return service;
+    }]);
+
 
     function SearchPatternCalculator() {
     }
@@ -1084,16 +1090,22 @@
     ExpandingSquareCalculator.prototype.calculate = function (zone, sp) {
         var posA = this.cornerPosition(zone, "A");
         var posB = this.cornerPosition(zone, "B");
-        var posD = this.cornerPosition(zone, "D");
+        var posC = this.cornerPosition(zone, "C");
 
         var distAB = posA.rhumbLineDistanceTo(posB);
-        var distAD = posA.rhumbLineDistanceTo(posD);
+        var distBC = posB.rhumbLineDistanceTo(posC);
+
+
+        if(embryo.Math.round10(distAB, 2) != embryo.Math.round10(distBC, 2)){
+
+        }
+
 
         var bearingAB = posA.rhumbLineBearingTo(posB);
-        var bearingAD = posA.rhumbLineBearingTo(posD);
+        var bearingBC = posB.rhumbLineBearingTo(posC);
 
         var centerAB = posA.transformPosition(bearingAB, distAB/2);
-        var center = centerAB.transformPosition(bearingAD, distAD/2);
+        var center = centerAB.transformPosition(bearingBC, distBC/2);
 
         var wayPoints = this.createWaypoints(zone, center, bearingAB);
 
