@@ -1,15 +1,24 @@
 function FactorAssessmentViewModel(param) {
-    this.factor = param.factor;
-    this.choices = param.values;
-    this.model = param.value;
-    this.hasChoices = param.values && param.values.length > 0;
+    this.riskFactor = param;
+    this.name = param.name;
+    this.scoreOptions = param.scoreOptions;
+    this.model = {name: "-", index: 0};
+    this.hasChoices = param.scoreOptions && param.scoreOptions.length > 0;
     this.minIndex = param.minIndex;
     this.maxIndex = param.maxIndex;
 }
-FactorAssessmentViewModel.prototype.toFactorAssessment = function () {
-    return new FactorAssessment({
-        factor: this.factor,
-        value: this.model.text,
+FactorAssessmentViewModel.prototype.toScore = function () {
+    var chosenOptionName = this.model.name;
+    var scoringOption;
+    if (this.scoreOptions) {
+        scoringOption = this.scoreOptions.find(function (option) {
+            return option.name === chosenOptionName;
+        });
+    }
+
+    return new Score({
+        riskFactor: this.riskFactor,
+        scoringOption: scoringOption,
         index: this.model.index
     });
 };
@@ -90,6 +99,9 @@ angular.module('vrmt.app')
                 toggleVisibility: function () {
                     this.hidden = !this.hidden;
                 },
+                configure: function () {
+                    $scope.factorConfig.show();
+                },
                 meta: {
                     vesselName: mmsi,
                     routeView: {id: null, name: null},
@@ -111,7 +123,7 @@ angular.module('vrmt.app')
                 this.locationName = assessment.location.id + '. ' + assessment.location.name;
                 this.index = assessment.index || '-';
                 this.lastAssessed = assessment.time || '-';
-                this.factorAssessments = assessment.factorAssessments || [];
+                this.factorAssessments = assessment.scores || [];
             }
 
             $scope.$watch('latestRiskAssessments', function (newValue, oldValue) {
@@ -166,7 +178,7 @@ angular.module('vrmt.app')
                     var locationId = $scope.sidebar.meta.currentAssessment.locationId;
 
                     var fas = this.factorAssessments.map(function (fa) {
-                        return fa.toFactorAssessment()
+                        return fa.toScore();
                     });
                     RiskAssessmentService.createRiskAssessment($scope.route.id, locationId, fas)
                         .then(
@@ -181,7 +193,12 @@ angular.module('vrmt.app')
                     this.clear();
                 },
                 show: function () {
-                    this.hide = false;
+                    RiskAssessmentService.getRiskFactors(mmsi).then(function (riskFactors) {
+                        $scope.assessCreate.factorAssessments = riskFactors.map(function (riskFactor) {
+                            return new FactorAssessmentViewModel(riskFactor);
+                        });
+                        $scope.assessCreate.hide = false;
+                    });
                 },
                 clear: function () {
                     this.factorAssessments.forEach(function (f) {
@@ -200,297 +217,62 @@ angular.module('vrmt.app')
 
                     return res;
                 },
-                factorAssessments: [
-                    new FactorAssessmentViewModel({
-                        factor: '1. Regions',
-                        values: [
-                            {text: 'Region AA', index: 40},
-                            {text: 'Region BA', index: 160},
-                            {text: 'Region CA', index: 200},
-                            {text: 'Region DA', index: 30},
-                            {text: 'Region EA', index: 500},
-                            {text: 'Special area 1A', index: 300},
-                            {text: 'Special area 2A', index: 140},
-                            {text: 'Special area 3A', index: 300},
-                            {text: 'Special area 4A', index: 200}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '2. Time of the season',
-                        values: [
-                            {text: 'May', index: 300},
-                            {text: 'June', index: 200},
-                            {text: 'July', index: 50},
-                            {text: 'August', index: 25},
-                            {text: 'September', index: 140}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '3. Landing sites',
-                        values: [
-                            {text: 'Nuuk', index: 300},
-                            {text: 'Longyearbyen', index: 300},
-                            {text: 'Sorgfjorden', index: 500},
-                            {text: 'Paamiut', index: 200},
-                            {text: 'Quaqortoq', index: 50},
-                            {text: 'Nanortalik', index: 25},
-                            {text: 'Kulusuk', index: 340},
-                            {text: 'Tasiilaq', index: 450}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '4. Tide',
-                        values: [
-                            {text: 'HW Spring', index: 300},
-                            {text: 'HW Nip', index: 100},
-                            {text: 'LW Spring', index: 50},
-                            {text: 'LW Nip', index: 80}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '5. Current Expected',
-                        values: [
-                            {text: 'No current, slack', index: 0},
-                            {text: 'Weak current', index: 40},
-                            {text: 'Medium current', index: 100},
-                            {text: 'Strong current', index: 400}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '6. Distance to SAR facilities, other ships',
-                        values: [
-                            {text: '10 nm One vessel', index: 10},
-                            {text: '20 nm One vessel', index: 20},
-                            {text: '40 nm One vessel', index: 35},
-                            {text: '60 nm One vessel', index: 55},
-                            {text: '80 nm One vessel', index: 80},
-                            {text: '100 nm One vessel', index: 110},
-                            {text: '120 nm One vessel', index: 140},
-                            {text: '140 nm One vessel', index: 190},
-                            {text: '160 nm One vessel', index: 270},
-                            {text: '180 nm One vessel', index: 500},
-                            {text: '200 nm One vessel', index: 800},
-                            {text: '10 nm Two vessels', index: 10},
-                            {text: '20 nm Two vessels', index: 15},
-                            {text: '40 nm Two vessels', index: 30},
-                            {text: '60 nm Two vessels', index: 40},
-                            {text: '80 nm Two vessels', index: 60},
-                            {text: '100 nm Two vessels', index: 80},
-                            {text: '120 nm Two vessels', index: 115},
-                            {text: '140 nm Two vessels', index: 155},
-                            {text: '160 nm Two vessels', index: 205},
-                            {text: '180 nm Two vessels', index: 260},
-                            {text: '200 nm Two vessels', index: 320},
-                            {text: '220 nm Two vessels', index: 400},
-                            {text: '240 nm Two vessels', index: 750},
-                            {text: '10 nm Three or more vessels', index: 10},
-                            {text: '20 nm Three or more vessels', index: 15},
-                            {text: '40 nm Three or more vessels', index: 20},
-                            {text: '60 nm Three or more vessels', index: 25},
-                            {text: '80 nm Three or more vessels', index: 40},
-                            {text: '100 nm Three or more vessels', index: 55},
-                            {text: '120 nm Three or more vessels', index: 80},
-                            {text: '140 nm Three or more vessels', index: 100},
-                            {text: '160 nm Three or more vessels', index: 135},
-                            {text: '180 nm Three or more vessels', index: 170},
-                            {text: '200 nm Three or more vessels', index: 220},
-                            {text: '220 nm Three or more vessels', index: 280},
-                            {text: '240 nm Three or more vessels', index: 340},
-                            {text: '260 nm Three or more vessels', index: 410},
-                            {text: '300 nm Three or more vessels', index: 500}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '7. Ice cover and type of ice',
-                        values: [
-                            {text: '1/10 - One year sea ice', index: 0},
-                            {text: '2/10 - One year sea ice', index: 10},
-                            {text: '3/10 - One year sea ice', index: 30},
-                            {text: '4/10 - One year sea ice', index: 50},
-                            {text: '5/10 - One year sea ice', index: 150},
-                            {text: '6/10 - One year sea ice', index: 250},
-                            {text: '7/10 - One year sea ice', index: 500},
-                            {text: '8/10 - One year sea ice', index: 1200},
-                            {text: '9/10 - One year sea ice', index: 2000},
-                            {text: '10/10 - One year sea ice', index: 2000},
-                            {text: '+10/10 - One year sea ice', index: 2000},
-                            {text: '1/10 - Two-three year sea ice', index: 30},
-                            {text: '2/10 - Two-three year sea ice', index: 50},
-                            {text: '3/10 - Two-three year sea ice', index: 150},
-                            {text: '4/10 - Two-three year sea ice', index: 250},
-                            {text: '5/10 - Two-three year sea ice', index: 500},
-                            {text: '6/10 - Two-three year sea ice', index: 1200},
-                            {text: '7/10 - Two-three year sea ice', index: 2000},
-                            {text: '8/10 - Two-three year sea ice', index: 2000},
-                            {text: '9/10 - Two-three year sea ice', index: 2000},
-                            {text: '10/10 - Two-three year sea ice', index: 2000},
-                            {text: '+10/10 - Two-three year sea ice', index: 2000},
-                            {text: '1/10 - Multi year sea ice', index: 50},
-                            {text: '2/10 - Multi year sea ice', index: 100},
-                            {text: '3/10 - Multi year sea ice', index: 500},
-                            {text: '4/10 - Multi year sea ice', index: 1000},
-                            {text: '5/10 - Multi year sea ice', index: 2000},
-                            {text: '6/10 - Multi year sea ice', index: 2000},
-                            {text: '7/10 - Multi year sea ice', index: 2000},
-                            {text: '8/10 - Multi year sea ice', index: 2000},
-                            {text: '9/10 - Multi year sea ice', index: 2000},
-                            {text: '10/10 - Multi year sea ice', index: 2000},
-                            {text: '+10/10 - Multi year sea ice', index: 2000},
-                            {text: '1/10 - Growler', index: 30},
-                            {text: '2/10 - Growler', index: 50},
-                            {text: '3/10 - Growler', index: 250},
-                            {text: '4/10 - Growler', index: 500},
-                            {text: '5/10 - Growler', index: 1000},
-                            {text: '6/10 - Growler', index: 2000},
-                            {text: '7/10 - Growler', index: 2000},
-                            {text: '8/10 - Growler', index: 2000},
-                            {text: '9/10 - Growler', index: 2000},
-                            {text: '10/10 - Growler', index: 2000},
-                            {text: '+10/10 - Growler', index: 2000},
-                            {text: '1/10 - Bergy Bits', index: 50},
-                            {text: '2/10 - Bergy Bits', index: 100},
-                            {text: '3/10 - Bergy Bits', index: 500},
-                            {text: '4/10 - Bergy Bits', index: 1000},
-                            {text: '5/10 - Bergy Bits', index: 2000},
-                            {text: '6/10 - Bergy Bits', index: 2000},
-                            {text: '7/10 - Bergy Bits', index: 2000},
-                            {text: '8/10 - Bergy Bits', index: 2000},
-                            {text: '9/10 - Bergy Bits', index: 2000},
-                            {text: '10/10 - Bergy Bits', index: 2000},
-                            {text: '+10/10 - Bergy Bits', index: 2000},
-                            {text: '1/10 - Ice berg', index: 50},
-                            {text: '2/10 - Ice berg', index: 100},
-                            {text: '3/10 - Ice berg', index: 1000},
-                            {text: '4/10 - Ice berg', index: 2000},
-                            {text: '5/10 - Ice berg', index: 2000},
-                            {text: '6/10 - Ice berg', index: 2000},
-                            {text: '7/10 - Ice berg', index: 2000},
-                            {text: '8/10 - Ice berg', index: 2000},
-                            {text: '9/10 - Ice berg', index: 2000},
-                            {text: '10/10 - Ice berg', index: 2000},
-                            {text: '+10/10 - Ice berg', index: 2000}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '8. Wind speed',
-                        values: [
-                            {text: '0', index: 0},
-                            {text: '1', index: 5},
-                            {text: '2', index: 10},
-                            {text: '3', index: 25},
-                            {text: '4', index: 45},
-                            {text: '5', index: 75},
-                            {text: '6', index: 110},
-                            {text: '7', index: 150},
-                            {text: '8', index: 200},
-                            {text: '9', index: 400},
-                            {text: '10', index: 900},
-                            {text: '11', index: 2000},
-                            {text: '12', index: 2000}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '9. Air temperature',
-                        values: [
-                            {text: '10', index: 0},
-                            {text: '5', index: 0},
-                            {text: '0', index: 0},
-                            {text: '-5', index: 50},
-                            {text: '-10', index: 100},
-                            {text: '-15', index: 175},
-                            {text: '-20', index: 250},
-                            {text: '-25', index: 500},
-                            {text: '-30', index: 1000}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '10. Sea conditions',
-                        values: [
-                            {text: '0m', index: 0},
-                            {text: '1m', index: 50},
-                            {text: '2m', index: 125},
-                            {text: '3m', index: 225},
-                            {text: '4m', index: 325},
-                            {text: '5m', index: 425},
-                            {text: '6m', index: 540},
-                            {text: '7m', index: 675},
-                            {text: '8m', index: 825},
-                            {text: '9m', index: 1000},
-                            {text: '10m', index: 1200},
-                            {text: '11m', index: 1350},
-                            {text: '12m', index: 1500},
-                            {text: '13m', index: 1600},
-                            {text: '14m', index: 1675},
-                            {text: '15m', index: 1750},
-                            {text: '16m', index: 1800},
-                            {text: '17m', index: 1850},
-                            {text: '18m', index: 1900},
-                            {text: '19m', index: 1950}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '11. Visibility',
-                        values: [
-                            {text: '10nm', index: 0},
-                            {text: '9nm', index: 0},
-                            {text: '8nm', index: 0},
-                            {text: '7nm', index: 0},
-                            {text: '6nm', index: 5},
-                            {text: '5nm', index: 10},
-                            {text: '4nm', index: 15},
-                            {text: '3nm', index: 25},
-                            {text: '2nm', index: 35},
-                            {text: '1nm', index: 45},
-                            {text: '0.9nm', index: 55},
-                            {text: '0.8nm', index: 70},
-                            {text: '0.7nm', index: 85},
-                            {text: '0.6nm', index: 100},
-                            {text: '0.5nm', index: 120},
-                            {text: '0.4nm', index: 140},
-                            {text: '0.3nm', index: 175},
-                            {text: '0.2nm', index: 225},
-                            {text: '0.1nm', index: 500},
-                            {text: '0nm', index: 1000}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '12. Quality of maps',
-                        values: [
-                            {text: 'ENC full detail', index: 0},
-                            {text: 'Old meassurements', index: 100},
-                            {text: 'No map', index: 500}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '13. Daylight',
-                        values: [
-                            {text: 'Morning nautical twilight', index: 50},
-                            {text: 'Evening nautical twilight', index: 50},
-                            {text: 'Night', index: 100},
-                            {text: 'Day', index: 0}
-                        ],
-                        value: {text: '-', index: 0}
-                    }),
-                    new FactorAssessmentViewModel({
-                        factor: '14. Miscellaneous',
-                        value: {text: '-', index: 0},
-                        minIndex: 0,
-                        maxIndex: 500
-                    })
-                ]
+                factorAssessments: []
             };
+
+
+            /**
+             * assessment factor configuration control
+             */
+            $scope.factorConfig = {
+                hide: true,
+                show: function () {
+                    this.hide = false;
+                },
+                dismiss: function () {
+                    this.hide = true;
+                },
+                getVessel: function () {
+                    return $scope.sidebar.meta.vesselName;
+                },
+                save: function (riskFactorView) {
+                    RiskAssessmentService.saveRiskFactor(riskFactorView.toRiskFactor())
+                        .then(function (riskFactor) {
+                            console.log("Saved risk factor with id " + riskFactor.id);
+                        }, function (reason) {
+                            console.log(reason);
+                        });
+                },
+                riskFactors: []
+            };
+
+            function RiskFactorView(riskFactor) {
+                this.riskFactor = riskFactor;
+                this.isActive = false;
+                this.name = riskFactor.name;
+                this.scoreOptions = riskFactor.scoreOptions;
+                this.scoreInterval = riskFactor.scoreInterval
+            }
+
+            RiskFactorView.prototype.hasScoreOptions = function () {
+                return (this.scoreOptions && this.scoreOptions.length > 0) || !this.scoreInterval;
+            };
+            RiskFactorView.prototype.deleteScoreOption = function (scoreOption) {
+                var index = this.scoreOptions.indexOf(scoreOption);
+                this.scoreOptions.splice(index, 1);
+            };
+            RiskFactorView.prototype.addScoreOption = function () {
+                this.scoreOptions.push(new ScoreOption({name: '', index: 0}));
+            };
+            RiskFactorView.prototype.toRiskFactor = function () {
+                return this.riskFactor;
+            };
+
+            RiskAssessmentService.getRiskFactors(mmsi).then(function (riskFactors) {
+                $scope.factorConfig.riskFactors = riskFactors.map(function (riskFactor) {
+                    return new RiskFactorView(riskFactor);
+                });
+            });
 
 
             /**
@@ -512,7 +294,7 @@ angular.module('vrmt.app')
                         name: 'New Assesment',
                         choose: function () {
                             $scope.locationFunctions.hide = true;
-                            $scope.assessCreate.hide = false;
+                            $scope.assessCreate.show();
                         }
                     }
                 ],

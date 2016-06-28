@@ -11,16 +11,16 @@
             <div class="panel-body">
                 <div class="form-horizontal">
                     <div class="form-group" ng-repeat="factorAssessment in assessCreate.factorAssessments">
-                        <label class="control-label col-xs-6" for="{{factorAssessment.factor}}">{{factorAssessment.factor}}</label>
+                        <label class="control-label col-xs-6" for="{{factorAssessment.name}}">{{factorAssessment.name}}</label>
                         <div class="col-xs-4">
                             <!--suppress XmlDuplicatedId -->
-                            <select ng-if="factorAssessment.hasChoices" class="form-control input-sm" id="{{factorAssessment.factor}}"
+                            <select ng-if="factorAssessment.hasChoices" class="form-control input-sm" id="{{factorAssessment.name}}"
                                     ng-model="factorAssessment.model"
-                                    ng-options="model.text for model in factorAssessment.choices">
+                                    ng-options="model.name for model in factorAssessment.scoreOptions">
                             </select>
                             <!--suppress XmlDuplicatedId -->
                             <input ng-if="!factorAssessment.hasChoices" type="number" class="form-control input-sm"
-                                   id="{{factorAssessment.factor}}"
+                                   id="{{factorAssessment.name}}"
                                    ng-model="factorAssessment.model.index"
                                    min="{{factorAssessment.minIndex}}" max="{{factorAssessment.maxIndex}}"/>
                         </div>
