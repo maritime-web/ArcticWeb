@@ -171,9 +171,8 @@ $(function () {
 
         $scope.searchObjects = SarService.searchObjectTypes();
             $scope.sarTypes = embryo.sar.Operation;
-            $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
+            $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine];
             $scope.sarTypeDatas = sarTypeDatas;
-
             $scope.tmp = {
                 sarTypeData: $scope.sarTypeDatas[0]
         }
@@ -199,7 +198,6 @@ $(function () {
             return position.lat + ", " + position.lon;
         };
 
-
         $scope.back = function () {
             switch ($scope.page.name) {
                 case ("sarResult") :
@@ -219,7 +217,7 @@ $(function () {
 
         $scope.next = function () {
             $scope.page.name = 'sarInputs';
-            if(!$scope.sar.searchObject){
+            if(!$scope.sar.searchObject && $scope.sar.searchObject != 0){
                 initNewSar()
             }
         }
@@ -552,8 +550,8 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory',
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory) {
+    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "EffortAllocationService",
+        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, EffortAllocationService) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
@@ -582,8 +580,8 @@ $(function () {
                     $scope.effort = allocation;
                     $scope.initEffortAllocation();
                 }).catch(function (error) {
-                    console.log("loadAllocation error")
-                    console.log(error)
+                    $log.error("loadAllocation(" + allocationId + ") error")
+                    $log.error(error)
                 });
             }
 
@@ -625,11 +623,8 @@ $(function () {
                     }
                     $scope.srus = srus
                     $scope.patterns = patternsMap(patterns);
-
-
                 }).catch(function (error) {
-                    console.log("sareffortview error")
-                    console.log(error)
+                    $log.error(error)
                 });
             }
 
@@ -708,6 +703,7 @@ $(function () {
                     $scope.toSrus();
                 }).catch(function (error) {
                     $scope.alertMessages = ["Internal error removing SRU", error];
+                    $log.error(error)
                 });
             }
 
@@ -779,7 +775,7 @@ $(function () {
                     try {
                         allocation = SarService.calculateEffortAllocations($scope.effort, sar);
                     } catch (error) {
-                        console.log(error)
+                        $log.error(error)
                         $scope.alertMessages = ["internal error", error];
                     }
 
@@ -793,6 +789,7 @@ $(function () {
                     }
                 }).catch(function (error) {
                     $scope.alertMessages = ["internal error", error];
+                    $log.error(error)
                 });
             }
 
@@ -807,8 +804,8 @@ $(function () {
                     LivePouch.put(effort).then(function () {
                         $scope.toSrus();
                     }).catch(function (error) {
-                        console.log("error saving effort allocation")
-                        console.log(error)
+                        $log.error("error saving effort allocation")
+                        $log.error(error)
                     })
                 }
 
@@ -875,7 +872,7 @@ $(function () {
                 $scope.spImages[SearchPattern.ParallelSweep] = "img/sar/parallelsweepsearch.png";
                 $scope.spImages[SearchPattern.CreepingLine] = "img/sar/creepinglinesearch.png";
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
-                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/.jpg";
+                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/searchSectorPattern.png ";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
                 $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
 
@@ -892,8 +889,8 @@ $(function () {
                     }
                     init(zone, SarService.findLatestModified(patterns));
                 }).catch(function (error) {
-                    console.log("sarsearchpattern error")
-                    console.log(error)
+                    $log.error("findNewestSearchPattern error")
+                    $log.error(error)
                 });
 
             }
@@ -930,6 +927,7 @@ $(function () {
                 }).catch(function (error) {
                     // FIXME don't treat error as a string be default.
                     $scope.errorMessages = [error];
+                    $log.error(error)
                 });
             }
 
@@ -971,7 +969,6 @@ $(function () {
                     $scope.toSrus();
                 }).catch(function (err) {
                     // FIXME, don't just assume error is a String
-                    console.log(err);
                     $scope.errorMessages = [err];
                 });
             }
@@ -993,7 +990,7 @@ $(function () {
             })
         }]);
 
-    module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', function ($scope, SarService, LivePouch) {
+    module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', '$log', function ($scope, SarService, LivePouch, $log) {
         $scope.alertMessages = null;
         $scope.message = null;
 
@@ -1036,9 +1033,9 @@ $(function () {
             LivePouch.put(sru).then(function (result) {
                 $scope.toSrus();
             }).catch(function (error) {
-                console.log(error)
                 $scope.sru = sru2;
                 $scope.alertMessages = ["internal error", error];
+                $log.error(error)
             });
 
         }
