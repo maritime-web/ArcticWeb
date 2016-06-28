@@ -27,8 +27,12 @@
     embryo.sar.effort = {};
     embryo.sar.effort.SruTypes = Object.freeze({
         MerchantVessel: "MV",
-        Helicopter : "HC",
-        FixedWingAircraft : "FWA",
+        Helicopter150 : "HC150",
+        Helicopter300 : "HC300",
+        Helicopter600 : "HC600",
+        FixedWingAircraft150 : "FWA150",
+        FixedWingAircraft300 : "FWA300",
+        FixedWingAircraft600 : "FWA600",
         SmallerVessel: "SV",
         Ship: "S"
     });
@@ -51,14 +55,21 @@
         Sailboat15: "SB15",
         Sailboat20: "SB20",
         Sailboat25: "SB25",
+        Sailboat26: "SB26",
         Sailboat30: "SB30",
+        Sailboat39: "SB39",
         Sailboat40: "SB40",
+        Sailboat49: "SB49",
         Sailboat50: "SB50",
+        Sailboat69: "SB69",
         Sailboat70: "SB70",
         Sailboat83: "SB83",
         Ship120: "SH120",
         Ship225: "SH225",
         Ship330: "SH330",
+        Ship90to150: "SH90",
+        Ship150to300: "SH150",
+        Ship300: "SH300",
         Boat17: "B17",
         Boat23: "B23",
         Boat40: "B40",
@@ -1069,10 +1080,414 @@
         return service;
     }]);
 
-    module.service('SweepWidthTableFactory', ['SmallerVesselSweepWidthTable', 'LargerVesselSweepWidthTable', 'MerchantSweepWidths',
-        function (SmallerVesselSweepWidthTable,  LargerVesselSweepWidthTable, MerchantSweepWidths) {
+    module.service('Helicopter150SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0, 0.1, 0.1, 0.1, 0.1, 0.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.4, 0.9, 1.2, 1.6, 1.8, 1.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.5, 1.2, 1.6, 2.2, 2.6, 2.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.5, 1.4, 1.9, 2.7, 3.2, 3.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.6, 1.5, 2.0, 2.8, 3.3, 3.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.6, 1.6, 2.2, 3.1, 3.6, 4.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.6, 1.7, 2.3, 3.3, 4.0, 4.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.6, 1.8, 2.6, 3.8, 4.6, 5.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.6, 1.9, 2.7, 4.1, 5.0, 5.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.5, 1.2, 1.5, 1.9, 2.2, 2.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.7, 2.0, 2.9, 4.3, 5.2, 5.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.8, 2.5, 3.9, 6.2, 7.8, 9.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.8, 3.1, 5.1, 9.2, 12.3, 14.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.8, 3.3, 5.7, 10.8, 15.0, 18.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.7, 1.9, 2.7, 3.9, 4.7, 5.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.8, 2.4, 3.7, 5.7, 7.1, 8.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.8, 3.0, 4.9, 8.3, 11.3, 13.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.8, 3.1, 5.2, 9.5, 12.7, 15.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.8, 3.2, 5.5, 10.4, 14.1, 17.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.8, 3.3, 5.7, 11.0, 15.2, 18.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.8, 3.4, 6.0, 12.2, 17.4, 21.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.8, 3.4, 6.3, 13.6, 20.4, 26.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.8, 3.5, 6.4, 14.3, 22.1, 29.8];
+            return sweepWidths;
+        }
+
         var service = {
-            getTable : function(sruType){
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('Helicopter300SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0, 0.1, 0.1, 0.1, 0.1, 0.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.4, 0.9, 1.2, 1.6, 1.8, 1.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.5, 1.2, 1.7, 2.3, 2.6, 2.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.5, 1.4, 2.0, 2.8, 3.2, 3.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.5, 1.5, 2.1, 2.9, 3.4, 3.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.5, 1.6, 2.2, 3.2, 3.7, 4.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.6, 1.7, 2.4, 3.5, 4.1, 4.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.6, 1.8, 2.7, 3.9, 4.7, 5.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.6, 1.9, 2.8, 4.2, 5.1, 5.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.5, 1.2, 1.6, 2.1, 2.3, 2.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.7, 2.1, 3.0, 4.4, 5.3, 5.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.7, 2.6, 3.9, 6.3, 7.9, 9.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.7, 3.1, 5.2, 9.2, 12.3, 14.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.8, 3.3, 5.7, 10.9, 15.0, 18.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.6, 1.9, 2.8, 4.0, 4.8, 5.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.7, 2.5, 3.7, 5.8, 7.3, 8.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.7, 3.0, 4.9, 8.6, 11.4, 13.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.7, 3.1, 5.3, 9.5, 12.8, 15.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.8, 3.2, 5.6, 10.4, 14.2, 17.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.8, 3.3, 5.7, 11.0, 15.3, 18.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.8, 3.4, 6.0, 12.2, 17.4, 21.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.8, 3.4, 6.3, 13.6, 20.4, 26.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.8, 3.5, 6.4, 14.3, 22.2, 29.8];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('Helicopter600SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.2, 0.8, 1.2, 1.6, 1.8, 1.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.3, 1.2, 1.7, 2.3, 2.7, 3.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.3, 1.4, 2.0, 2.8, 3.3, 3.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.3, 1.5, 2.1, 3.0, 3.6, 3.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.3, 1.6, 2.3, 3.3, 3.9, 4.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.3, 1.7, 2.5, 3.6, 4.3, 4.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.4, 1.8, 2.7, 4.0, 4.9, 5.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.4, 1.9, 2.9, 4.3, 5.3, 5.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.3, 1.3, 1.7, 2.3, 2.6, 2.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.4, 2.1, 3.0, 4.5, 5.5, 6.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.5, 2.6, 4.0, 6.4, 8.0, 9.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.5, 3.0, 5.2, 9.3, 12.4, 14.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.5, 3.2, 5.7, 10.9, 15.1, 18.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.4, 1.9, 2.8, 4.2, 5.0, 5.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.5, 2.5, 3.8, 6.0, 7.5, 8.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.5, 3.0, 4.9, 8.7, 11.4, 13.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.5, 3.1, 5.3, 9.6, 12.9, 15.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.5, 3.2, 5.6, 10.5, 14.3, 17.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.5, 3.2, 5.7, 11.1, 15.4, 18.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.5, 3.3, 6.0, 12.2, 17.5, 22.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.5, 3.4, 6.3, 13.6, 20.4, 26.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.6, 3.5, 6.4, 14.3, 22.2, 29.8];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('FixedWingAircraft150SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0.0, 0.1, 0.1, 0.1, 0.1, 0.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.3, 0.7, 0.9, 1.2, 1.4, 1.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.4, 1.0, 1.3, 1.6, 2.0, 2.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.4, 1.1, 1.5, 2.2, 2.5, 2.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.4, 1.2, 1.6, 2.3, 2.7, 2.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.4, 1.2, 1.7, 2.5, 2.9, 3.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.5, 1.3, 1.9, 2.7, 3.3, 3.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.5, 1.5, 2.1, 3.2, 3.8, 4.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.5, 1.6, 2.3, 3.4, 4.1, 4.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.4, 0.9, 1.2, 1.5, 1.7, 1.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.5, 1.7, 2.4, 3.6, 4.3, 4.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.6, 2.1, 3.3, 5.3, 6.7, 7.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.6, 2.7, 4.5, 8.1, 10.9, 13.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.6, 2.8, 5.0, 9.8, 13.5, 16.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.5, 1.6, 2.2, 3.2, 3.9, 4.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.6, 2.0, 3.1, 4.9, 6.1, 7.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.6, 2.6, 4.3, 7.6, 10.0, 11.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.6, 2.7, 4.6, 8.4, 11.3, 13.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.6, 2.8, 4.9, 9.3, 12.7, 15.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.6, 2.8, 5.1, 9.9, 13.7, 17.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.6, 2.9, 5.4, 11.1, 15.9, 20.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.6, 3.0, 5.7, 12.5, 18.9, 24.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.7, 3.0, 5.8, 13.2, 20.6, 27.9];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('FixedWingAircraft300SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0.0, 0.1, 0.1, 0.1, 0.1, 0.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.3, 0.7, 0.9, 1.2, 1.4, 1.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.3, 1.0, 1.3, 1.8, 2.1, 2.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.4, 1.1, 1.6, 2.2, 2.6, 2.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.4, 1.2, 1.7, 2.4, 2.8, 3.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.4, 1.3, 1.8, 2.6, 3.0, 3.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.4, 1.4, 2.0, 2.8, 3.4, 3.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.4, 1.5, 2.2, 3.2, 3.9, 4.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.4, 1.6, 2.3, 3.5, 4.2, 4.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.4, 1.0, 1.3, 1.7, 1.8, 2.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.5, 1.7, 2.5, 3.7, 4.4, 5.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.5, 2.2, 3.4, 5.4, 6.8, 7.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.6, 2.7, 4.5, 8.2, 10.9, 13.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.6, 2.8, 5.1, 9.8, 13.6, 16.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.5, 1.6, 2.3, 3.3, 4.0, 4.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.5, 2.1, 3.2, 5.0, 6.2, 7.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.6, 2.6, 4.3, 7.6, 10.9, 12.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.6, 2.7, 4.6, 8.5, 11.4, 13.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.6, 2.8, 4.9, 9.3, 12.8, 15.6];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.6, 2.8, 5.1, 9.9, 13.8, 17.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.6, 2.9, 5.4, 11.1, 15.9, 20.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.6, 3.0, 5.7, 12.5, 18.9, 24.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.6, 3.0, 5.8, 13.2, 20.6, 27.9];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('FixedWingAircraft600SweepWidths', [function () {
+        function createSweepWidths () {
+            var sweepWidths = {};
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[embryo.sar.effort.TargetTypes.PersonInWater] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft1Person] = [0.1, 0.6, 0.9, 1.2, 1.4, 1.4];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft4Persons] = [0.2, 0.9, 1.3, 1.9, 2.2, 2.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft6Persons] = [0.2, 1.1, 1.6, 2.3, 2.7, 2.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft8Persons] = [0.2, 1.2, 1.7, 2.5, 2.9, 3.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft10Persons] = [0.2, 1.2, 1.8, 2.7, 3.1, 3.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft15Persons] = [0.2, 1.4, 2.0, 3.0, 3.5, 3.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft20Persons] = [0.4, 1.5, 2.2, 3.4, 4.0, 4.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Raft25Persons] = [0.3, 1.6, 2.4, 3.6, 4.4, 4.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat15] = [0.2, 1.0, 1.3, 1.8, 2.0, 2.2];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat20] = [0.3, 1.7, 2.5, 3.8, 4.6, 5.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat33] = [0.3, 2.2, 3.4, 5.5, 6.9, 8.0];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat53] = [0.4, 2.6, 4.5, 8.3, 11.0, 13.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Motorboat78] = [0.4, 2.8, 5.0, 9.8, 13.6, 16.8];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat15] = [0.3, 1.6, 2.3, 3.5, 4.1, 4.5];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat26] = [0.3, 2.1, 3.3, 5.2, 6.4, 7.3];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat39] = [0.4, 2.5, 4.3, 7.7, 10.1, 12.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat49] = [0.4, 2.7, 4.6, 8.6, 11.5, 13.9];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat69] = [0.4, 2.7, 4.9, 9.4, 12.9, 15.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Sailboat83] = [0.4, 2.8, 5.1, 10.0, 13.9, 17.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship90to150] = [0.4, 2.9, 5.4, 11.1, 16.0, 20.1];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship150to300] = [0.4, 3.0, 5.7, 12.5, 18.9, 24.7];
+            sweepWidths[embryo.sar.effort.TargetTypes.Ship300] = [0.5, 3.0, 5.8, 13.2, 20.7, 27.9];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, visibility){
+                var vIndex = visibility == 1 ? 0 : (Math.floor(visibility / 5) + 1);
+                return createSweepWidths()[targetType][vIndex];
+            },
+            /**
+             * returns possible sweep width values in nautical miles for a SRU type
+             */
+            visibilityOptions : function(){
+                return [1, 3, 5, 10, 15, 20]
+            },
+            /**
+             * returns search object types for a SRU type
+             */
+            searchObjectOptions : function(){
+                return Object.keys(createSweepWidths())
+            }
+        };
+
+        return service;
+    }]);
+
+    module.service('FixedWingSpeedCorrections', [function () {
+        function createCorrections() {
+            var sweepWidths = {};
+            var TargetTypes = embryo.sar.effort.TargetTypes;
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[TargetTypes.PersonInWater] = [1.2, 1.0, 0.9];
+            sweepWidths[TargetTypes.Raft1Person] = [1.1, 1.0, 0.9];
+            sweepWidths[TargetTypes.Raft4Persons] = sweepWidths[TargetTypes.Raft1Person];
+            sweepWidths[TargetTypes.Raft6Persons] = [1.1, 1.0, 0.9];
+            sweepWidths[TargetTypes.Raft8Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft10Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft15Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft20Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft25Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Motorboat15] = [1.1, 1.0, 0.9];
+            sweepWidths[TargetTypes.Motorboat20] = sweepWidths[TargetTypes.Motorboat15];
+            sweepWidths[TargetTypes.Motorboat33] = [1.1, 1.0, 0.9];
+            sweepWidths[TargetTypes.Motorboat53] = [1.1, 1.0, 1.0];
+            sweepWidths[TargetTypes.Motorboat78] = [1.1, 1.0, 1.0];
+            sweepWidths[TargetTypes.Sailboat15] = [1.1, 1.0, 0.9];
+            sweepWidths[TargetTypes.Sailboat26] = sweepWidths[TargetTypes.Sailboat15]; // TODO validate this
+            sweepWidths[TargetTypes.Sailboat39] = [1.1, 1.0, 1.0];
+            sweepWidths[TargetTypes.Sailboat49] = sweepWidths[TargetTypes.Sailboat39]; // TODO validate this
+            sweepWidths[TargetTypes.Sailboat69] = sweepWidths[TargetTypes.Sailboat39]; // TODO validate this
+            sweepWidths[TargetTypes.Sailboat83] = [1.1, 1.0, 1.0];
+            sweepWidths[TargetTypes.Ship90to150] = [1.0, 1.0, 1.0];
+            sweepWidths[TargetTypes.Ship150to300] = sweepWidths[TargetTypes.Ship90to150];
+            sweepWidths[TargetTypes.Ship300] = sweepWidths[TargetTypes.Ship90to150];
+            return sweepWidths;
+        }
+
+        var service = {
+            lookup : function(targetType, speed){
+                var vIndex = 0;
+                if(speed > 150 && speed <= 180){
+                    vIndex = 1
+                } else if (speed > 180){
+                    vIndex = 2;
+                }
+                return createCorrections()[targetType][vIndex];
+            },
+        };
+
+        return service;
+    }]);
+
+    module.service('HelicopterSpeedCorrections', [function () {
+        function createCorrections() {
+            var sweepWidths = {};
+            var TargetTypes = embryo.sar.effort.TargetTypes;
+            // Sweep values for visibilities 1, 3, 5, 10, 15 and 20 are supplied in arrays indexed 0-5
+            sweepWidths[TargetTypes.PersonInWater] = [1.5, 1.0, 0.8, 0.7];
+            sweepWidths[TargetTypes.Raft1Person] = [1.3, 1.0, 0.9, 0.8];
+            sweepWidths[TargetTypes.Raft4Persons] = sweepWidths[TargetTypes.Raft1Person];
+            sweepWidths[TargetTypes.Raft6Persons] = [1.2, 1.0, 0.9, 0.8];
+            sweepWidths[TargetTypes.Raft8Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft10Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft15Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft20Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Raft25Persons] = sweepWidths[TargetTypes.Raft6Persons];
+            sweepWidths[TargetTypes.Motorboat15] = [1.2, 1.0, 0.9, 0.8];
+            sweepWidths[TargetTypes.Motorboat20] = sweepWidths[TargetTypes.Motorboat15];
+            sweepWidths[TargetTypes.Motorboat33] = [1.1, 1.0, 0.9, 0.9];
+            sweepWidths[TargetTypes.Motorboat53] = [1.1, 1.0, 0.9, 0.9];
+            sweepWidths[TargetTypes.Motorboat78] = [1.1, 1.0, 1.0, 0.9];
+            sweepWidths[TargetTypes.Sailboat15] = [1.2, 1.0, 0.9, 0.9];
+            sweepWidths[TargetTypes.Sailboat26] = sweepWidths[TargetTypes.Sailboat15];  // TODO validate this
+            sweepWidths[TargetTypes.Sailboat39] = [1.1, 1.0, 0.9, 0.9];
+            sweepWidths[TargetTypes.Sailboat49] = sweepWidths[TargetTypes.Sailboat39]; // TODO validate this
+            sweepWidths[TargetTypes.Sailboat69] = sweepWidths[TargetTypes.Sailboat39]; // TODO validate this
+            sweepWidths[TargetTypes.Sailboat83] = [1.1, 1.0, 1.0, 0.9];
+            sweepWidths[TargetTypes.Ship90to150] = [1.0, 1.0, 1.0, 0.9];
+            sweepWidths[TargetTypes.Ship150to300] = sweepWidths[TargetTypes.Ship90to150];
+            sweepWidths[TargetTypes.Ship300] = sweepWidths[TargetTypes.Ship90to150];
+            return sweepWidths;
+        }
+        var service = {
+            lookup : function(targetType, speed){
+                var vIndex = 0;
+                if(speed > 60 && speed <= 90){
+                    vIndex = 1
+                } else if (speed > 90 && speed <=120){
+                    vIndex = 2;
+                } else if (speed > 120){
+                    vIndex = 3;
+                }
+                return createCorrections()[targetType][vIndex];
+            },
+        };
+        return service;
+    }]);
+
+    module.service('SarTableFactory', ['SmallerVesselSweepWidthTable', 'LargerVesselSweepWidthTable', 'MerchantSweepWidths','Helicopter150SweepWidths', 'Helicopter300SweepWidths', 'Helicopter600SweepWidths', 'FixedWingAircraft150SweepWidths', 'FixedWingAircraft300SweepWidths', 'FixedWingAircraft600SweepWidths', 'HelicopterSpeedCorrections', 'FixedWingSpeedCorrections',
+        function (SmallerVesselSweepWidthTable,  LargerVesselSweepWidthTable, MerchantSweepWidths, Helicopter150SweepWidths, Helicopter300SweepWidths, Helicopter600SweepWidths, FixedWingAircraft150SweepWidths, FixedWingAircraft300SweepWidths, FixedWingAircraft600SweepWidths, HelicopterSpeedCorrections, FixedWingSpeedCorrections) {
+        var service = {
+            getSweepWidthTable : function(sruType){
                 if (sruType === embryo.sar.effort.SruTypes.SmallerVessel) {
                     return MerchantSweepWidths;
                 }
@@ -1081,6 +1496,33 @@
                 }
                 if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
                     return MerchantSweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.Helicopter150) {
+                    return Helicopter150SweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.Helicopter300) {
+                    return Helicopter300SweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.Helicopter600) {
+                    return Helicopter600SweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft150) {
+                    return FixedWingAircraft150SweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft300) {
+                    return FixedWingAircraft300SweepWidths;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft600) {
+                    return FixedWingAircraft600SweepWidths;
+                }
+                return null
+            },
+            getSpeedCorrectionTable : function(sruType){
+                if (sruType === embryo.sar.effort.SruTypes.Helicopter150 || sruType === embryo.sar.effort.SruTypes.Helicopter300 || sruType === embryo.sar.effort.SruTypes.Helicopter600) {
+                    return HelicopterSpeedCorrections;
+                }
+                if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft150 || sruType === embryo.sar.effort.SruTypes.FixedWingAircraft300 || sruType === embryo.sar.effort.SruTypes.FixedWingAircraft600) {
+                    return FixedWingSpeedCorrections;
                 }
                 return null
             },

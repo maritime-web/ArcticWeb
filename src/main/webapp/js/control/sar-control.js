@@ -69,6 +69,9 @@ $(function () {
             if (sarId) {
                 LivePouch.get(sarId).then(function (sar) {
                     SarLayerSingleton.getInstance().zoomToSarOperation(sar);
+                }).catch(function(error){
+                    $log.error("error zooming to selected sar operation")
+                    $log.error(error)
                 });
             }
         });
@@ -118,7 +121,6 @@ $(function () {
         });
 
         $scope.$on("$destroy", function() {
-            console.log("cancel")
             changes.cancel();
         });
 

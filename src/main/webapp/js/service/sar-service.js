@@ -653,29 +653,15 @@
     }]);
 
 
-    function EffortAllocationCalculator() {
+    function EffortAllocationCalculator(SarTableFactory) {
+        this.SarTableFactory = SarTableFactory;
     }
 
-    EffortAllocationCalculator.prototype.lookupUncorrectedSweepWidth = function (sruType, targetType, visibility) {
-        if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
+    EffortAllocationCalculator.prototype.lookupVelocityCorrection = function (sruType, targetType, speed) {
+        var table = this.SarTableFactory.getSpeedCorrectionTable(sruType);
+        if(table){
+            return table.lookup(targetType, speed);
         }
-
-        if (sruType === embryo.sar.effort.SruTypes.FixedWingAircraft) {
-            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
-        }
-
-        if (sruType === embryo.sar.effort.SruTypes.Helicopter) {
-            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
-        }
-
-
-        if (sruType === embryo.sar.effort.SruTypes.SmallerVessel || sruType === embryo.sar.effort.SruTypes.Ship) {
-            return embryo.sar.effort.createSweepWidths()[sruType][targetType][visibility];
-        }
-        return 0.0
-    }
-    EffortAllocationCalculator.prototype.lookupVelocityCorrection = function (sruType) {
         // Velocity correction is only necessary for air born SRUs. Should it be used here?
         return 1;
     }
@@ -765,9 +751,9 @@
     };
 
     EffortAllocationCalculator.prototype.calculate = function (input, sar) {
-        var wu = this.lookupUncorrectedSweepWidth(input.type, input.target, input.visibility);
+        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
         var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
-        var fv = this.lookupVelocityCorrection(input.type);
+        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
         var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
         var C = this.calculateCoverageFactor(input.pod)
         var S = this.calculateTrackSpacing(wc, C);
@@ -1130,8 +1116,8 @@
 
 
     // USED IN sar-edit.js and sar-controller.js
-    module.service('SarService', ['$log', '$timeout', 'Subject', 'Position',
-        function ($log, $timeout, Subject, Position) {
+    module.service('SarService', ['$log', '$timeout', 'Subject', 'Position', 'SarTableFactory',
+        function ($log, $timeout, Subject, Position, SarTableFactory) {
 
         var selectedSarById;
         var listeners = {};
@@ -1202,7 +1188,7 @@
             },
             calculateEffortAllocations: function (allocationInputs, sar) {
                 var s = clone(sar);
-                var result = new EffortAllocationCalculator().calculate(allocationInputs, s);
+                var result = new EffortAllocationCalculator(SarTableFactory).calculate(allocationInputs, s);
                 var area = clone(result.area);
 
                 area.A = result.area.A.toDegreesAndDecimalMinutes();

@@ -3,7 +3,7 @@ $(function () {
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.views', ['embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
+    var module = angular.module('embryo.sar.views', ['embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
 
     module.directive('lteq', function () {
         return {
@@ -89,8 +89,8 @@ $(function () {
     sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
     sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/generic.png")
 
-    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory',
-        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory) {
+    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout',
+        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout) {
 
             $scope.alertMessages = [];
 
@@ -307,10 +307,16 @@ $(function () {
             }
 
             LivePouch.put($scope.sarOperation).then(function () {
-                SarService.selectSar($scope.sarOperation._id);
+                // hack to increase change SAR is drawn before selecting it
+                // this is necessary for zoom to work
+                // TODO remove this, when SAR is drawn in draft mode. It is no longer necessary to select SAR in this scenario.
+                $timeout(function(){
+                    SarService.selectSar($scope.sarOperation._id);
+                })
+                $timeout(function(){
+                    SarService.selectSar($scope.sarOperation._id);
+                }, 1000)
                 $scope.provider.doShow = false;
-            }).catch(function (err) {
-
             });
         }
 
@@ -470,14 +476,21 @@ $(function () {
     targetText[embryo.sar.effort.TargetTypes.Sailboat15] = "Sailboat 15 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat20] = "Sailboat 20 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat25] = "Sailboat 25 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat26] = "Sailboat 26 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat30] = "Sailboat 30 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat39] = "Sailboat 39 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat40] = "Sailboat 40 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat49] = "Sailboat 49 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat50] = "Sailboat 50 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat69] = "Sailboat 69 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat70] = "Sailboat 70 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat83] = "Sailboat 83 feet";
     targetText[embryo.sar.effort.TargetTypes.Ship120] = "Ship 120 feet";
     targetText[embryo.sar.effort.TargetTypes.Ship225] = "Ship 225 feet";
-    targetText[embryo.sar.effort.TargetTypes.Ship330] = "Ship >= 300 feet";
+    targetText[embryo.sar.effort.TargetTypes.Ship330] = "Ship >= 330 feet";
+    targetText[embryo.sar.effort.TargetTypes.Ship90to150] = "Ship 90-150 feet";
+    targetText[embryo.sar.effort.TargetTypes.Ship150to300] = "Ship 150-300 feet";
+    targetText[embryo.sar.effort.TargetTypes.Ship300] = "Ship >= 300 feet";
     targetText[embryo.sar.effort.TargetTypes.Boat17] = "Boat <= 17 feet";
     targetText[embryo.sar.effort.TargetTypes.Boat23] = "Boat 23 feet";
     targetText[embryo.sar.effort.TargetTypes.Boat40] = "Boat 40 feet";
@@ -531,6 +544,12 @@ $(function () {
     typeText[embryo.sar.effort.SruTypes.MerchantVessel] = "Merchant vessel";
     typeText[embryo.sar.effort.SruTypes.SmallerVessel] = "Small vessel (40 feet)";
     typeText[embryo.sar.effort.SruTypes.Ship] = "Ship (50 feet)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter150] = "Helicopter (altitude 150 meters)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter300] = "Helicopter (altitude 300 meters)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter600] = "Helicopter (altitude 600 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft150] = "Fixed wing aircraft (altitude 150 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft300] = "Fixed wing aircraft (altitude 300 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft600] = "Fixed wing aircraft (altitude 600 meters)";
 
     var AllocationStatusTxt = {};
     AllocationStatusTxt[embryo.sar.effort.Status.Active] = "Shared";
@@ -550,8 +569,8 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "EffortAllocationService",
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, EffortAllocationService) {
+    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory",
+        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
@@ -567,11 +586,17 @@ $(function () {
             $scope.typeText = typeText;
             $scope.sruTypes = [
                 embryo.sar.effort.SruTypes.MerchantVessel,
-                embryo.sar.effort.SruTypes.SmallerVessel,
-                 embryo.sar.effort.SruTypes.Ship
+                /*embryo.sar.effort.SruTypes.SmallerVessel,
+                embryo.sar.effort.SruTypes.Ship,*/
+                embryo.sar.effort.SruTypes.Helicopter150,
+                embryo.sar.effort.SruTypes.Helicopter300,
+                embryo.sar.effort.SruTypes.Helicopter600,
+                embryo.sar.effort.SruTypes.FixedWingAircraft150,
+                embryo.sar.effort.SruTypes.FixedWingAircraft300,
+                embryo.sar.effort.SruTypes.FixedWingAircraft600,
             ]
 
-            $scope.visibilityValues = [1, 3, 5, 10, 15, 20];
+            //$scope.visibilityValues = [1, 3, 5, 10, 15, 20];
 
 
             function loadAllocation(allocationId) {
@@ -720,7 +745,10 @@ $(function () {
                 if (!$scope.effort) {
                     $scope.effort = {}
                 }
-                $scope.targetTypes = targetTypes($scope.effort.type);
+
+                var sweepWidthTable = SarTableFactory.getSweepWidthTable($scope.effort.type)
+                $scope.visibilityValues = sweepWidthTable.visibilityOptions();
+                $scope.targetTypes = sweepWidthTable.searchObjectOptions();
 
                 var type = $scope.effort.type;
 
