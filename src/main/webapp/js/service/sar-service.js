@@ -917,7 +917,7 @@
     }
 
     SearchPatternCalculator.prototype.onSceneDistance = function (zone) {
-        return zone.time * zone.speed;
+        return zone.time * zone.speed ;
     }
 
     SearchPatternCalculator.getCalculator = function (type) {
@@ -954,6 +954,7 @@
 
         var onSceneDistance = this.onSceneDistance(zone);
         var lastSearchLegBearing = initialSearchLegBearing;
+        var xtd = zone.S / 2
 
         var lastPosition = CSP;
         var nextIsSearchLeg = true;
@@ -965,7 +966,7 @@
                 distance = onSceneDistance - totalDistance;
             }
             var lastPosition = lastPosition.transformPosition(bearing, distance);
-            wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, xtd));
 
             if (nextIsSearchLeg) {
                 lastSearchLegBearing = bearing;

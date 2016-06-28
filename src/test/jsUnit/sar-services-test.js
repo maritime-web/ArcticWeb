@@ -856,15 +856,14 @@ describe('embryo.sar.service', function () {
 
     });*/
 
-    describe('EffortAllocation - SmallerVessel', function () {
+    describe('EffortAllocationCalculation', function () {
 
         /**
          * Smaller vessel table is not used by the IAMSAR manual, but is however used in the SAR Danmark manual.
-         * This test has been made to test if we get same results as in the EPD application
+         * This test has been made to test if we get same results as in the EPD application, where search and rescue
+         * logic has been coded towards the SAR Danmark II manual.
          */
-
-         it('create datum line SAR operation with two DSPs, each with the surface drift point values', inject(function (DatumLineOutput, SarService) {
-             var searchObjectTypes = SarService.searchObjectTypes();
+         it('calculate effort allocation target of type SmallerVessel', inject(function (SarService) {
              var sar = {
                  "_id": "sar-1464776110350",
                  "@type": "SearchArea",
@@ -931,19 +930,6 @@ describe('embryo.sar.service', function () {
                  },
              }
 
-             /*
-              var wu = this.lookupUncorrectedSweepWidth(input.type, input.target, input.visibility);
-              var fw = this.lookupWeatherCorrectionFactor();
-              var fv = this.lookupVelocityCorrection(input.type);
-              var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
-              var C = this.calculateCoverageFactor(input.pod)
-              var S = this.calculateTrackSpacing(wc, C);
-              var T = this.calculateSearchEndurance(input.time);
-              var zoneAreaSize = this.calculateZoneAreaSize(input.speed, S, T);
-              var datum = this.getDatum(sar);
-              var area = this.calculateSearchArea(zoneAreaSize, datum, sar.output.searchArea);
-
-              */
              var input = {
                  type : embryo.sar.effort.SruTypes.SmallerVessel,
                  target : embryo.sar.effort.TargetTypes.PersonInWater,
@@ -974,4 +960,123 @@ describe('embryo.sar.service', function () {
          }));
     });
 
+    describe('ParallelSweepSearchCalculator - SmallerVessel', function () {
+
+        /**
+         * Smaller vessel table is not used by the IAMSAR manual, but is however used in the SAR Danmark manual.
+         * This test has been made to test if we get same results as in the EPD application, where search and rescue
+         * logic has been coded towards the SAR Danmark II manual.
+         */
+        it('calculate search pattern', inject(function (Position, SarService) {
+            var sar = {
+                "_id": "sar-1464776110350",
+                "@type": "SearchArea",
+                "input": {
+                    "type": "rr",
+                    "no": "AW-201653101445988",
+                    "searchObject": 0,
+                    "yError": 0.1,
+                    "safetyFactor": 1,
+                    "startTs": 1464779640000,
+                    "lastKnownPosition": {
+                        "ts": 1464776040000,
+                        "lat": "61 00.000N",
+                        "lon": "059 00.000W"
+                    },
+                    "xError": 1
+                },
+                "output": {
+                    "timeElapsed": 1,
+                    "hoursElapsed": 1,
+                    "minutesElapsed": 0,
+                    "rdv": {
+                        "positions": [
+                            {
+                                "lat": "61 00.000N",
+                                "lon": "059 00.000W"
+                            },
+                            {
+                                "lat": "61 09.955N",
+                                "lon": "058 57.934W"
+                            }
+                        ],
+                        "distance": 10.011578383140293,
+                        "direction": 5.72943244265133,
+                        "validFor": 1,
+                        "speed": 10.011578383140293
+                    },
+                    "circle": {
+                        "radius": 2.54,
+                        "datum": {
+                            "lat": "61 04.769N",
+                            "lon": "058 59.137W"
+                        }
+                    },
+                    "searchArea": {
+                        "size": 25.75,
+                        "A": {
+                            "lat": "61 07.514N",
+                            "lon": "059 03.909W"
+                        },
+                        "B": {
+                            "lat": "61 07.071N",
+                            "lon": "058 53.450W"
+                        },
+                        "C": {
+                            "lat": "61 02.020N",
+                            "lon": "058 54.379W"
+                        },
+                        "D": {
+                            "lat": "61 02.462N",
+                            "lon": "059 04.810W"
+                        }
+                    }
+                },
+            }
+
+            var zone = {
+                _id: "zoneId",
+                sarId : "sarId",
+                name : "JohnDoe",
+                "type":"SV",
+                "target":"PIW",
+                "visibility":3,
+                "fatigue":1,
+                "wind":5,
+                "waterElevation":5,
+                "pod":78,
+                "time":5,
+                "speed":5,
+                "S":0.10401895288308048,
+                "area": {
+                    "B":{"lat":"61 05.444N","lon":"058 57.475W"},
+                    "A":{"lat":"61 05.573N","lon":"059 00.537W"},
+                    "C":{"lat":"61 03.964N","lon":"058 57.739W"},
+                    "D":{"lat":"61 04.093N","lon":"059 00.800W"},
+                    "size":2.21040274876546
+                },
+                "status":"DZ",
+                "modified":1467125733747
+            };
+
+            var sp = {
+                type : embryo.sar.effort.SearchPattern.ParallelSweep,
+                cornerKey : "A",
+                csp : Position.create({
+                    lat : 61.09194505332304,
+                    lon : -59.007318235926604
+                })
+            };
+
+            var result = SarService.generateSearchPattern(zone, sp)
+
+            expect(result).toBeDefined();
+            // TODO: write better expectation
+            expect(result._id).toBeDefined();
+            expect(result.sarId).toBe("sarId");
+            expect(result.effId).toBe("zoneId");
+            expect(result.name).toBe("JohnDoe");
+
+        }));
+    });
 });
