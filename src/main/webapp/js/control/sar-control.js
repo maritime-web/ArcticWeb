@@ -176,7 +176,6 @@ $(function () {
             });
 
             $scope.$on("$destroy", function() {
-                console.log("cancel operations")
                 changes.cancel();
             });
 

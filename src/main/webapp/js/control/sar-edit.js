@@ -89,8 +89,8 @@ $(function () {
     sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
     sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/generic.png")
 
-    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout',
-        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout) {
+    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout', '$log',
+        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout, $log) {
 
             $scope.alertMessages = [];
 
@@ -144,12 +144,10 @@ $(function () {
                         $scope.sarOperation = sarOperation;
                         $scope.sar = sarOperation.input;
                         if(context.page == "sarResult"){
-                            console.log($scope.sarOperation)
                             $scope.tmp = {
                                 searchObject : SarService.findSearchObjectType($scope.sarOperation.input.searchObject),
                                 viewOnly : true
                             }
-                            console.log($scope.tmp)
                         }
                     })
                 } else {
@@ -341,7 +339,8 @@ $(function () {
                     $scope.provider.doShow = false;
                     SarService.selectSar(null);
                 }).catch(function (err) {
-                    console.log(err)
+                    $log.error("getUsers - error")
+                    $log.error(err)
                 });
             });
         }
