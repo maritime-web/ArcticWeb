@@ -18,22 +18,25 @@
                     <div class="form-horizontal">
 
                         <div class="form-group">
-                            <div class="col-xs-12">
+                            <div class="col-xs-3" style="padding-top: 5px;">
                                 <img src="img/vessel_purple.png">
                                 <span style="padding-left: 10px;">{{sidebar.meta.vesselName}}</span>
+                            </div>
+                            <div class="col-xs-offset-4 col-xs-5">
                                 <button ng-click="sidebar.configure()" class="pull-right btn btn-primary btn-xs">
                                     Configure
                                 </button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="col-xs-12">
+                            <div class="col-xs-3" style="padding-top: 5px;">
                                 Route: <strong>{{sidebar.meta.routeView.name}}</strong>
-                                <button class="pull-right btn btn-primary btn-xs">Change route</button>
+                            </div>
+                            <div class="col-xs-offset-4 col-xs-5">
+                                <button class="pull-right btn btn-primary btn-xs">Change</button>
                             </div>
                         </div>
                     </div>
-                    <div class="clearfix"></div>
                 </div>
             </div>
         </div>

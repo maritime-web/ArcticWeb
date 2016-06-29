@@ -1,0 +1,5 @@
+<div ng-style="contextFunctions.style" ng-hide="contextFunctions.hide" on-escape="contextFunctions.close()" outside-click="contextFunctions.close()">
+    <div class="btn-group-vertical">
+        <button type="button" class="btn btn-default btn-xs" ng-click="function.choose()" ng-repeat="function in contextFunctions.functions">{{function.name}}</button>
+    </div>
+</div>

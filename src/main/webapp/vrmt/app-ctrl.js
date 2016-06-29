@@ -25,8 +25,8 @@ FactorAssessmentViewModel.prototype.toScore = function () {
 
 angular.module('vrmt.app')
 
-    .controller("AppController", ['$scope', '$http', '$window', '$timeout', 'MapService', 'RouteService', 'VesselService', 'RiskAssessmentService', '$modal',
-        function ($scope, $http, $window, $timeout, MapService, RouteService, VesselService, RiskAssessmentService, $modal) {
+    .controller("AppController", ['$scope', '$http', '$window', '$timeout', '$interval', 'MapService', 'RouteService', 'VesselService', 'RiskAssessmentService', '$modal',
+        function ($scope, $http, $window, $timeout, $interval, MapService, RouteService, VesselService, RiskAssessmentService, $modal) {
 
             /**
              * Initialize variables
@@ -38,14 +38,25 @@ angular.module('vrmt.app')
             $scope.newAssessmentLocation = null;
             $scope.newRiskAssessment = null;
             $scope.latestRiskAssessments = [];
+            // Map state and layers             
+            $scope.mapState = {};
+            $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
 
             /**
              * Load data
              */
-            VesselService.details(mmsi, function (v) {
-                console.log("Got vessel info for " + mmsi);
-                $scope.vessel = v;
-            });
+            function loadVessel() {
+                VesselService.details(mmsi, function (v) {
+                    if (v.aisVessel) {
+                        console.log("Got vessel info for " + mmsi + " Lat: " + v.aisVessel.lat + " Lon: " + v.aisVessel.lon);
+                    } else {
+                        console.log("Got vessel info for " + mmsi);
+                    }
+                    $scope.vessel = v;
+                });
+            }
+            loadVessel();
+            var stop = $interval(loadVessel, 300000);
 
             RouteService.getActive(mmsi, function (r) {
                 $scope.route = r;
@@ -53,9 +64,14 @@ angular.module('vrmt.app')
                 // loadLatestAssessments();
             });
 
-            function loadLatestAssessments() {
+            function loadLatestAssessments(assessmentLocationToChoose) {
                 RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
                     .then(function (assessments) {
+                        if (assessmentLocationToChoose) {
+                            $scope.assessmentLocationState['chosen'] = assessments.find(function (assessment) {
+                                return assessmentLocationToChoose.id === assessment.location.id;
+                            });
+                        }
                         $scope.latestRiskAssessments = assessments;
                     })
             }
@@ -82,10 +98,9 @@ angular.module('vrmt.app')
             $scope.$watch('newAssessmentLocation', function (newValue, oldValue) {
                 if (newValue && newValue != oldValue) {
                     console.log("Reloading Assessment Locations");
-                    loadLatestAssessments();
+                    loadLatestAssessments(newValue);
                 }
             });
-
 
             /**
              * Sidebar control
@@ -277,39 +292,74 @@ angular.module('vrmt.app')
 
 
             /**
-             * Assessment location functions
+             * Context function control structure
              */
-            $scope.$watch("assessmentLocationState['locationClick']", function (newValue, oldValue) {
-                if (newValue && newValue !== oldValue) {
-                    $scope.locationFunctions.style.top = newValue.y + "px";
-                    $scope.locationFunctions.style.left = newValue.x + "px";
-                    $scope.locationFunctions.hide = false;
-                }
-            });
-
-            $scope.locationFunctions = {
+            $scope.contextFunctions = {
                 hide: true,
                 style: {position: "absolute", 'z-index': 200, top: 0, left: 0},
                 functions: [
-                    {
-                        name: 'New Assesment',
-                        choose: function () {
-                            $scope.locationFunctions.hide = true;
-                            $scope.assessCreate.show();
-                        }
-                    }
                 ],
                 close: function () {
                     this.hide = true;
                 }
-
             };
+
+            /**
+             * Assessment location map functions
+             */
+            $scope.$watch("assessmentLocationState['locationClick']", function (newValue, oldValue) {
+                if (newValue && newValue !== oldValue) {
+                    $scope.contextFunctions.style.top = newValue.y + "px";
+                    $scope.contextFunctions.style.left = newValue.x + "px";
+                    $scope.contextFunctions.functions = [
+                        {
+                            name: 'New Assesment',
+                            choose: function () {
+                                $scope.contextFunctions.hide = true;
+                                $scope.assessCreate.show();
+                            }
+                        }
+
+                    ];
+                    $scope.contextFunctions.hide = false;
+                }
+            });
+
+
+            /**
+             * Vessel map functions
+             */
+            $scope.$watch("mapState['vesselClick']", function (newValue, oldValue) {
+                if (newValue && newValue !== oldValue) {
+                    $scope.contextFunctions.style.top = newValue.y + "px";
+                    $scope.contextFunctions.style.left = newValue.x + "px";
+                    $scope.contextFunctions.functions = [
+                        {
+                            name: 'New Assesment location',
+                            choose: function () {
+                                $scope.contextFunctions.hide = true;
+                                $scope.assessmentLocationState['new'] = {
+                                    vessel: {
+                                        ais: {
+                                            lon: $scope.vessel.aisVessel.lon,
+                                            lat: $scope.vessel.aisVessel.lat
+                                        },
+                                        override: {}
+                                    }
+                                }
+                            }
+                        }
+
+                    ];
+                    $scope.contextFunctions.hide = false;
+                }
+            });
 
             /**
              * timeline control
              */
             $scope.timeline = {
-                hidden: false
+                hidden: true
             };
             $scope.choosenTime = 0;
             $scope.times = [];
@@ -331,13 +381,6 @@ angular.module('vrmt.app')
             };
 
             /**
-             * Map state and layers
-             */
-            $scope.mapState = {};
-            $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
-
-
-            /**
              * assessment location creation
              */
             $scope.$watch("assessmentLocationState['new']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
@@ -354,6 +397,22 @@ angular.module('vrmt.app')
                 });
 
                 modalInstance.result.then(function (assessmentLocationParameters) {
+                    var route = assessmentLocationParameters.route;
+                    if (route) {
+                        assessmentLocationParameters.lat = route.lat;
+                        assessmentLocationParameters.lon = route.lon;
+                    }
+                    var vessel = assessmentLocationParameters.vessel;
+                    if (vessel) {
+                        assessmentLocationParameters.lat = vessel.ais.lat;
+                        assessmentLocationParameters.lon = vessel.ais.lon;
+                        var override = vessel.override;
+                        if (override && override.lat && override.lon) {
+                            assessmentLocationParameters.lat = override.lat;
+                            assessmentLocationParameters.lon = override.lon;
+                        }
+                    }
+
                     assessmentLocationParameters.routeId = $scope.route.id;
                     RiskAssessmentService.createAssessmentLocation(assessmentLocationParameters)
                         .then(function (location) {
@@ -364,6 +423,14 @@ angular.module('vrmt.app')
                 })
             });
 
+            /**
+             * Clean up
+             */
+            $scope.$on('$destroy', function() {
+                console.log("Cleaning up VRMT");
+                $interval.cancel(stop);
+                stop = undefined;
+            });
         }])
 
     .controller("ModalInstanceCtrl", function ($scope, $modalInstance, event) {

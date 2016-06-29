@@ -97,8 +97,10 @@ angular.module('vrmt.map')
                         if (hitThis && !hitOther) {
                             var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
                             scope.assessmentLocationState['new'] = {
-                                lon: coord[0],
-                                lat: coord[1]
+                                route: {
+                                    lon: coord[0],
+                                    lat: coord[1]
+                                }
                             };
                         }
                         scope.$apply();
@@ -205,7 +207,7 @@ angular.module('vrmt.map')
                     }
                 });
                 scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
-                    if (newValue && newValue !== oldValue) {
+                    if (newValue && (newValue !== oldValue || select.getFeatures().getLength() === 0)) {
                         select.getFeatures().clear();
 
                         var featureToSelect = locationLayer.getSource().getFeatureById(newValue.location.id);
@@ -287,6 +289,7 @@ angular.module('vrmt.map')
             restrict: 'E',
             require: '^olMap',
             scope: {
+                mapState: '=',
                 vessel: '='
             },
             link: function (scope, element, attrs, ctrl) {
@@ -341,10 +344,29 @@ angular.module('vrmt.map')
                 olScope.getMap().then(function (map) {
                     map.addLayer(vesselLayer);
 
+                    var onclickKey = map.on('singleclick', function (e) {
+                        var pixel = map.getEventPixel(e.originalEvent);
+                        var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                            return layerCandidate === vesselLayer;
+                        });
+
+                        if (hitThis) {
+                            scope.mapState['vesselClick'] = {
+                                x: e.originalEvent.clientX,
+                                y: e.originalEvent.clientY
+                            };
+                        }
+                        scope.$apply();
+
+                    });
+                    
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(vesselLayer)) {
                             map.removeLayer(vesselLayer);
+                        }
+                        if (onclickKey) {
+                            map.unByKey(onclickKey);
                         }
                     });
                 })
