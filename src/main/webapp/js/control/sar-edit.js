@@ -818,7 +818,8 @@ $(function () {
                     }).then(function () {
                         persist(effort);
                     }).catch(function (err) {
-                        console.log(err)
+                        $log.error("deleteEffortAllocationsForSameUser - error")
+                        $log.error(err)
                     });
                 }
 
@@ -947,6 +948,30 @@ $(function () {
 
             }
 
+            function replaceSearchPattern(searchPattern) {
+                LivePouch.query('sar/searchPattern', {
+                    key: searchPattern.sarId,
+                    include_docs: true
+                }).then(function (result) {
+                    var searchPatterns = [];
+                    for (var index in result.rows) {
+                        var doc = result.rows[index].doc;
+                        if (doc.effId == searchPattern.effId && doc._id !== searchPattern._id) {
+                            searchPatterns.push(doc)
+                            doc._deleted = true;
+                        }
+                    }
+                    //delete allocations and search patterns
+                    return LivePouch.bulkDocs(searchPatterns)
+                }).then(function () {
+                    saveSearchPattern(searchPattern);
+                }).catch(function (err) {
+                    $log.error("deleteEffortAllocationsForSameUser - error")
+                    $log.error(err)
+                });
+            }
+
+
             function saveSearchPattern(pattern) {
                 LivePouch.put(pattern).then(function () {
                     SarLayerSingleton.getInstance().removeTemporarySearchPattern();
@@ -960,13 +985,13 @@ $(function () {
             $scope.draftSearchPattern = function () {
                 var pattern = clone($scope.searchPattern);
                 pattern.status = embryo.sar.effort.Status.DraftPattern;
-                saveSearchPattern(pattern);
+                replaceSearchPattern(pattern);
             }
 
             $scope.shareSearchPattern = function () {
                 var pattern = clone($scope.searchPattern);
                 pattern.status = embryo.sar.effort.Status.Active;
-                saveSearchPattern(pattern);
+                replaceSearchPattern(pattern);
             }
 
             $scope.$on("$destroy", function () {
