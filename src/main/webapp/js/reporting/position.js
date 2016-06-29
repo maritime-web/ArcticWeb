@@ -172,8 +172,10 @@
             this.parseSeparator = function(separatorValue){
                  if(index < str.length && regSep.test(str.charAt(index))){
                      index++
+                     this.result += separatorValue
+                 }else{
+                     separator = separatorValue;
                  }
-                 separator = separatorValue;
              }
 
              this.parsePosition = function(firstMaxLength, dirReg){
