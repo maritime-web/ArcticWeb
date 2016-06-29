@@ -567,10 +567,12 @@
                     Time of last known position: {{formatTs(sarOperation.input.lastKnownPosition.ts)}} UTC<br/>
                 </span>
                 Commence Search Start Time: {{formatTs(sarOperation.input.startTs)}} UTC<br/>
-                Time elapsed: {{sarOperation.output.hoursElapsed}} hour<span
-                    x-ng-if="sarOperation.output.hoursElapsed != 1">s</span>,
-                {{sarOperation.output.minutesElapsed}} minute<span
-                    x-ng-if="sarOperation.output.minutesElapsed != 1">s</span>.<br/>
+                <span x-ng-if="sarOperation.output.hoursElapsed > 0">
+                    Time elapsed: {{sarOperation.output.hoursElapsed}} hour<span
+                            x-ng-if="sarOperation.output.hoursElapsed != 1">s</span>,
+                    {{sarOperation.output.minutesElapsed}} minute<span
+                            x-ng-if="sarOperation.output.minutesElapsed != 1">s</span>.<br/>
+                </span>
                 <hr/>
                 <div x-ng-if="sarOperation.input.surfaceDriftPoints.length > 1">
                     Surface drift points:
@@ -633,6 +635,10 @@
                 </span>
                 <span x-ng-repeat="dsp in sarOperation.output.dsps">
                     Drift Search Point {{$index + 1}}<br/>
+                    <span x-ng-if="dsp.hoursElapsed > 0">
+                        Time elapsed: {{dsp.hoursElapsed}} hour<span x-ng-if="dsp.hoursElapsed != 1">s</span>,
+                        {{dsp.minutesElapsed}} minute<span x-ng-if="dsp.minutesElapsed != 1">s</span>.<br/>
+                    </span>
                     Datum calculated from applying leeway and total water current: {{formatPos(dsp.downWind.circle.datum)}}<br/>
                     With the following Residual Drift Vector<br/>
                     RDV Direction: {{formatDecimal(dsp.downWind.rdv.direction, -2)}}°<br/>

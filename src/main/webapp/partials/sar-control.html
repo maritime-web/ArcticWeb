@@ -86,11 +86,25 @@
                         <div class="col-md-7">Commence Search Start:</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.startTs)}}</div>
                     </div>
-                    <div class="row">
+                    <div class="row" x-ng-if="sar.output.hoursElapsed >= 0">
                         <div class="col-md-7">Time elapsed:</div>
                         <div class="col-md-5 nopadding">{{sar.output.hoursElapsed}} hour<span
                                 x-ng-if="sar.output.hoursElapsed != 1">s</span>, {{sar.output.minutesElapsed}}
                             minute<span x-ng-if="sar.output.minutesElapsed != 1">s</span>.
+                        </div>
+                    </div>
+                    <div class="row" x-ng-if="sar.output.dsps.length > 0 && sar.output.dsps[0].hoursElapsed >= 0">
+                        <div class="col-md-7">Max time elapsed:</div>
+                        <div class="col-md-5 nopadding">{{sar.output.dsps[0].hoursElapsed}} hour<span
+                                x-ng-if="sar.output.dsps[0].hoursElapsed != 1">s</span>, {{sar.output.dsps[0].minutesElapsed}}
+                            minute<span x-ng-if="sar.output.dsps[0].minutesElapsed != 1">s</span>.
+                        </div>
+                    </div>
+                    <div class="row" x-ng-if="sar.output.dsps.length > 1 && sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed >= 0">
+                        <div class="col-md-7">Min time elapsed:</div>
+                        <div class="col-md-5 nopadding">{{sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed}} hour<span
+                                x-ng-if="sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed != 1">s</span>, {{sar.output.dsps[sar.output.dsps.length - 1].minutesElapsed}}
+                            minute<span x-ng-if="sar.output.dsps[sar.output.dsps.length - 1].minutesElapsed != 1">s</span>.
                         </div>
                     </div>
 
