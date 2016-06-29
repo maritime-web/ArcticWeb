@@ -1073,7 +1073,7 @@
              * returns search object types for a SRU type
              */
             searchObjectOptions : function(){
-                Object.keys(createIamsarMerchantSweepWidths())
+                return Object.keys(createIamsarMerchantSweepWidths())
             }
         };
 
