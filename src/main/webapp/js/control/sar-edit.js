@@ -468,77 +468,33 @@ $(function () {
     targetText[embryo.sar.effort.TargetTypes.Raft15Persons] = "Raft 15 persons";
     targetText[embryo.sar.effort.TargetTypes.Raft20Persons] = "Raft 20 persons";
     targetText[embryo.sar.effort.TargetTypes.Raft25Persons] = "Raft 25 persons";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat15] = "Motorboat <= 15 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat20] = "Motorboat 20 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat33] = "Motorboat 33 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat53] = "Motorboat 53 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat78] = "Motorboat 78 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat15] = "Sailboat 15 feet";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat15] = "Power boat < 5 m (15 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat20] = "Power boat 6 m (20 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat33] = "Power boat 10 m (33 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat53] = "Power boat 16 m (53 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat78] = "Power boat 24 m (78 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat15] = "Sail boat 5 m (15 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat20] = "Sailboat 20 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat25] = "Sailboat 25 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat26] = "Sailboat 26 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat26] = "Sail boat 8 m (26 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat30] = "Sailboat 30 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat39] = "Sailboat 39 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat39] = "Sail boat 12 m (39 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat40] = "Sailboat 40 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat49] = "Sailboat 49 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat49] = "Sail boat 15 m (49 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat50] = "Sailboat 50 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat69] = "Sailboat 69 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat69] = "Sail boat 21 m (69 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat70] = "Sailboat 70 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat83] = "Sailboat 83 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat83] = "Sail boat 25 m (83 ft)";
     targetText[embryo.sar.effort.TargetTypes.Ship120] = "Ship 120 feet";
     targetText[embryo.sar.effort.TargetTypes.Ship225] = "Ship 225 feet";
     targetText[embryo.sar.effort.TargetTypes.Ship330] = "Ship >= 330 feet";
-    targetText[embryo.sar.effort.TargetTypes.Ship90to150] = "Ship 90-150 feet";
-    targetText[embryo.sar.effort.TargetTypes.Ship150to300] = "Ship 150-300 feet";
-    targetText[embryo.sar.effort.TargetTypes.Ship300] = "Ship >= 300 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat17] = "Boat <= 17 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat23] = "Boat 23 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat40] = "Boat 40 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 79 feet";
-
-    function targetTypes(sruType) {
-        if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-            return [
-                embryo.sar.effort.TargetTypes.PersonInWater,
-                embryo.sar.effort.TargetTypes.Raft4Persons,
-                embryo.sar.effort.TargetTypes.Raft6Persons,
-                embryo.sar.effort.TargetTypes.Raft15Persons,
-                embryo.sar.effort.TargetTypes.Raft25Persons,
-                embryo.sar.effort.TargetTypes.Boat17,
-                embryo.sar.effort.TargetTypes.Boat23,
-                embryo.sar.effort.TargetTypes.Boat40,
-                embryo.sar.effort.TargetTypes.Boat79,
-            ];
-        }
-
-        return [
-            embryo.sar.effort.TargetTypes.PersonInWater,
-            embryo.sar.effort.TargetTypes.Raft1Person,
-            embryo.sar.effort.TargetTypes.Raft4Persons,
-            embryo.sar.effort.TargetTypes.Raft6Persons,
-            embryo.sar.effort.TargetTypes.Raft8Persons,
-            embryo.sar.effort.TargetTypes.Raft10Persons,
-            embryo.sar.effort.TargetTypes.Raft15Persons,
-            embryo.sar.effort.TargetTypes.Raft20Persons,
-            embryo.sar.effort.TargetTypes.Raft25Persons,
-            embryo.sar.effort.TargetTypes.Motorboat15,
-            embryo.sar.effort.TargetTypes.Motorboat20,
-            embryo.sar.effort.TargetTypes.Motorboat33,
-            embryo.sar.effort.TargetTypes.Motorboat53,
-            embryo.sar.effort.TargetTypes.Motorboat78,
-            embryo.sar.effort.TargetTypes.Sailboat15,
-            embryo.sar.effort.TargetTypes.Sailboat20,
-            embryo.sar.effort.TargetTypes.Sailboat25,
-            embryo.sar.effort.TargetTypes.Sailboat30,
-            embryo.sar.effort.TargetTypes.Sailboat40,
-            embryo.sar.effort.TargetTypes.Sailboat50,
-            embryo.sar.effort.TargetTypes.Sailboat70,
-            embryo.sar.effort.TargetTypes.Sailboat83,
-            embryo.sar.effort.TargetTypes.Ship120,
-            embryo.sar.effort.TargetTypes.Ship225,
-            embryo.sar.effort.TargetTypes.Ship330
-        ];
-    }
+    targetText[embryo.sar.effort.TargetTypes.Ship90to150] = "Ship 27-46 m (90-150 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Ship150to300] = "Ship 46-91 m (150-300 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Ship300] = "Ship > 91 m (300 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat17] = "Boat < 5 m (17 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat23] = "Boat 7 m (23 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat40] = "Boat 12 m (40 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 24 m (79 ft)";
 
     var typeText = {}
     typeText[embryo.sar.effort.SruTypes.MerchantVessel] = "Merchant vessel";
