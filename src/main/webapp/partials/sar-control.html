@@ -289,12 +289,20 @@
                         </div>
                         <div class="form-group" x-ng-show="position.use">
                             <div class="col-xs-4">
-                                <input latitude x-ng-model="msg.lat" type="text" class="form-control input-sm lat"
-                                       x-ng-required="position.use" placeholder="56 22.456N"/>
+                                <input latitude2 x-ng-model="msg.lat" x-ng-required="position.use" name="msgLat"
+                                       class="form-control input-sm lat" type="text" placeholder="56 22.456N"/>
+                                <span x-ng-if="sarLogForm.msgLat.$error.latitude" class="error-block">
+                                    Use correct format, e.g. 04 34.023N
+                                </span>
+
                             </div>
                             <div class="col-xs-5">
-                                <input longitude x-ng-model="msg.lon" type="text" class="form-control input-sm lat"
-                                       x-ng-required="position.use" placeholder="058 13.637W"/>
+                                <input longitude2 x-ng-model="msg.lon" x-ng-required="position.use" name="msgLon"
+                                       type="text" class="form-control input-sm lat" placeholder="058 13.637W"/>
+                                <span x-ng-if="sarLogForm.msgLon.$error.longitude" class="error-block">
+                                    Use correct format, e.g. 004 04.033E
+                                </span>
+
                             </div>
                             <div class="col-xs-3">
                                 <button class="btn btn-sm" x-ng-click="noPosition()">Remove</button>
