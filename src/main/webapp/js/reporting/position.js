@@ -144,52 +144,44 @@
 
              this.result = "";
 
-             this.parseNumbers = function(maxLengthToParse){
-                 var resultStartLength = this.result.length;
-                 var separatorLength = 0;
-                 for(var start = index, stopAt = index + maxLengthToParse; index < stopAt && index < str.length; index++){
-                     var char = str.charAt(index)
-                     if(!regDec.test(char)){
-                         return false;
-                     }
-                     if(start == index && separator){
-                         this.result += separator;
-                         separatorLength = separator.length
-                         separator = null;
-                     }
-                     this.result += char;
-                 }
-                 return (resultStartLength + maxLengthToParse + separatorLength) == this.result.length;
-             }
+            this.parseCharacter = function(maxLengthToParse, dirReg){
+                var resultStartLength = this.result.length;
+                var separatorLength = 0;
+                var start = index;
+                var parsed = 0;
+                while (parsed < maxLengthToParse && index < str.length){
+                //for(var start = index, stopAt = index + maxLengthToParse; index < stopAt && index < str.length; index++){
+                    var char = str.charAt(index)
+                    if(start == index && separator){
+                        this.result += separator;
+                        separatorLength = separator.length
+                        separator = null;
+                    }
+                    if(regDec.test(char) || dirReg.test(char)){
+                        if(dirReg.test(char)){
+                            char = char.toLocaleUpperCase();
+                        }
+                        this.result += char;
+                        parsed++;
+                    }
+                    index++;
+                }
+                return (resultStartLength + maxLengthToParse + separatorLength) == this.result.length;
+            }
 
-             this.parseSeparator = function(separatorValue){
+            this.parseSeparator = function(separatorValue){
                  if(index < str.length && regSep.test(str.charAt(index))){
                      index++
                  }
                  separator = separatorValue;
              }
 
-             this.parseCardinalDirection = function(regEx){
-                 if(index < str.length && regEx.test(str.charAt(index))){
-                     this.result += str.charAt(index).toUpperCase();
-                     return true;
-                 }
-                 return false;
-             }
-
-             this.parsePosition = function(firstMaxLength, reg){
-                 if(!this.parseNumbers(firstMaxLength)){
-                     return this.result;
-                 }
+             this.parsePosition = function(firstMaxLength, dirReg){
+                 this.parseCharacter(firstMaxLength, dirReg)
                  this.parseSeparator(" ");
-                 if(!this.parseNumbers(2)){
-                     return this.result;
-                 }
+                 this.parseCharacter(2, dirReg);
                  this.parseSeparator(".");
-                 if(!this.parseNumbers(3)){
-                     return this.result;
-                 }
-                 this.parseCardinalDirection(reg);
+                 this.parseCharacter(24, dirReg);
                  return this.result;
              }
         }
@@ -241,6 +233,31 @@
     }]);
 
     function positionDirective2(name, parser, validator) {
+        function getPos(element) {
+            if ('selectionStart' in element) {
+                return element.selectionStart;
+            } else if (document.selection) {
+                element.focus();
+                var sel = document.selection.createRange();
+                var selLen = document.selection.createRange().text.length;
+                sel.moveStart('character', -element.value.length);
+                return sel.text.length - selLen;
+            }
+        }
+
+        function setPos(element, caretPos) {
+            if (element.createTextRange) {
+                var range = element.createTextRange();
+                range.move('character', caretPos);
+                range.select();
+            } else {
+                element.focus();
+                if (element.selectionStart !== undefined) {
+                    element.setSelectionRange(caretPos, caretPos);
+                }
+            }
+        }
+
         return {
             require : '^ngModel',
             restrict : 'A',
@@ -257,21 +274,25 @@
                     if(!valueFromInput){
                         return null;
                     }
+                    var caretPos = getPos(element[0]);
+
                     var modelValue = parser(valueFromInput);
+
+                    var diff = modelValue.length - ngModelController.$viewValue.length
+
+                    if(diff > 0){
+                        caretPos += diff;
+                    }
+
                     ngModelController.$setValidity(name, validator(modelValue));
                     ngModelController.$viewValue = modelValue;
                     ngModelController.$render();
+
+                    // maintain caret position
+                    // necessary because of call to $render()
+                    setPos(element[0], caretPos)
                     return modelValue;
                 });
-/*
-                element.bind('change', function(event) {
-                    if (!ngModelController.$modelValue) {
-                        ngModelController.$viewValue = null;
-                    }
-                    ngModelController.$viewValue = formatter(ngModelController.$modelValue);
-                    ngModelController.$render();
-                });
-                */
             }
         };
     }

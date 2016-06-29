@@ -133,15 +133,21 @@
                         <label class="control-label col-xs-2">Latitude</label>
 
                         <div class="col-xs-3">
-                            <input latitude2 x-ng-model="sar.lastKnownPosition.lat" type="text"
+                            <input latitude2 x-ng-model="sar.lastKnownPosition.lat" type="text" name="lkpLat"
                                    class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                            <span x-ng-if="sarOperationForm.lkpLat.$error.latitude" class="error-block">
+                                Use correct format, e.g. 04 34.023N
+                            </span>
                         </div>
 
                         <label class="control-label col-xs-3">Longitude</label>
 
                         <div class="col-xs-3">
-                            <input longitude2 x-ng-model="sar.lastKnownPosition.lon" type="text"
+                            <input longitude2 x-ng-model="sar.lastKnownPosition.lon" type="text" name="lkpLon"
                                    class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                            <span x-ng-if="sarOperationForm.lkpLon.$error.longitude" class="error-block">
+                                Use correct format, e.g. 004 04.033E
+                            </span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -303,14 +309,22 @@
                 <div class="form-group">
                     <label class="control-label col-xs-2">Latitude</label>
                     <div class="col-xs-3">
-                        <input latitude2 x-ng-model="sar.objectPosition.lat" type="text"
+                        <input latitude2 x-ng-model="sar.objectPosition.lat" type="text" name="btLkpLat"
                                class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                        <span x-ng-if="sarOperationForm.btLkpLat.$error.latitude" class="error-block">
+                            Use correct format, e.g. 04 34.023N
+                        </span>
+
                     </div>
 
                     <label class="control-label col-xs-3">Longitude</label>
                     <div class="col-xs-3">
-                        <input longitude2 x-ng-model="sar.objectPosition.lon" type="text"
+                        <input longitude2 x-ng-model="sar.objectPosition.lon" type="text" name="btLkpLon"
                                class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                        <span x-ng-if="sarOperationForm.btLkpLon.$error.longitude" class="error-block">
+                            Use correct format, e.g. 004 04.033E
+                        </span>
+
                     </div>
                 </div>
                 <div class="form-group">
@@ -435,14 +449,22 @@
                     <div class="form-group">
                         <label class="control-label col-xs-2">Latitude</label>
                         <div class="col-xs-3">
-                            <input latitude2 x-ng-model="dsp.lat" type="text"
+                            <input latitude2 x-ng-model="dsp.lat" type="text" name="dspLat"
                                    class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                            <span x-ng-if="dspForm.dspLat.$error.latitude" class="error-block">
+                                Use correct format, e.g. 04 34.023N
+                            </span>
+
                         </div>
 
                         <label class="control-label col-xs-3">Longitude</label>
                         <div class="col-xs-3">
-                            <input longitude2 x-ng-model="dsp.lon" type="text"
+                            <input longitude2 x-ng-model="dsp.lon" type="text" name="dspLon"
                                    class="form-control input-sm lon" placeholder="049 53.844W" required/>
+                            <span x-ng-if="dspForm.dspLon.$error.longitude" class="error-block">
+                                Use correct format, e.g. 004 04.033E
+                            </span>
+
                         </div>
                     </div>
                     <div class="form-group">
