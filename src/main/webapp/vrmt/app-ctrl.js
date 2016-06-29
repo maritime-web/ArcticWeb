@@ -95,6 +95,7 @@ angular.module('vrmt.app')
                 safetyMeasuresActive: false,
                 decisionMakingActive: false,
                 logOfMeasuresAndReportsActive: false,
+                latestAssessmentsActive: false,
                 hidden: false,
                 toggleVisibility: function () {
                     this.hidden = !this.hidden;
