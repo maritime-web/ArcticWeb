@@ -1489,7 +1489,7 @@
         var service = {
             getSweepWidthTable : function(sruType){
                 if (sruType === embryo.sar.effort.SruTypes.SmallerVessel) {
-                    return MerchantSweepWidths;
+                    return SmallerVesselSweepWidthTable;
                 }
                 if (sruType === embryo.sar.effort.SruTypes.Ship) {
                     return LargerVesselSweepWidthTable;
