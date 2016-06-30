@@ -85,8 +85,8 @@ $(function () {
                 var documents = [];
                 for (var index in result.rows) {
                     var doc = result.rows[index].doc;
-                    if ((doc['@type'] === embryo.sar.Type.Log && doc.lat && doc.lon) ||
-                        doc['@type'] != embryo.sar.Type.EffortAllocation ||
+                    if ((doc['@type'] == embryo.sar.Type.Log && (typeof doc.lat) === "string" && typeof doc.lon === "string") ||
+                        doc['@type'] == embryo.sar.Type.SearchArea || doc['@type'] == embryo.sar.Type.SearchPattern ||
                         doc.status == embryo.sar.effort.Status.Active ||
                         doc.status == embryo.sar.effort.Status.DraftZone ||
                         doc.status == embryo.sar.effort.Status.DraftModifiedOnMap) {
