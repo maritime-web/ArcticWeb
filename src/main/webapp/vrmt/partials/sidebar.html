@@ -11,29 +11,40 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h4>
-                        <i class="fa fa-ship" aria-hidden="true" style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT SUPPORT
+                        <i class="fa fa-ship" aria-hidden="true"
+                           style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT
+                        SUPPORT
                     </h4>
                 </div>
                 <div class="panel-body">
                     <div class="form-horizontal">
 
                         <div class="form-group">
-                            <div class="col-xs-3" style="padding-top: 5px;">
+                            <div class="col-xs-4" style="padding-top: 5px;">
                                 <img src="img/vessel_purple.png">
                                 <span style="padding-left: 10px;">{{sidebar.meta.vesselName}}</span>
                             </div>
-                            <div class="col-xs-offset-4 col-xs-5">
-                                <button ng-click="sidebar.configure()" class="pull-right btn btn-primary btn-xs">
+                            <div class="col-xs-8">
+                                <button ng-click="sidebar.configure()" class="btn btn-primary btn-xs">
                                     Configure
                                 </button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="col-xs-3" style="padding-top: 5px;">
+                            <div class="col-xs-4" style="padding-top: 5px;">
                                 Route: <strong>{{sidebar.meta.routeView.name}}</strong>
                             </div>
-                            <div class="col-xs-offset-4 col-xs-5">
-                                <button class="pull-right btn btn-primary btn-xs">Change</button>
+                            <div class="col-xs-3">
+                                <div class="btn-group" dropdown on-toggle="sidebar.showRouteChoices(open)">
+                                    <button class="btn btn-primary btn-xs" dropdown-toggle>Change</button>
+                                    <ul class="dropdown-menu" dropdown-menu role="menu">
+                                        <li role="menuitem" ng-repeat="routeView in sidebar.routeViews">
+                                            <button class="btn btn-xs" ng-click="routeView.choose()">
+                                                {{routeView.name}}
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>

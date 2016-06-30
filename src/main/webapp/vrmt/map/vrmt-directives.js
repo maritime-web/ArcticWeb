@@ -118,7 +118,6 @@ angular.module('vrmt.map')
             restrict: 'E',
             require: '^olMap',
             scope: {
-                locations: '=',
                 assessmentLocationState: '='
             },
             link: function (scope, element, attrs, ctrl) {
@@ -198,8 +197,9 @@ angular.module('vrmt.map')
                 /**
                  * Model listeners
                  */
-                scope.$watch("locations", function (newLocations) {
-                    if (newLocations && newLocations.length > 0) {
+                scope.$watch("assessmentLocationState['latestRiskAssessments']", function (newLocations) {
+                    if (newLocations) {
+                        select.getFeatures().clear();
                         locationLayer.getSource().clear();
                         newLocations.forEach(function (latestAssessment) {
                             addOrReplaceLocation(latestAssessment);

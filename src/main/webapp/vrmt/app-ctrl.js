@@ -25,8 +25,8 @@ FactorAssessmentViewModel.prototype.toScore = function () {
 
 angular.module('vrmt.app')
 
-    .controller("AppController", ['$scope', '$http', '$window', '$timeout', '$interval', 'MapService', 'RouteService', 'VesselService', 'RiskAssessmentService', '$modal',
-        function ($scope, $http, $window, $timeout, $interval, MapService, RouteService, VesselService, RiskAssessmentService, $modal) {
+    .controller("AppController", ['$scope', '$http', '$window', '$timeout', '$interval', 'MapService', 'RouteService', 'VesselService', 'RiskAssessmentService', '$modal', 'ScheduleService',
+        function ($scope, $http, $window, $timeout, $interval, MapService, RouteService, VesselService, RiskAssessmentService, $modal, ScheduleService) {
 
             /**
              * Initialize variables
@@ -55,14 +55,18 @@ angular.module('vrmt.app')
                     $scope.vessel = v;
                 });
             }
+
             loadVessel();
             var stop = $interval(loadVessel, 300000);
 
             RouteService.getActive(mmsi, function (r) {
+                fireRouteChange(r);
+            });
+
+            function fireRouteChange(r) {
                 $scope.route = r;
                 $scope.assessmentLocationState['route'] = r;
-                // loadLatestAssessments();
-            });
+            }
 
             function loadLatestAssessments(assessmentLocationToChoose) {
                 RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
@@ -71,8 +75,11 @@ angular.module('vrmt.app')
                             $scope.assessmentLocationState['chosen'] = assessments.find(function (assessment) {
                                 return assessmentLocationToChoose.id === assessment.location.id;
                             });
+                        } else {
+                            $scope.assessmentLocationState['chosen'] = null;
                         }
                         $scope.latestRiskAssessments = assessments;
+                        $scope.assessmentLocationState['latestRiskAssessments'] = assessments;
                     })
             }
 
@@ -97,7 +104,6 @@ angular.module('vrmt.app')
             });
             $scope.$watch('newAssessmentLocation', function (newValue, oldValue) {
                 if (newValue && newValue != oldValue) {
-                    console.log("Reloading Assessment Locations");
                     loadLatestAssessments(newValue);
                 }
             });
@@ -105,6 +111,18 @@ angular.module('vrmt.app')
             /**
              * Sidebar control
              */
+
+            function RouteView(params) {
+                this.name = params.route.name;
+                this.routeId = params.route.id;
+            }
+
+            RouteView.prototype.choose = function () {
+                RouteService.getRoute(this.routeId, function (route) {
+                    fireRouteChange(route);
+                });
+            };
+
             $scope.sidebar = {
                 monitorAndReportActive: false,
                 safetyMeasuresActive: false,
@@ -118,6 +136,21 @@ angular.module('vrmt.app')
                 configure: function () {
                     $scope.factorConfig.show();
                 },
+                showRouteChoices: function (open) {
+                    if (!open) return;
+                    ScheduleService.getYourSchedule(mmsi, function (schedule) {
+                        $scope.sidebar.routeViews = schedule.voyages
+                            .map(function (voyage) {
+                                return voyage.route ? new RouteView(voyage) : null;
+                            })
+                            .filter(function (elem) {
+                                return elem != null;
+                            });
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                routeViews: [],
                 meta: {
                     vesselName: mmsi,
                     routeView: {id: null, name: null},
@@ -145,6 +178,7 @@ angular.module('vrmt.app')
             $scope.$watch('latestRiskAssessments', function (newValue, oldValue) {
                 if (newValue && newValue !== oldValue) {
                     $scope.sidebar.meta.assessmentViews = [];
+                    $scope.sidebar.meta.currentAssessment = null;
                     var currentLocationId = $scope.assessmentLocationState['chosen'] ? $scope.assessmentLocationState['chosen'].location.id : -1;
                     newValue.forEach(function (assessment) {
                         var assessmentView = new AssessmentView(assessment);
@@ -164,7 +198,6 @@ angular.module('vrmt.app')
 
             $scope.$watch('route', function (newRoute, oldRoute) {
                 if (newRoute && newRoute !== oldRoute) {
-                    console.log("Route changed: " + newRoute.name);
                     $scope.sidebar.meta.routeView = {id: newRoute.id, name: newRoute.name};
                 }
             });
@@ -297,8 +330,7 @@ angular.module('vrmt.app')
             $scope.contextFunctions = {
                 hide: true,
                 style: {position: "absolute", 'z-index': 200, top: 0, left: 0},
-                functions: [
-                ],
+                functions: [],
                 close: function () {
                     this.hide = true;
                 }
@@ -426,7 +458,7 @@ angular.module('vrmt.app')
             /**
              * Clean up
              */
-            $scope.$on('$destroy', function() {
+            $scope.$on('$destroy', function () {
                 console.log("Cleaning up VRMT");
                 $interval.cancel(stop);
                 stop = undefined;
