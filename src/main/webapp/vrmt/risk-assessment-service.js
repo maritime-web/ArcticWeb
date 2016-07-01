@@ -540,6 +540,27 @@ angular.module('vrmt.app')
             });
 
             return deferred.promise;
+        };
 
+        this.deleteAssessmentLocation = function (assessmentLocation) {
+            var deferred = $q.defer();
+            $timeout(function () {
+                try {
+                    var routeId = assessmentLocation.routeId;
+                    var data = getAssessmentData(routeId);
+                    var index = data.findIndex(function (entry) {
+                        return entry.location.id === assessmentLocation.id;
+                    });
+
+                    var deletedAssessmentLocationArray = data.splice(index, 1);
+
+                    storeAssessmentData(routeId, data);
+                    deferred.resolve(deletedAssessmentLocationArray);
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            });
+
+            return deferred.promise;
         };
     }]);

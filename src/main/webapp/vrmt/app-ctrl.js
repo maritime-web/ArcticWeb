@@ -347,8 +347,21 @@ angular.module('vrmt.app')
                         {
                             name: 'New Assesment',
                             choose: function () {
-                                $scope.contextFunctions.hide = true;
+                                $scope.contextFunctions.close();
                                 $scope.assessCreate.show();
+                            }
+                        },
+                        {
+                            name: 'Delete',
+                            choose: function () {
+                                $scope.contextFunctions.close();
+                                var locationToDelete = $scope.assessmentLocationState['chosen'].location;
+                                RiskAssessmentService.deleteAssessmentLocation(locationToDelete)
+                                    .then(function () {
+                                        loadLatestAssessments();
+                                    }, function (errorReason) {
+                                        console.log(errorReason);
+                                    });
                             }
                         }
 

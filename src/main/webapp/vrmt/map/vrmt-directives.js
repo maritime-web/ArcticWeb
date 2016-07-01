@@ -221,10 +221,21 @@ angular.module('vrmt.map')
                  */
                 var select = new ol.interaction.Select({
                     layers: [locationLayer],
-                    style: createSelectedLocationStyleFunction()
+                    style: createSelectedLocationStyleFunction(),
+                    condition: function (e) {
+                        if (ol.events.condition.singleClick(e)) {
+                            var map = e.map;
+                            return map.hasFeatureAtPixel(e.pixel, function (layerCandidate) {
+                                return layerCandidate === locationLayer;
+                            });
+                        }
+                        return false;
+                    }
                 });
 
                 select.on('select', function (e) {
+                    console.log("assessmentLocation SELECT");
+                    console.log(e);
                     if (e.selected.length == 1) {
                         var selectedFeature = e.selected[0];
                         scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
@@ -359,7 +370,7 @@ angular.module('vrmt.map')
                         scope.$apply();
 
                     });
-                    
+
                     // Clean up when the scope is destroyed
                     scope.$on('$destroy', function () {
                         if (angular.isDefined(vesselLayer)) {
