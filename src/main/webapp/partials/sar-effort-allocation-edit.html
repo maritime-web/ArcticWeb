@@ -43,7 +43,7 @@
                         </td>
                         <td>
                             <button class="btn btn-sm"
-                                    x-ng-if="SRU.status === AllocationStatus.Active && !patterns[SRU._id] || patterns[SRU._id].status === AllocationStatus.Active"
+                                    x-ng-if="(SRU.status === AllocationStatus.DraftSRU || SRU.status === AllocationStatus.Active) && !patterns[SRU._id] || patterns[SRU._id].status === AllocationStatus.Active"
                                     x-ng-click="createSearchPattern(SRU)">
                                 <span x-ng-if="!patterns[SRU._id]">New</span><span
                                     x-ng-if="patterns[SRU._id]">Replace</span>
@@ -362,7 +362,7 @@
                 </div>
 
 
-                <div x-ng-if="sp.type === SearchPattern.ParallelSweep || sp.type === SearchPattern.CreepingLine">
+                <div x-ng-if="other.corners && (sp.type === SearchPattern.ParallelSweep || sp.type === SearchPattern.CreepingLine)">
                     <h5>Commence Search Position (CSP)</h5>
 
                     <div class="form-group">
@@ -390,6 +390,48 @@
                             <input x-ng-model="sp.csp.lon" name="lon" type="text" class="form-control input-sm"
                                    x-ng-required="sp.type === SearchPattern.ParallelSweep || sp.type === SearchPattern.CreepingLine"
                                    longitude/>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-ng-if="sp.type === SearchPattern.SectorSearch">
+                    <h5>Commence Search Position</h5>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">Direction:</label>
+                        <div class="col-xs-3">
+                            <input embryo-course x-ng-model="sp.direction" name="dir" type="text" class="form-control input-sm"
+                                   />
+                        </div>
+                        <label class="control-label col-xs-offset-1 col-xs-2">Radius:</label>
+                        <div class="col-xs-3">
+                            <input x-ng-model="sp.radius" name="radius" type="text" class="form-control input-sm"
+                                   x-ng-change="calculateSectorCsp();generateSearchPattern()"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">Latitude:</label>
+
+                        <div class="col-xs-4">
+                            <input x-ng-model="sp.csp.lat" name="lat" type="text" class="form-control input-sm"
+                                   x-ng-required="sp.type === SearchPattern.SectorSearch" latitude/>
+                        </div>
+
+                        <label class="control-label col-xs-2">Longitude:</label>
+                        <div class="col-xs-4">
+                            <input x-ng-model="sp.csp.lon" name="lon" type="text" class="form-control input-sm"
+                                   x-ng-required="sp.type === SearchPattern.SectorSearch"
+                                   longitude/>
+                        </div>
+                    </div>
+
+                    <h5>Other</h5>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">Turn to:</label>
+                        <div class="col-xs-5">
+                            <select ng-model="sp.turn" name="type" class="input-sm form-control"
+                                    x-ng-change="generateSearchPattern()" x-ng-required="sp.type == SearchPattern.SectorSearch"
+                                    x-ng-options="side.key as side.label for side in sides">
+                            </select>
                         </div>
                     </div>
                 </div>

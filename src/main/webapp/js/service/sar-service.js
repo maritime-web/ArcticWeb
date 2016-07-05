@@ -914,9 +914,9 @@
                 return new CreepingLineCalculator();
             case (embryo.sar.effort.SearchPattern.ExpandingSquare) :
                 return new ExpandingSquareCalculator();
-            /*  case (embryo.sar.effort.SearchPattern.SectorPattern) :
-             return new BackTrackCalculator();
-             case (embryo.sar.effort.SearchPattern.TrackLine) :
+            case (embryo.sar.effort.SearchPattern.SectorSearch) :
+             return new SectorCalculator();
+           /*  case (embryo.sar.effort.SearchPattern.TrackLine) :
              return new RapidResponseCalculator();
              case (embryo.sar.effort.SearchPattern.TrackLineReturn) :
              return new DatumPointCalculator();
@@ -1046,7 +1046,7 @@
     function ExpandingSquareCalculator() {
     }
 
-    ExpandingSquareCalculator.prototype = new ParallelSweepSearchCalculator();
+    ExpandingSquareCalculator.prototype = new SearchPatternCalculator();
 
     ExpandingSquareCalculator.prototype.createWaypoints = function (zone, datum, initialBearing) {
         var index = 0;
@@ -1109,11 +1109,92 @@
         return searchPattern;
     }
 
-    function clone(object) {
-        return JSON.parse(JSON.stringify(object));
+    function SectorCalculator() {
+    }
+
+    SectorCalculator.prototype = new ParallelSweepSearchCalculator();
+
+    SectorCalculator.prototype.createWaypoints = function (zone, csp, center, initialDirection, radius, turn) {
+        var wpIndex = 0;
+        var totalDistance = 0;
+        //var onSceneDistance = this.onSceneDistance(zone);
+
+        var turnPoints = [csp];
+        var direction = embryo.geo.reverseDirection(initialDirection);
+
+        for(var counter = 0; counter < 5; counter++){
+            direction= (direction + (turn === embryo.sar.effort.Side.Port ? -60 : 60)) % 360;
+            turnPoints.push(center.transformPosition(direction, radius))
+        }
+
+        var wayPoints = [];
+        var index = 0;
+        for(var counter = 0; counter < 3; counter++){
+            wayPoints.push(this.createWaypoint(wpIndex++, turnPoints[index], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            wayPoints.push(this.createWaypoint(wpIndex++, center, zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            index = (index + 3) % 6;
+            wayPoints.push(this.createWaypoint(wpIndex++, turnPoints[index], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            index++
+        }
+        wayPoints.push(this.createWaypoint(wpIndex, turnPoints[0], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+        return wayPoints;
+    }
+
+    SectorCalculator.prototype.center = function (zone, sp) {
+        var center;
+        if (sp.sar.output.circle) {
+            center = sp.sar.output.circle.datum;
+        } else if (sp.sar.output.downWind.circle) {
+            center = sp.sar.output.downWind.circle.datum;
+        } else {
+            var posA = this.cornerPosition(zone, "A");
+            var posB = this.cornerPosition(zone, "B");
+            var posC = this.cornerPosition(zone, "C");
+
+            var distAB = posA.rhumbLineDistanceTo(posB);
+            var distBC = posB.rhumbLineDistanceTo(posC);
+
+            var bearingAB = posA.rhumbLineBearingTo(posB);
+            var bearingBC = posB.rhumbLineBearingTo(posC);
+
+            var centerAB = posA.transformPosition(bearingAB, distAB / 2);
+            var center = centerAB.transformPosition(bearingBC, distBC / 2);
+        }
+        return center
+    }
+
+    SectorCalculator.prototype.calculate = function (zone, sp) {
+        var center = this.center(zone,sp);
+
+        var direction = parseInt(sp.direction)
+
+        var wayPoints = this.createWaypoints(zone, sp.csp, center, direction, sp.radius, sp.turn);
+
+        var searchPattern = {
+            _id: "sarSp-" + Date.now(),
+            sarId: zone.sarId,
+            effId: zone._id,
+            type: embryo.sar.effort.SearchPattern.SectorSearch,
+            name: zone.name,
+            wps: wayPoints,
+            direction : sp.direction,
+            radius : sp.radius,
+            turn : sp.turn
+        }
+        searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+        return searchPattern;
+    }
+
+    SectorCalculator.prototype.calculateCSP = function (zone, sp) {
+        var center = this.center(zone,sp);
+        return center.transformPosition(embryo.geo.reverseDirection(sp.direction), sp.radius)
     }
 
 
+    function clone(object) {
+        return JSON.parse(JSON.stringify(object));
+    }
 
     // USED IN sar-edit.js and sar-controller.js
     module.service('SarService', ['$log', '$timeout', 'Subject', 'Position', 'SarTableFactory',
@@ -1223,6 +1304,22 @@
                 zone.area = service.toGeoPositions(zone.area);
                 return new SearchPatternCalculator().calculateCSP(zone, cornerKey);
             },
+            calculateSectorCsp: function(z, sp){
+                var zone = clone(z);
+                if(zone.area){
+                    zone.area = service.toGeoPositions(zone.area);
+                }
+                if(sp.sar && sp.sar.output){
+                    sp = clone(sp);
+                    if(sp.sar.output.circle){
+                        sp.sar.output.circle.datum = Position.create(sp.sar.output.circle.datum);
+                    }else if (sp.sar.output.downWind && sp.sar.output.downWind.circle){
+                        sp.sar.output.downWind.circle.datum = Position.create(sp.sar.output.downWind.circle.datum);
+                    }
+                }
+                var sectorCalculator =SearchPatternCalculator.getCalculator(embryo.sar.effort.SearchPattern.SectorSearch);
+                return sectorCalculator.calculateCSP(zone,sp);
+            },
             toGeoPositions : function(area){
                 return {
                     A : Position.create(area.A),
@@ -1233,10 +1330,16 @@
             },
             generateSearchPattern: function (z, sp) {
                 var zone = clone(z);
-                zone.area = service.toGeoPositions(zone.area);
+                if(zone.area){
+                    zone.area = service.toGeoPositions(zone.area);
+                }
                 if(sp.sar && sp.sar.output){
-                    sp.sar = clone(sp.sar);
-                    sp.sar.output.datum = Position.create(sp.sar.output.datum);
+                    sp = clone(sp);
+                    if(sp.sar.output.circle){
+                        sp.sar.output.circle.datum = Position.create(sp.sar.output.circle.datum);
+                    }else if (sp.sar.output.downWind && sp.sar.output.downWind.circle){
+                        sp.sar.output.downWind.circle.datum = Position.create(sp.sar.output.downWind.circle.datum);
+                    }
                 }
                 var calculator = SearchPatternCalculator.getCalculator(sp.type);
                 return calculator.calculate(zone, sp);

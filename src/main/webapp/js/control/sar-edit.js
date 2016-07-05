@@ -834,32 +834,62 @@ $(function () {
 
             function initSearchPattern(zone, latest) {
                 var SearchPattern = embryo.sar.effort.SearchPattern;
+                var AllocationStatus = embryo.sar.effort.Status;
 
+                $scope.sides = [
+                    {
+                        key : embryo.sar.effort.Side.Starboard,
+                        label : "Starboard (default)"
+                    },{
+                        key : embryo.sar.effort.Side.Port,
+                        label : "Port"
+                    }
+                ]
+                $scope.sp.turn = $scope.sides[0].key
+
+                if(zone.status == AllocationStatus.DraftSRU){
+                    $scope.patterns = [
+                        pattern(SearchPattern.SectorSearch, "Sector search"),
+                        //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
+                        //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
+                    ]
+                }else {
+                    $scope.patterns = [
+                        pattern(SearchPattern.ParallelSweep, "Parallel sweep search"),
+                        pattern(SearchPattern.CreepingLine, "Creeping line search"),
+                        pattern(SearchPattern.ExpandingSquare, "Expanding square search"),
+                        pattern(SearchPattern.SectorSearch, "Sector search"),
+                    ]
+
+                    $scope.other = {
+                        corners: SarService.searchPatternCspLabels(zone)
+                    };
+                }
+
+                // FIXME latest.type may not be available of latest was CreepingLine, but AllocationStatus === DrafSRU and only SectorSearch is available
                 $scope.sp = {
-                    type: latest && latest.type ? latest.type : embryo.sar.effort.SearchPattern.ParallelSweep
+                    type: latest && latest.type ? latest.type : $scope.patterns[0].type
                 };
+
+                var found = false;
+                for(var index in $scope.patterns){
+                    if($scope.patterns[index].type === $scope.sp.type){
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found){
+                    $scope.sp.type = $scope.patterns[0].type
+                }
 
                 $scope.SearchPattern = embryo.sar.effort.SearchPattern;
-                $scope.other = {
-                    corners: SarService.searchPatternCspLabels(zone)
-                };
-                $scope.patterns = [
-                    pattern(SearchPattern.ParallelSweep, "Parallel sweep search"),
-                    pattern(SearchPattern.CreepingLine, "Creeping line search"),
-                    pattern(SearchPattern.ExpandingSquare, "Expanding square search"),
-                    pattern(SearchPattern.SectorPattern, "Sector pattern search"),
-                    //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
-                    //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
-                ]
-
                 $scope.spImages = {};
                 $scope.spImages[SearchPattern.ParallelSweep] = "img/sar/parallelsweepsearch.png";
                 $scope.spImages[SearchPattern.CreepingLine] = "img/sar/creepinglinesearch.png";
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
-                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/searchSectorPattern.png ";
+                $scope.spImages[SearchPattern.SectorSearch] = "img/sar/searchSectorPattern.png ";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
                 $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
-
             }
 
             function findNewestSearchPattern(zone, init) {
@@ -925,18 +955,50 @@ $(function () {
                 this.generateSearchPattern();
             }
 
+            $scope.calculateSectorCsp = function () {
+                if ($scope.sp && $scope.sp.radius && $scope.sp.direction) {
+                    try {
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+
+                        $scope.sp.csp = SarService.calculateSectorCsp($scope.zone, spCopy)
+                    }catch(error){
+                        console.log(error)
+                        $log.error(error);
+                    }
+                }
+
+                this.generateSearchPattern();
+            }
+
+            $scope.$watch("sp.direction", function(newValue, oldValue){
+                $scope.calculateSectorCsp();
+            })
+
+
             $scope.generateSearchPattern = function () {
-                if (($scope.sp.type === embryo.sar.effort.SearchPattern.ParallelSweep || $scope.sp.type === embryo.sar.effort.SearchPattern.CreepingLine)
-                    && $scope.sp.csp && $scope.sp.csp.lon && $scope.sp.csp.lat) {
-                    $scope.searchPattern = SarService.generateSearchPattern($scope.zone, $scope.sp);
-                    SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                } else if ($scope.sp.type === embryo.sar.effort.SearchPattern.ExpandingSquare) {
-                    var spCopy = clone($scope.sp);
-                    spCopy.sar = $scope.sar;
-                    $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
-                    SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                } else {
-                    SarLayerSingleton.getInstance().removeTemporarySearchPattern();
+                if(!$scope.sp){
+                    return;
+                }
+
+                try{
+                    if (($scope.sp.type === embryo.sar.effort.SearchPattern.ParallelSweep || $scope.sp.type === embryo.sar.effort.SearchPattern.CreepingLine)
+                        && $scope.sp.csp && $scope.sp.csp.lon && $scope.sp.csp.lat) {
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, $scope.sp);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if ($scope.sp.type === embryo.sar.effort.SearchPattern.ExpandingSquare) {
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.SectorSearch && $scope.sp && $scope.sp.radius && $scope.sp.direction){
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    }
+                }catch(error){
+                    $log.error(error)
                 }
             }
 

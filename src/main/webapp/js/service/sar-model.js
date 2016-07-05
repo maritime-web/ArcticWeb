@@ -90,7 +90,12 @@
         TrackLineReturn: "TLR",
         TrackLine: "TL",
         ExpandingSquare: "ES",
-        SectorPattern: "SP"
+        SectorSearch: "SS"
+    });
+
+    embryo.sar.effort.Side = Object.freeze({
+        Starboard: "S",
+        Port: "P"
     });
 
 

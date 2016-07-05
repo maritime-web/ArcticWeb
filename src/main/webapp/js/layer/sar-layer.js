@@ -501,6 +501,30 @@ function SarLayer() {
 
     this.drawSearchPattern = function (pattern) {
         var points = this.createRoutePoints(pattern)
+
+        if(pattern.type === embryo.sar.effort.SearchPattern.SectorSearch){
+            var attributes = {
+                type: 'circle',
+                sarId: pattern.sarId,
+                id : pattern._id
+            }
+            var radiusInKm = nmToMeters(pattern.radius) / 1000;
+            var center = pattern.wps[1];
+            var ring = embryo.adt.createRing(center.longitude, center.latitude, radiusInKm, 1, attributes)
+
+            this.layers.sar.addFeatures(ring);
+        }
+
+        var csp = points[0];
+        this.layers.sar.addFeatures([new OpenLayers.Feature.Vector(csp, {
+            type: 'circleLabel',
+            label: 'CSP',
+            id: pattern._id,
+            sarId: pattern.sarId,
+            temp:true
+        })]);
+
+
         var multiLine = new OpenLayers.Geometry.MultiLineString([ new OpenLayers.Geometry.LineString(points) ]);
         var feature = new OpenLayers.Feature.Vector(multiLine, {
             renderers : [ 'SVGExtended', 'VMLExtended', 'CanvasExtended' ],
