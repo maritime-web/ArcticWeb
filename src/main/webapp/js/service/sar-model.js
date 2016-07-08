@@ -21,6 +21,7 @@
 
     embryo.SARStatus = Object.freeze({
         STARTED: "S",
+        DRAFT: "D",
         ENDED: "E"
     });
 

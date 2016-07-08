@@ -12,10 +12,18 @@ function SarLayer() {
             false: 0.5
         }
 
+        function labelOffset(feature){
+            if (feature.attributes.type == 'position') {
+                return that.zoomLevel >= 1 ? 10 : 0;
+            }
+            return 0;
+        }
+
+
         var context = {
 
             color: function (feature) {
-                if (feature.attributes.type == embryo.sar.Type.Log) {
+                if (feature.attributes.type == embryo.sar.Type.Log || feature.attributes.type === "position") {
                     return "black";
                 }
                 if (feature.attributes.type == "zone") {
@@ -28,6 +36,9 @@ function SarLayer() {
                     return "red";
                 }
                 if (feature.attributes.type) {
+                    if(feature.attributes.color){
+                        return feature.attributes.color;
+                    }
                     return feature.attributes.active ? "green" : "#999";
                 }
 
@@ -59,6 +70,9 @@ function SarLayer() {
                 if (feature.attributes.type == embryo.sar.Type.Log) {
                     return that.zoomLevel >= 2 ? feature.attributes.label : "";
                 }
+                if (feature.attributes.type == 'position') {
+                    return that.zoomLevel >= 1 ? feature.attributes.label : "";
+                }
 
                 var value = feature.attributes.label ? feature.attributes.label : "";
                 return value;
@@ -82,6 +96,15 @@ function SarLayer() {
                     }
                     return 5
                 }
+                if(feature.attributes.type == "position"){
+                    if (that.zoomLevel >= 3) {
+                        return 15
+                    }
+                    if (that.zoomLevel >= 2) {
+                        return 10
+                    }
+                    return 5
+                }
                 return 1;
             },
             orientation: function (feature){
@@ -89,7 +112,9 @@ function SarLayer() {
                     return false;
                 }
                 return true;
-            }
+            },
+            labelXOffset : labelOffset ,
+            labelYOffset : labelOffset
         };
 
         var defaultStyle = {
@@ -103,7 +128,9 @@ function SarLayer() {
             strokeDashstyle : "${strokeDashstyle}",
             label: "${label}",
             graphicName: "${graphicName}",
-            pointRadius: "${pointRadius}"
+            pointRadius: "${pointRadius}",
+            labelXOffset : "${labelXOffset}",
+            labelYOffset : "${labelYOffset}"
         }
 
         this.layers.sar = new OpenLayers.Layer.Vector("SAR Layer", {
@@ -136,6 +163,25 @@ function SarLayer() {
                 "temporary": new OpenLayers.Style(defaultEditStyle, {context: context})
             })
         });
+
+        // configure the snapping agent
+        this.snap = new OpenLayers.Control.Snapping({
+            layer: this.layers.sarEdit,
+            targets: [this.layers.sar],
+            greedy: false
+        });
+
+        this.snap.setLayer(this.layers.sarEdit);
+
+        this.drawControl = new OpenLayers.Control.DrawFeature(
+            this.layers.sarEdit, OpenLayers.Handler.Polygon,
+            {displayClass: "olControlDrawFeaturePoint", title: "Draw Features", handlerOptions: {holeModifier: "altKey"}}
+        );
+        this.map.internalMap.addControls([this.drawControl])
+        this.drawControl.layer = this.layers.sarEdit;
+        this.drawControl.handler = new OpenLayers.Handler.Point(this.drawControl, this.drawControl.callbacks, this.drawControl.handlerOptions);
+
+        // update the editable layer for the draw control (very ugly)
 
         function fireModified(feature) {
             if (that.modified) {
@@ -436,6 +482,42 @@ function SarLayer() {
             this.layers.sar.addFeatures(createSearchArea(sar, active));
         }
 
+        if(sar.input.type === embryo.sar.Operation.BackTrack){
+            var pos;
+            if(sar.input.objectPosition){
+                pos = embryo.geo.Position.create(sar.input.objectPosition)
+                var p = embryo.map.createPoint(pos.lon, pos.lat);
+                this.layers.sar.addFeatures([new OpenLayers.Feature.Vector(p, {
+                    type: 'position',
+                    label: "Found object ",
+                    sarId: sar._id
+                })]);
+            }
+
+            if(sar.output.rdv){
+                addDriftVector(this.layers.sar, [sar.output.rdv.positions[0], pos]);
+                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions))
+            }
+            if(sar.output.circle){
+                addSearchRing(sar._id, this.layers.sar, sar.output.circle, active);
+            }
+            if(sar.input && sar.input.planedRoute && sar.input.planedRoute.points){
+                addDriftVector(this.layers.sar, sar.input.planedRoute.points);
+            }
+            if(sar.input && sar.input.selectedPositions){
+                for(var i in sar.input.selectedPositions){
+                    var label = sar.input.selectedPositions.length == 1 ? 'LKP' : ('DSP ' + (1 + i))
+                    pos = embryo.geo.Position.create(sar.input.selectedPositions[i]);
+                    var p = embryo.map.createPoint(pos.lon, pos.lat);
+                    this.layers.sar.addFeatures([new OpenLayers.Feature.Vector(p, {
+                        type: 'position',
+                        label : label,
+                        sarId: sar._id
+                    })]);
+                }
+            }
+            return;
+        }
         if (sar.output.circle) {
             addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.circle.datum, "Datum",sar._id);
@@ -553,6 +635,39 @@ function SarLayer() {
         this.hideFeatures(function(feature){
             return !!feature.attributes.temp;
         })
+    }
+
+
+    that.activatePositionSelection = function(positionAdded){
+        that.snap.activate();
+
+        that.controls.modify.deactivate()
+        if(!that.drawControl.active) {
+            that.drawControl.activate();
+        }
+
+        that.featureAddedListener =  function(event){
+            var pos = that.map.transformToPosition(event.feature.geometry)
+            positionAdded(pos);
+        };
+
+        that.layers.sarEdit.events.register("featureadded", that, that.featureAddedListener);
+/*
+        this.drawControl.events.register("featureadded", that, function(event){
+            var pos = that.map.transformToPosition(event.feature.geometry)
+            positionAdded(pos);
+        })
+*/
+    }
+
+    that.deactivatePositionSelection = function(){
+        that.layers.sarEdit.events.unregister("featureadded", that, that.featureAddedListener);
+
+        that.controls.modify.activate()
+        that.snap.deactivate();
+        if(that.drawControl.active) {
+            that.drawControl.deactivate();
+        }
     }
 
 }

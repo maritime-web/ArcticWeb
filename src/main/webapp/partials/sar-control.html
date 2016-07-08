@@ -74,6 +74,14 @@
                     {{tmp.searchObject.text}}<br/>
 
                     <h6>Date and Time</h6>
+                    <div class="row" x-ng-if="sar.input.objectPosition.ts">
+                        <div class="col-md-7">Found object:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(sar.input.objectPosition.ts)}}</div>
+                    </div>
+                    <div class="row" x-ng-if="sar.input.driftFromTs">
+                        <div class="col-md-7">Drift calculated back until:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(sar.input.driftFromTs)}}</div>
+                    </div>
                     <div class="row" x-ng-repeat="dsp in sar.input.dsps">
                         <div class="col-md-7">Drift Search Position {{$index + 1}}:</div>
                         <div class="col-md-5 nopadding">{{formatTs(dsp.ts)}}</div>
@@ -82,7 +90,7 @@
                         <div class="col-md-7">Last Known Position (LKP):</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.lastKnownPosition.ts)}}</div>
                     </div>
-                    <div class="row">
+                    <div class="row" x-ng-if="sar.input.startTs">
                         <div class="col-md-7">Commence Search Start:</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.startTs)}}</div>
                     </div>
@@ -108,41 +116,42 @@
                         </div>
                     </div>
 
-                    <h6>Search Area</h6>
-                    <div x-ng-if="sar.output.searchArea.A">
-                        <div class="row">
-                            <div class="col-md-4"></div>
-                            <div class="col-md-4 nopadding">Latitude</div>
-                            <div class="col-md-4 nopadding">Longitude</div>
+                    <div x-ng-if="sar.output.searchArea">
+                        <h6 >Search Area</h6>
+                        <div x-ng-if="sar.output.searchArea.A">
+                            <div class="row">
+                                <div class="col-md-4"></div>
+                                <div class="col-md-4 nopadding">Latitude</div>
+                                <div class="col-md-4 nopadding">Longitude</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">A</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">B</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">C</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">D</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                            </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4">A</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">B</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">C</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">D</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                        <div class="row" style="margin-top:5px">
+                            <div class="col-md-4">Size</div>
+                            <div class="col-md-4 nopadding"></div>
+                            <div class="col-md-4 nopadding">
+                                <span>{{formatDecimal(sar.output.searchArea.size, 0)}} nm<sup>2</sup></span></div>
                         </div>
                     </div>
-                    <div class="row" style="margin-top:5px">
-                        <div class="col-md-4">Size</div>
-                        <div class="col-md-4 nopadding"></div>
-                        <div class="col-md-4 nopadding">
-                            <span>{{formatDecimal(sar.output.searchArea.size, 0)}} nm<sup>2</sup></span></div>
-                    </div>
-
                     <!--
                     <h6>Search Area Progression in minutes after CSS</h6>
                     <div class="row">
@@ -222,18 +231,18 @@
                                 </td>
                             </tr>
                         </table>
-                        <div class="row">
+                        <!--<div class="row">
                             <div class="col-md-12">
                                 <div class="checkbox">
                                     <label><input type="checkbox" value="Mig">Show Dynamic Pattern</label>
                                 </div>
                             </div>
-                        </div>
+                        </div>-->
                         <div class="row">
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-primary btn-xs pull-right" x-ng-click="effort()">
-                                    Manage effort
-                                    allocations
+                                <button type="button" class="btn btn-primary btn-xs pull-right" x-ng-click="effort()"
+                                        x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                                    Manage effort allocations
                                 </button>
                             </div>
                         </div>

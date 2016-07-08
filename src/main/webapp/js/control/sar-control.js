@@ -20,9 +20,11 @@ $(function () {
     var SARStatusTxt = {};
     SARStatusTxt[embryo.SARStatus.STARTED] = "Active";
     SARStatusTxt[embryo.SARStatus.ENDED] = "Ended";
+    SARStatusTxt[embryo.SARStatus.DRAFT] = "Draft";
 
     var SARStatusLabel = {};
     SARStatusLabel[embryo.SARStatus.STARTED] = "label-success";
+    SARStatusLabel[embryo.SARStatus.DRAFT] = "label-danger";
     SARStatusLabel[embryo.SARStatus.ENDED] = "label-default";
 
     var AllocationStatusTxt = {};
@@ -41,9 +43,11 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SARLayerControl", ['$scope', 'SarService', 'LivePouch', '$log',
-        function ($scope, SarService, LivePouch, $log) {
+    module.controller("SARLayerControl", ['$scope', 'SarService', 'LivePouch', '$log', 'Subject',
+        function ($scope, SarService, LivePouch, $log, Subject) {
         var sarDocuments = [];
+        var mmsi = Subject.getDetails().shipMmsi;
+        var name = Subject.getDetails().userName;
 
         SarLayerSingleton.getInstance().modified = function (zoneUpdate) {
             $log.debug("zone updated on map");
@@ -90,7 +94,10 @@ $(function () {
                         doc.status == embryo.sar.effort.Status.Active ||
                         doc.status == embryo.sar.effort.Status.DraftZone ||
                         doc.status == embryo.sar.effort.Status.DraftModifiedOnMap) {
-                        documents.push(SarService.prepareSearchAreaForDisplayal(doc));
+                        if(doc['@type'] != embryo.sar.Type.SearchArea || doc.input.type != embryo.sar.Operation.BackTrack
+                            || (mmsi && doc.coordinator.mmsi == mmsi || doc.coordinator.name === name)){
+                            documents.push(SarService.prepareSearchAreaForDisplayal(doc));
+                        }
                     }
                 }
                 sarDocuments = documents;
@@ -108,10 +115,7 @@ $(function () {
             since: 'now',
             live: true,
             filter: function (doc) {
-                return doc._id.startsWith("sar") &&
-                    (doc['@type'] != embryo.sar.Type.EffortAllocation ||
-                    doc.status == embryo.sar.effort.Status.Active ||
-                    doc.status == embryo.sar.effort.Status.DraftZone)
+                return doc._id.startsWith("sar")
             }
         }).on('change', function (result) {
             // We don't expect many SAR documents / objects at the same time
@@ -127,8 +131,11 @@ $(function () {
         loadSarDocuments();
     }]);
 
-    module.controller("OperationsControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch',
-        function ($scope, SarService, ViewService, $log, LivePouch) {
+    module.controller("OperationsControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch', 'Subject',
+        function ($scope, SarService, ViewService, $log, LivePouch,Subject) {
+
+            var mmsi = Subject.getDetails().shipMmsi;
+            var name = Subject.getDetails().userName;
 
             $scope.sars = [];
 
@@ -154,7 +161,11 @@ $(function () {
                 }).then(function (result) {
                     var operations = []
                     for (var index in result.rows) {
-                        operations.push(SarService.toSmallSarObject(result.rows[index].doc));
+                        var doc = result.rows[index].doc;
+                        if(doc.input.type != embryo.sar.Operation.BackTrack
+                            || (mmsi && doc.coordinator.mmsi == mmsi || doc.coordinator.name === name)){
+                            operations.push(SarService.toSmallSarObject(result.rows[index].doc));
+                        }
                     }
                     $scope.sars = operations;
                 }).catch(function (err) {
@@ -278,7 +289,8 @@ $(function () {
             };
 
             $scope.view = function () {
-                $scope.newSarProvider.show({sarId: $scope.sar._id, page: "sarResult"});
+                var page = $scope.sar.input.type !== embryo.sar.Operation.BackTrack ? "sarResult" : "backtrackResult";
+                $scope.newSarProvider.show({sarId: $scope.sar._id, page: page});
             };
 
             $scope.newCoordinator = function () {

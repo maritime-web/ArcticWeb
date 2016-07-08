@@ -65,7 +65,7 @@
                     </p>
                 </div>
 
-                <div class="sar-img-type-container">
+                <div class="sar-img-type-container" style="text-align: center;">
                     <img style="max-width:500px; max-height:250px" ng-if="sar.type"
                          ng-src="{{sarTypeDatas[sar.type].img}}"/>
                 </div>
@@ -282,8 +282,8 @@
                                 x-ng-options="searchObject.id as searchObject.text for searchObject in searchObjects">
                         </select>
                     </div>
-                    <span class="help-block">{{sar.searchObject.x}} x U<span x-ng-if="sar.searchObject.y >= 0"> + {{sar.searchObject.y}}</span>
-                        <span x-ng-if="sar.searchObject.y < 0"> - {{-1*sar.searchObject.y}}</span>, Divergence {{sar.searchObject.divergence}}
+                    <span class="help-block">{{searchObjects[sar.searchObject].x}} x U<span x-ng-if="searchObjects[sar.searchObject].y >= 0"> + {{searchObjects[sar.searchObject].y}}</span>
+                        <span x-ng-if="searchObjects[sar.searchObject].y < 0"> - {{-1*searchObjects[sar.searchObject].y}}</span>, Divergence {{searchObjects[sar.searchObject].divergence}}
                     </span>
                 </div>
 
@@ -296,22 +296,20 @@
                     </span>
                 </div>
             </form>
-            <form x-ng-if="page.name == 'BackTrack'" name="btForm" class="form-horizontal" novalidate>
+            <form x-ng-if="page.name == 'drift'" name="btForm" class="form-horizontal" novalidate>
                 <hr/>
                 <div x-ng-show="alertMessages" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
 
-                <h5>{{tmp.sarTypeData.text}}</h5>
-
-                <h5>Position for observed Object</h5>
+                <h5>Position of found Object</h5>
                 <div class="form-group">
                     <label class="control-label col-xs-2">Latitude</label>
                     <div class="col-xs-3">
-                        <input latitude2 x-ng-model="sar.objectPosition.lat" type="text" name="btLkpLat"
+                        <input latitude2 x-ng-model="sar.objectPosition.lat" type="text" name="opLat"
                                class="form-control input-sm lat" placeholder="61 15.856N" required/>
-                        <span x-ng-if="sarOperationForm.btLkpLat.$error.latitude" class="error-block">
+                        <span x-ng-if="sarOperationForm.opLat.$error.latitude" class="error-block">
                             Use correct format, e.g. 04 34.023N
                         </span>
 
@@ -319,9 +317,9 @@
 
                     <label class="control-label col-xs-3">Longitude</label>
                     <div class="col-xs-3">
-                        <input longitude2 x-ng-model="sar.objectPosition.lon" type="text" name="btLkpLon"
+                        <input longitude2 x-ng-model="sar.objectPosition.lon" type="text" name="opLon"
                                class="form-control input-sm lon" placeholder="049 53 844W" required/>
-                        <span x-ng-if="sarOperationForm.btLkpLon.$error.longitude" class="error-block">
+                        <span x-ng-if="sarOperationForm.opLon.$error.longitude" class="error-block">
                             Use correct format, e.g. 004 04.033E
                         </span>
 
@@ -335,8 +333,21 @@
 
                     <label class="control-label col-xs-3">Position Error (X), nm</label>
                     <div class="col-xs-2">
-                        <input x-ng-model="sar.objectPosition.xError" name="xError" type="number" class="form-control input-sm"
+                        <input x-ng-model="sar.xError" name="xError" type="number" class="form-control input-sm"
                                required/>
+                    </div>
+                </div>
+                <hr/>
+
+                <h5>Calculate drift back until</h5>
+                <div class="form-group">
+                    <label class="control-label col-xs-1">Time</label>
+                    <div class="col-xs-4">
+                        <datetimepicker x-ng-model="sar.driftFromTs" lteq="sar.objectPosition.ts" name="driftFromTs"/>
+                        <span x-ng-if="btForm.driftFromTs.$error.lteq" class="error-block">
+                             Drift must be calculated from a time before the object was found.
+                        </span>
+
                     </div>
                 </div>
                 <hr/>
@@ -366,12 +377,12 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr ng-form="surfaceDriftForm" x-ng-repeat="surfaceDrift in sar.surfaceDrifts">
+                            <tr ng-form="surfaceDriftForm" x-ng-repeat="surfaceDrift in sar.surfaceDriftPoints">
                                 <td>
                                     <datetimepicker name="surfaceDriftTs" x-ng-model="surfaceDrift.ts"
-                                                    lteq="sar.objectPosition.ts"/>
+                                                    lteq="sar.driftFromTs"/>
                                 <span x-ng-if="surfaceDriftForm.surfaceDriftTs.$error.lteq" class="error-block">
-                                    Surface drift point must be before last known position.
+                                    Surface drift point must be before the time the drift is calculated back to
                                 </span>
                                 </td>
                                 <td><input x-ng-model="surfaceDrift.twcSpeed" type="text"
@@ -395,48 +406,176 @@
                         </table>
                     </div>
                 </div>
-
                 <hr/>
-                <h5>Other variables</h5>
 
-                <div class="form-group">
-                    <label class="control-label col-xs-3">SRU Navigational Error (Y), nm</label>
 
-                    <div class="col-xs-4">
-                        <input x-ng-model="sar.yError" name="yError" type="number" class="form-control input-sm"
-                               required/>
-                    </div>
-                    <span class="help-block">Note: GPS = 0.1 nm</span>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-xs-3">Safety factor, Fs</label>
-
-                    <div class="col-xs-4">
-                        <input x-ng-model="sar.safetyFactor" name="safetyFactor" type="number"
-                               class="form-control input-sm" required/>
-                    </div>
-                </div>
-
-                <hr/>
-                <h5>Search object</h5>
+                <h5>Found object</h5>
 
                 <div class="form-group">
                     <div class="col-xs-7" for="sar.searchObject">
-                        <select ng-model="sar.searchObject" id="sar.searchObject" name="sar.searchObject" required
+                        <select ng-model="sar.searchObject" id="btFoundObject" name="btFoundObject" required
                                 class="input-sm form-control"
                                 x-ng-options="searchObject.id as searchObject.text for searchObject in searchObjects">
                         </select>
                     </div>
-                    <span class="help-block">{{sar.searchObject.x}} x U<span x-ng-if="sar.searchObject.y >= 0"> + {{sar.searchObject.y}}</span>
-                        <span x-ng-if="sar.searchObject.y < 0"> - {{-1*sar.searchObject.y}}</span>, Divergence {{sar.searchObject.divergence}}
+                    <span class="help-block">{{searchObjects[sar.searchObject].x}} x U<span x-ng-if="searchObjects[sar.searchObject].y >= 0"> + {{searchObjects[sar.searchObject].y}}</span>
+                        <span x-ng-if="searchObjects[sar.searchObject].y < 0"> - {{-1*searchObjects[sar.searchObject].y}}</span>, Divergence {{searchObjects[sar.searchObject].divergence}}
                     </span>
                 </div>
 
                 <div class="col-xs-12">
                     <span class="pull-right">
-                        <button type="button" class="btn btn-sm" x-ng-click="back()">Back</button> &nbsp;
-                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="createSarOperation()"
-                                x-ng-disabled="sarOperationForm.$invalid">Next
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name='typeSelection'">Back</button> &nbsp;
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="createBackTrack()"
+                                x-ng-disabled="btForm.$invalid">Next
+                        </button>
+                    </span>
+                </div>
+            </form>
+
+            <form x-ng-if="page.name == 'route'" name="routeForm" class="form-horizontal" novalidate>
+                <hr/>
+                <div x-ng-show="alertMessages" class="alert alert-danger">
+                    <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
+                </div>
+                <div x-ng-show="message" class="alert alert-info">{{message}}</div>
+
+                <h5>Planed route of found Object</h5>
+                <div class="form-group">
+                    <div class="col-xs-offset-5 col-xs-7">
+                        <span class="pull-right">
+                            <button type="button" class="btn btn-sm" x-ng-click="sar.planedRoute.points.push({})">Add point</button>
+                            <button type="button" class="btn btn-sm" x-ng-click="sar.planedRoute.points.splice(sar.planedRoute.points.length - 1, 1)"
+                                    x-ng-disabled="sar.planedRoute.points.length <= 1">Remove last
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <table class="table surfaceDriftPoints">
+                    <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-form="rpForm" x-ng-repeat="point in sar.planedRoute.points">
+                        <td>
+                            <div x-ng-if="$index==0">
+                                <datetimepicker name="pointTs" x-ng-model="point.ts"
+                                                lteq="sar.objectPosition.ts"/>
+                                <span x-ng-if="rpForm.pointTs.$error.lteq" class="error-block">
+                                    Time of first planed route point must be before time of registered position for found object
+                                </span>
+                            </div>
+                            <div x-ng-if="$index > 0">
+                                <datetimepicker name="pointTs" x-ng-model="point.ts"/>
+                            </div>
+                        </td>
+                        <td>
+                            <input latitude2 x-ng-model="point.lat" type="text" name="pointLat"
+                                   class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                            <span x-ng-if="rpForm.pointLat.$error.latitude" class="error-block">
+                                Use correct format, e.g. 04 34.023N
+                            </span>
+                        <td>
+                            <input longitude2 x-ng-model="point.lon" type="text" name="pointLon"
+                                   class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                            <span x-ng-if="rpForm.pointLon.$error.longitude" class="error-block">
+                                Use correct format, e.g. 004 04.033E
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <hr/>
+
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name='drift'">Back</button> &nbsp;
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name='lkp'">Skip</button> &nbsp;
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="saveSarOperation('lkp')"
+                                x-ng-disabled="routeForm.$invalid">Save route
+                        </button>
+                    </span>
+                </div>
+            </form>
+            <form x-ng-if="page.name == 'lkp'" name="lkpForm" class="form-horizontal" novalidate>
+                <hr/>
+                <div x-ng-show="alertMessages" class="alert alert-danger">
+                    <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
+                </div>
+                <div x-ng-show="message" class="alert alert-info">{{message}}</div>
+                <div x-ng-if="sar.selectedPositions.length == 0" class="alert alert-warning">
+                    At least one positions must be selected
+                </div>
+
+                <div>
+                    Click on the map to select position(s) to proceed with as last known position or drift search positions
+                    in a new search and rescue operation calculation (Rapid Response, Datum Point or Datum Line)
+                </div>
+
+                <h5>Known positions</h5>
+                <div x-ng-controller="BackTrackPositionSelectionController">
+                    <table class="table knownPositions">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Time</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-form="selPosForm" x-ng-repeat="position in sar.selectedPositions">
+                            <td>
+                                <span x-ng-if="sar.selectedPositions.length == 1">LKP</span>
+                                <span x-ng-if="sar.selectedPositions.length > 1">DSP {{$index + 1}}</span>
+                            </td>
+                            <td>
+                                <div x-ng-if="$index==0">
+                                    <datetimepicker name="selPosTs" x-ng-model="position.ts"
+                                                    lteq="sar.objectPosition.ts"/>
+                                <span x-ng-if="selPosForm.selPosTs.$error.lteq" class="error-block">
+                                    Time of known position must be before time of registered position for found object
+                                </span>
+                                </div>
+                                <div x-ng-if="$index > 0">
+                                    <datetimepicker name="selPosTs" x-ng-model="position.ts"/>
+                                </div>
+                            </td>
+                            <td>
+                                <input latitude x-ng-model="position.lat" type="text" name="selPosLat"
+                                       class="form-control input-sm lat" placeholder="61 15.856N" required/>
+                            <span x-ng-if="selPosForm.selPosLat.$error.latitude" class="error-block">
+                                Use correct format, e.g. 04 34.023N
+                            </span>
+                            <td>
+                                <input longitude x-ng-model="position.lon" type="text" name="selPosLon"
+                                       class="form-control input-sm lon" placeholder="049 53 844W" required/>
+                                <span x-ng-if="selPosForm.selPosLon.$error.longitude" class="error-block">
+                                    Use correct format, e.g. 004 04.033E
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm" x-ng-click="sar.selectedPositions.splice($index, 1)">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+
+                </div>
+
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name='route'">Back</button> &nbsp;
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="saveSarOperation('backtrackResult')"
+                                x-ng-disabled="lkpForm.$invalid && sar.selectedPositions && sar.selectedPositions.length > 0">Save
                         </button>
                     </span>
                 </div>
@@ -610,10 +749,10 @@
                 SRU navigational error, Y: {{sarOperation.input.yError}} nm<br/>
                 Safety factor, Fs: {{sarOperation.input.safetyFactor}}<br/>
                 <hr/>
-                Search Object: {{tmp.searchObject.text}}<br/>{{tmp.searchObject.x}}x U
-                <span x-ng-if="tmp.searchObject.y < 0">- {{-tmp.searchObject.y}}</span>
-                <span x-ng-if="tmp.searchObject.y > 0">+ {{tmp.searchObject.y}}</span>,
-                Divergence: {{tmp.searchObject.divergence}}<br/>
+                Search Object: {{searchObjects[sarOperation.input.searchObject].text}} <br/>{{searchObjects[sarOperation.input.searchObject].x}} x U
+                <span x-ng-if="searchObjects[sarOperation.input.searchObject].y >= 0">+ {{searchObjects[sarOperation.input.searchObject].y}}</span>
+                <span x-ng-if="searchObjects[sarOperation.input.searchObject].y < 0"> - {{-1*searchObjects[sarOperation.input.searchObject].y}}</span>,
+                Divergence: {{searchObjects[sarOperation.input.searchObject].divergence}}<br/>
                 <hr/>
                 <span x-ng-if="sarOperation.output && sarOperation.output.rdv">
                     Datum calculated from applying leeway and total water current: {{formatPos(sarOperation.output.circle.datum)}}<br/>
@@ -665,6 +804,92 @@
                     </span>
                     <span class="pull-right" x-ng-if="tmp.viewOnly">
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)">Close</button>
+                    </span>
+                </div>
+            </div>
+            <div x-ng-if="page.name == 'backtrackResult'">
+                <hr/>
+                Back track with no {{sarOperation.input.no}}
+                <hr/>
+                Observed position: {{formatPos(sarOperation.input.objectPosition)}}<br/>
+                Time of observed position: {{formatTs(sarOperation.input.objectPosition.ts)}} UTC<br/>
+                Drift calculated back until: {{formatTs(sarOperation.input.driftFromTs)}} UTC<br/>
+
+                <span x-ng-if="sarOperation.output.hoursElapsed > 0">
+                    Time elapsed: {{sarOperation.output.hoursElapsed}} hour<span
+                        x-ng-if="sarOperation.output.hoursElapsed != 1">s</span>,
+                    {{sarOperation.output.minutesElapsed}} minute<span
+                        x-ng-if="sarOperation.output.minutesElapsed != 1">s</span>.<br/>
+                </span>
+                <hr/>
+
+                <div x-ng-if="sarOperation.input.surfaceDriftPoints.length > 1">
+                    Surface drift points:
+                    <table class="table table-condensed surfaceDriftPointsPresented">
+                        <thead>
+                        <tr>
+                            <td>Time</td>
+                            <td>TWC</td>
+                            <td>TWC direction</td>
+                            <td>Leeway</td>
+                            <td>Leeway direction</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr x-ng-repeat="surfaceDrift in sarOperation.input.surfaceDriftPoints">
+                            <td>{{formatTs(surfaceDrift.ts)}}</td>
+                            <td>{{surfaceDrift.twcSpeed}}</td>
+                            <td>{{surfaceDrift.twcDirection}}</td>
+                            <td>{{surfaceDrift.leewaySpeed}}</td>
+                            <td>{{surfaceDrift.leewayDirection}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div x-ng-if="sarOperation.input.surfaceDriftPoints.length <= 1">
+                    <span x-ng-repeat="surfaceDrift in sarOperation.input.surfaceDriftPoints">
+                    Total water current {{surfaceDrift.twcSpeed}} knots with direction {{surfaceDrift.twcDirection}}<span
+                            x-ng-if="0 <= surfaceDrift.twcDirection && surfaceDrift.twcDirection < 360">°</span>
+                    Leeway {{surfaceDrift.leewaySpeed}} knots with direction {{surfaceDrift.leewayDirection}}<span
+                            x-ng-if="0 <= surfaceDrift.leewayDirection && surfaceDrift.leewayDirection < 360">°</span><br/>
+                    </span>
+                </div>
+                <hr/>
+                Initial position error, X: {{sarOperation.input.xError}} nm<br/>
+                <hr/>
+                Search Object: {{searchObjects[sar.searchObject].text}} <br/>{{searchObjects[sar.searchObject].x}} x U
+                <span x-ng-if="searchObjects[sar.searchObject].y >= 0">+ {{searchObjects[sar.searchObject].y}}</span>
+                <span x-ng-if="searchObjects[sar.searchObject].y < 0"> - {{-1*searchObjects[sar.searchObject].y}}</span>,
+                <hr/>
+                <span x-ng-if="sarOperation.output && sarOperation.output.rdv">
+                    Residual Drift Vector<br/>
+                    RDV Direction: {{formatDecimal(sarOperation.output.rdv.direction, -2)}}°<br/>
+                    RDV Distance: {{formatDecimal(sarOperation.output.rdv.distance, -2)}} nm<br/>
+                    RDV Speed: {{formatDecimal(sarOperation.output.rdv.speed, -2)}} kn/h<br/>
+                    With radius: {{formatDecimal(sarOperation.output.circle.radius, -2)}} nm<br/>
+                    <hr/>
+                </span>
+
+                Planed route of found object: <br/>
+                <span x-ng-repeat="point in sarOperation.input.planedRoute.points">
+                    {{formatTs(point.ts)}}, {{formatPos(point)}} <br/>
+                </span>
+                <hr/>
+
+                Selected positions:<br/>
+                <span x-ng-repeat="point in sarOperation.input.selectedPositions">
+                    {{sarOperation.input.selectedPositions && sarOperation.input.selectedPositions.length == 1 ? 'LKP:' : ('DSP ' + ($index + 1))}}:
+                    {{formatTs(point.ts)}}, {{formatPos(point)}} <br/>
+                </span>
+
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name = 'lkp'" x-ng-if="!tmp.viewOnly">Back</button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="startNewSar()">Start new SAR</button>
+                        <button type="button" class="btn btn-sm" x-ng-click="close($event)"x-ng-if="!tmp.viewOnly">Cancel</button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)" x-ng-if="tmp.viewOnly">Close</button>
+                    </span>
+                    <span class="pull-right" >
                     </span>
                 </div>
             </div>

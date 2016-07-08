@@ -32,6 +32,16 @@
     width: 175px;
 }
 
+.knownPositions td:first-child {
+    width: 50px;
+}
+
+.knownPositions td:nth-child(2) {
+    width: 175px;
+}
+
+
+
 table.dsps td:nth-child(2) {
     width: 100px;
 }

@@ -19,13 +19,9 @@ describe('embryo.sar.service', function () {
     }
 
     describe('TimeElapsed', function () {
-        it('TimeElapsed.build with last known point and commence search start one hour later', inject(function (TimeElapsed) {
+        it('TimeElapsed.build with times one hour apart', inject(function (TimeElapsed) {
             var now = Date.now();
-            var timeElapsed = TimeElapsed.build({
-                lon : "010 00.000W",
-                lat : "10 00.000N",
-                ts : now - 60 * 60 * 1000
-            }, now);
+            var timeElapsed = TimeElapsed.build(now - 60 * 60 * 1000, now);
 
             expect(timeElapsed).toBeDefined();
             expect(timeElapsed.timeElapsed).toBe(1);
@@ -33,48 +29,30 @@ describe('embryo.sar.service', function () {
             expect(timeElapsed.minutesElapsed).toBe(0);
         }))
 
-        it('TimeElapsed.build with last known point and commence search start one hour 30 minutes later', inject(function (TimeElapsed) {
+        it('TimeElapsed.build with times one hour 30 minutes apart', inject(function (TimeElapsed) {
             var now = Date.now();
-            var timeElapsed = TimeElapsed.build({
-                lon : "010 00.000W",
-                lat : "10 00.000N",
-                ts : now - 60 * 60 * 1000 * 1.5
-            }, now);
+            var timeElapsed = TimeElapsed.build(now - 60 * 60 * 1000 * 1.5, now);
 
             expect(timeElapsed).toBeDefined();
             expect(timeElapsed.timeElapsed).toBe(1.5);
             expect(timeElapsed.hoursElapsed).toBe(1);
             expect(timeElapsed.minutesElapsed).toBe(30);
         }));
-        it('TimeElapsed.build with last known point and undefined commence search start', inject(function (TimeElapsed) {
+        it('TimeElapsed.build with from ts but undefined commence search start', inject(function (TimeElapsed) {
             var now = Date.now();
 
             var error = execWithTryCatch(function(){
-                TimeElapsed.build({
-                    lon : "010 00.000W",
-                    lat : "10 00.000N",
-                    ts : now - 60 * 60 * 1000 * 1.5
-                }, undefined);
+                TimeElapsed.build(now - 60 * 60 * 1000 * 1.5, undefined);
             })
             assertErrorContent(error, "commenceSearchStart")
         }));
-        it('TimeElapsed.build with undefined last known point, but valid commence search start', inject(function (TimeElapsed) {
+        it('TimeElapsed.build with undefined first ts, but valid commence search start', inject(function (TimeElapsed) {
             var now = Date.now();
             var error = execWithTryCatch(function(){
                 TimeElapsed.build(undefined, now);
             })
-            assertErrorContent(error, "startPosition")
+            assertErrorContent(error, "startPositionTs")
         }));
-        it('TimeElapsed.build where last known point is without ts and commence search is valid', inject(function (TimeElapsed) {
-            var now = Date.now();
-            var error = execWithTryCatch(function(){
-                TimeElapsed.build({
-                    lon : "010 00.000W",
-                    lat : "10 00.000N",
-                }, now);
-            })
-            assertErrorContent(error, "ts")
-        }))
     });/*
     describe('SurfaceDrift', function () {
         it('SurfaceDrift.build with one row', inject(function (SurfaceDrift) {
