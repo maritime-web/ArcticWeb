@@ -518,12 +518,27 @@ $(function () {
         }
     }]);
 
-    module.controller("BackTrackPositionSelectionController", ['$scope', function ($scope) {
+    module.controller("BackTrackPositionSelectionController", ['$scope', 'Position', function ($scope, Position) {
         if(!$scope.sar.selectedPositions){
             $scope.sar.selectedPositions = [];
         }
         SarLayerSingleton.getInstance().activatePositionSelection(function(pos){
+
+            var objectPos = Position.create($scope.sar.objectPosition);
+            var driftPos = Position.create($scope.sarOperation.output.circle.datum);
+            var position = Position.create(pos)
+
+            var distDrift = driftPos.distanceTo(objectPos);
+            var distPosToDrift = position.distanceTo(driftPos);
+            var distPosToObject = position.distanceTo(objectPos);
+
+            if(Math.abs(distDrift - (distPosToDrift + distPosToObject)) < 0.1){
+                var time = distPosToObject / $scope.sarOperation.output.rdv.speed;
+                pos.ts = $scope.sar.objectPosition.ts - (time * 60 * 60 *1000)
+            }
+
             $scope.sar.selectedPositions.push(pos);
+
             if (!$scope.$$phase) {
                 $scope.$apply(function () {
                 });
