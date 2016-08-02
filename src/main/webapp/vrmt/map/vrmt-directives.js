@@ -1,3 +1,36 @@
+function onEsc($scope, document, element, action) {
+    var onEsc = function (event) {
+        var isEsc = event.which === 27;
+
+        if (isEsc) {
+            $scope.$apply(action);
+        }
+    };
+
+    document.on("keydown", onEsc);
+    element.on('$destroy', function () {
+        document.off("keydown", onEsc);
+    });
+}
+
+function onOutsideClick($scope, document, element, action) {
+    var onDocumentClick = function (event) {
+        var isSelfOrChild = element.find(event.target).length > 0 || element.html() == angular.element(event.target).html();
+
+        if (!isSelfOrChild) {
+            $scope.$apply(action);
+        }
+    };
+
+    document.on("click", onDocumentClick);
+
+    var offHandle = function () {
+        document.off("click", onDocumentClick);
+    };
+    element.on('$destroy', offHandle);
+
+    return offHandle;
+}
 angular.module('vrmt.map')
 
     .directive('route', [function () {
@@ -234,8 +267,6 @@ angular.module('vrmt.map')
                 });
 
                 select.on('select', function (e) {
-                    console.log("assessmentLocation SELECT");
-                    console.log(e);
                     if (e.selected.length == 1) {
                         var selectedFeature = e.selected[0];
                         scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
@@ -431,19 +462,7 @@ angular.module('vrmt.map')
         return {
             link: function ($scope, $element, $attributes) {
                 var scopeExpression = $attributes.outsideClick;
-                var onDocumentClick = function (event) {
-                    var isChild = $element.find(event.target).length > 0;
-
-                    if (!isChild) {
-                        $scope.$apply(scopeExpression);
-                    }
-                };
-
-                $document.on("click", onDocumentClick);
-
-                $element.on('$destroy', function () {
-                    $document.off("click", onDocumentClick);
-                });
+                onOutsideClick($scope, $document, $element, scopeExpression);
             }
         }
     }])
@@ -451,19 +470,45 @@ angular.module('vrmt.map')
         return {
             link: function ($scope, $element, $attributes) {
                 var scopeExpression = $attributes.onEscape;
-                var onEsc = function (event) {
-                    var isEsc = event.which === 27;
+                onEsc($scope, $document, $element, scopeExpression);
+            }
+        }
+    }])
+    .directive("mwSelectRenderer", ['$document', function ($document) {
+        return {
+            link: function ($scope, $element, $attributes) {
+                var selectButton = $element.children()[0];
+                var optionContainer = angular.element($element.children()[1]);
+                optionContainer.addClass("hidden");
 
-                    if (isEsc) {
-                        $scope.$apply(scopeExpression);
-                    }
-                };
-
-                $document.on("keydown", onEsc);
-
-                $element.on('$destroy', function () {
-                    $document.off("keydown", onEsc);
+                positionOptionContainer(selectButton, optionContainer);
+                toggleOptionsOnClick(selectButton, optionContainer);
+                onEsc($scope, $document, optionContainer, function () {
+                    optionContainer.addClass("hidden");
                 });
+
+                function positionOptionContainer(selectButton, optionContainer) {
+                    optionContainer.css({
+                        position: 'absolute',
+                        left: selectButton.offsetLeft,
+                        top: selectButton.offsetTop + selectButton.offsetHeight
+                    });
+                }
+
+                function toggleOptionsOnClick(selectButton, optionContainer) {
+                    var toggle = function () {
+                        optionContainer.toggleClass("hidden");
+                    };
+                    var sb = angular.element(selectButton);
+                    onOutsideClick($scope, $document, sb, function () {
+                        optionContainer.addClass("hidden");
+                    });
+                    sb.on("click", toggle);
+                    $element.on('$destroy', function () {
+                        sb.off("click", toggle)
+                    });
+                }
+
             }
         }
     }])

@@ -116,6 +116,11 @@ h4.text-center  {
     margin: 0;
 }
 
+/** Context Function **/
+.button-dropdown button {
+    text-align: left;
+}
+
 /** Form **/
 .form-horizontal-3rd-col {
     text-align: right;

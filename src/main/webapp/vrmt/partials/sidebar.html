@@ -35,15 +35,15 @@
                                 Route: <strong>{{sidebar.meta.routeView.name}}</strong>
                             </div>
                             <div class="col-xs-3">
-                                <div class="btn-group" dropdown on-toggle="sidebar.showRouteChoices(open)">
-                                    <button class="btn btn-primary btn-xs" dropdown-toggle>Change</button>
-                                    <ul class="dropdown-menu" dropdown-menu role="menu">
-                                        <li role="menuitem" ng-repeat="routeView in sidebar.routeViews">
-                                            <button class="btn btn-xs" ng-click="routeView.choose()">
-                                                {{routeView.name}}
-                                            </button>
-                                        </li>
-                                    </ul>
+                                <div mw-select-renderer>
+                                    <button class="btn btn-primary btn-xs" ng-click="sidebar.routeDropdownClicked()">
+                                        Change
+                                    </button>
+                                    <div class="btn-group-vertical button-dropdown">
+                                        <button class="btn btn-default btn-xs" ng-click="routeView.choose()" ng-repeat="routeView in sidebar.routeViews">
+                                            {{routeView.name}}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -118,6 +118,7 @@ angular.module('vrmt.app')
             }
 
             RouteView.prototype.choose = function () {
+                $scope.sidebar.routeDropdownOpen = false;
                 RouteService.getRoute(this.routeId, function (route) {
                     fireRouteChange(route);
                 });
@@ -136,8 +137,17 @@ angular.module('vrmt.app')
                 configure: function () {
                     $scope.factorConfig.show();
                 },
-                showRouteChoices: function (open) {
-                    if (!open) return;
+                routeDropdownOpen: false,
+                routeDropdownClicked: function () {
+                    this.routeDropdownOpen = !this.routeDropdownOpen;
+                    if (this.routeDropdownOpen) {
+                        this.showRouteChoices()
+                    }
+                },
+                routeDropdownClose: function () {
+                    this.routeDropdownOpen = false;
+                },
+                showRouteChoices: function () {
                     ScheduleService.getYourSchedule(mmsi, function (schedule) {
                         $scope.sidebar.routeViews = schedule.voyages
                             .map(function (voyage) {
