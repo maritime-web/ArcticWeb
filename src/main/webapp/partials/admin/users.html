@@ -55,7 +55,24 @@
 		</div>
 		<div class="col-md-1"></div>
         <div class="col-md-4">
-			<button class="btn btn-default btn-sm " x-ng-click="create()">Create New User</button>
+			<button class="btn btn-default btn-sm " style="margin-bottom:20px" x-ng-click="create()">Create New User</button>
+
+			<div x-ng-show="!action">
+				<table class="table">
+					<thead>
+					<tr>
+						<th>Role</th>
+						<th>User count</th>
+					</tr>
+					</thead>
+					<tbody>
+					<tr x-ng-repeat="roleCount in rolesCount">
+						<td>{{roleCount[0]}}</td>
+						<td>{{roleCount[1]}}</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
 
 			<form name="userForm" x-ng-show="action">
 				<h3>{{action}}</h3>
