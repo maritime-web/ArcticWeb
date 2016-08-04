@@ -3,7 +3,7 @@ $(function () {
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.views', ['embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
+    var module = angular.module('embryo.sar.views', ['embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
 
     module.directive('lteq', function () {
         return {
@@ -43,7 +43,7 @@ $(function () {
 
     module.directive('gteq', function () {
         return {
-            require: 'ngModel',
+            require: '^ngModel',
             link: function (scope, element, attr, ngModelController) {
                 var path = attr.gteq.split('.');
 
@@ -87,40 +87,66 @@ $(function () {
     sarTypeDatas[embryo.sar.Operation.RapidResponse] = new SarTypeData("Rapid response", "/img/sar/generic.png");
     sarTypeDatas[embryo.sar.Operation.DatumPoint] = new SarTypeData("Datum point", "/img/sar/datumpoint.png");
     sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
-    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/generic.png")
+    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/backtrack.png")
 
-    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory',
-        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory) {
+    module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout', '$log', 'Position',
+        function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout, $log, Position) {
 
             $scope.alertMessages = [];
 
-            function initNewSar() {
-                var now = Date.now();
+            function initSarTypeSelection() {
                 $scope.sar = {
                     type: embryo.sar.Operation.RapidResponse,
                     no: SarOperationFactory.createSarId(),
-                    searchObject: $scope.searchObjects[0].id,
-                    yError: 0.1,
-                    safetyFactor: 1.0,
-                    startTs: now + 1000 * 60 * 60
+                }
+
+                if($scope.backTrackInitializer){
+                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine];
+                }else{
+                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
                 }
 
                 $scope.sarOperation = {}
+            }
 
+            function initNewSar() {
+                var now = Date.now();
+
+                $scope.sar.searchObject= $scope.searchObjects[0].id;
+                $scope.sar.yError = 0.1;
+                $scope.sar.safetyFactor = 1.0;
+
+                $scope.sarOperation = {}
+
+
+                if ($scope.sar.type != embryo.sar.Operation.DatumLine && $scope.sar.type != embryo.sar.Operation.BackTrack) {
+                    if (!$scope.sar.lastKnownPosition) {
+                        $scope.sar.lastKnownPosition = {};
+                    }
+                    if (!$scope.sar.lastKnownPosition.ts) {
+                        $scope.sar.lastKnownPosition.ts = now;
+                    }
+                }
+                if ($scope.sar.type != embryo.sar.Operation.BackTrack) {
+                    $scope.sar.startTs = ($scope.sar.lastKnownPosition && $scope.sar.lastKnownPosition.ts ? $scope.sar.lastKnownPosition.ts : now) + 1000 * 60 * 60;
+                }
                 if (!$scope.sar.surfaceDriftPoints) {
                     $scope.sar.surfaceDriftPoints = [{}];
                 }
                 if (!$scope.sar.surfaceDriftPoints[0].ts) {
-                    $scope.sar.surfaceDriftPoints[0].ts = now;
+                    $scope.sar.surfaceDriftPoints[0].ts = $scope.sar.lastKnownPosition && $scope.sar.lastKnownPosition.ts ? $scope.sar.lastKnownPosition.ts : now;
                 }
 
-                if ($scope.sar.type != embryo.sar.Operation.DatumLine) {
-                    if (!$scope.sar.lastKnownPosition) {
-                        $scope.sar.lastKnownPosition = {};
-                }
-                    if (!$scope.sar.lastKnownPosition.ts) {
-                        $scope.sar.lastKnownPosition.ts = now;
+                if ($scope.sar.type == embryo.sar.Operation.BackTrack) {
+                    $scope.sar.yError = 0;
+                    $scope.sar.driftFromTs = now - 1000 * 60 * 60;
+                    if (!$scope.sar.objectPosition) {
+                        $scope.sar.objectPosition = {};
                     }
+                    if (!$scope.sar.objectPosition.ts) {
+                        $scope.sar.objectPosition.ts = now;
+                    }
+                    $scope.sar.surfaceDriftPoints[0].ts = $scope.sar.driftFromTs;
                 }
             }
 
@@ -129,16 +155,24 @@ $(function () {
             title: "Create SAR",
             type: "newSar",
             show: function (context) {
+                $scope.alertMessages = [];
                 $scope.page = {
                     name : context && context.page ? context.page : 'typeSelection'
                 }
+                if(context.page == "sarResult" || context.page == "backtrackResult"){
+                    $scope.tmp = {
+                        viewOnly : true
+                    }
+                }
+                $scope.backTrackInitializer = null;
+                $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
                 if (context.sarId) {
                     LivePouch.get(context.sarId).then(function (sarOperation) {
                         $scope.sarOperation = sarOperation;
                         $scope.sar = sarOperation.input;
                     })
                 } else {
-                    initNewSar();
+                    initSarTypeSelection();
                 }
 
                 this.doShow = true;
@@ -155,11 +189,9 @@ $(function () {
         };
 
         $scope.searchObjects = SarService.searchObjectTypes();
-            $scope.sarTypes = embryo.sar.Operation;
-            $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
-            $scope.sarTypeDatas = sarTypeDatas;
-
-            $scope.tmp = {
+        $scope.sarTypes = embryo.sar.Operation;
+        $scope.sarTypeDatas = sarTypeDatas;
+        $scope.tmp = {
                 sarTypeData: $scope.sarTypeDatas[0]
         }
 
@@ -181,9 +213,10 @@ $(function () {
             if (!position || (!position.lat && !position.lon)) {
                 return ""
             }
-            return position.lat + ", " + position.lon;
-        };
+            var pos = Position.create(position).toDegreesAndDecimalMinutes();
 
+            return pos.lat + ", " + pos.lon;
+        };
 
         $scope.back = function () {
             switch ($scope.page.name) {
@@ -203,7 +236,17 @@ $(function () {
         }
 
         $scope.next = function () {
-            $scope.page.name = 'sarInputs';
+            if($scope.sar.type === embryo.sar.Operation.BackTrack){
+                $scope.page.name = 'drift';
+            }else{
+                $scope.page.name = 'sarInputs';
+            }
+            if($scope.backTrackInitializer){
+                $scope.backTrackInitializer()
+            }
+            if(!$scope.sar.searchObject && $scope.sar.searchObject != 0){
+                initNewSar()
+            }
         }
 
         $scope.addDSP = function() {
@@ -234,7 +277,93 @@ $(function () {
             $scope.page.name = "DSP";
         }
 
+        $scope.createBackTrack = function () {
+            var sarInput = $scope.sar;
+
+            UserPouch.allDocs({
+                include_docs: true
+            }).then(function (result) {
+                var users = SarService.extractDbDocs(result);
+
+                try {
+                    $scope.alertMessages = [];
+                    // retain PouchDB fields like _id and _rev
+                    var calculatedOperation = SarOperationFactory.createSarOperation(sarInput);
+                    $scope.sarOperation['@type'] = calculatedOperation['@type'];
+                    $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
+                    $scope.sarOperation.input = calculatedOperation.input;
+                    $scope.sarOperation.output = calculatedOperation.output;
+
+                    if (!$scope.sarOperation._id) {
+                        $scope.sarOperation._id = "sar-" + Date.now();
+                        $scope.sarOperation.status = embryo.SARStatus.DRAFT;
+                    }
+
+                    return LivePouch.put($scope.sarOperation)
+                } catch (error) {
+                    $log.error(error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                }
+            }).then(function (putResponse) {
+
+                if(!$scope.sar.planedRoute){
+                    $scope.sar.planedRoute = {}
+                }
+                if(!$scope.sar.planedRoute.points){
+                    $scope.sar.planedRoute.points = [{}];
+                }
+
+                return LivePouch.get(putResponse.id)
+            }).then(function(sarOperation){
+                // SarOperation with updated _rev number
+                $scope.page.name = 'route';
+                $scope.sarOperation = sarOperation;
+                if (!$scope.$$phase) {
+                    $scope.$apply(function () {
+                    });
+                }
+            });
+        }
+
+        $scope.saveSarOperation = function (pageName) {
+            try {
+                $scope.alertMessages = [];
+                // retain PouchDB fields like _id and _rev
+                $scope.sarOperation.input = $scope.sar;
+
+                LivePouch.put($scope.sarOperation).then(function (putResponse) {
+                    return LivePouch.get(putResponse.id)
+                }).then(function(sarOperation){
+                    // SarOperation with updated _rev number
+                    $scope.page.name = pageName;
+                    $scope.sarOperation = sarOperation;
+                }).catch(function(error){
+                    $log.error("Error saving sar operation - " + pageName)
+                    $log.error(error)
+                    $log.error(typeof error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                });
+
+            } catch (error) {
+                $log.error(error)
+                if (typeof error === 'object' && error.message) {
+                    $scope.alertMessages.push("Internal error: " + error.message);
+                } else if (typeof error === 'string') {
+                    $scope.alertMessages.push("Internal error: " + error);
+                }
+            }
+        }
+
         $scope.createSarOperation = function () {
+
             var sarInput = $scope.sar;
 
             UserPouch.allDocs({
@@ -274,6 +403,63 @@ $(function () {
         }
 
 
+            $scope.startNewSar = function () {
+                try {
+                    $scope.alertMessages = [];
+                    // retain PouchDB fields like _id and _rev
+                    $scope.sarOperation.input = $scope.sar;
+
+                    var sarOperation = clone($scope.sarOperation)
+                    sarOperation.status = embryo.SARStatus.STARTED;
+
+                    LivePouch.put(sarOperation).then(function (putResponse) {
+                        return LivePouch.get(putResponse.id)
+                    }).then(function(sarOperation){
+                        // SarOperation with updated _rev number
+                        var selectedPositions = clone(sarOperation).input.selectedPositions;
+                        $scope.backTrackInitializer = function(){
+                            if(selectedPositions && selectedPositions.length > 0) {
+                                if ($scope.sar.type === embryo.sar.Operation.RapidResponse || $scope.sar.type === embryo.sar.Operation.DatumPoint){
+                                    if(!$scope.sar.lastKnownPosition){
+                                        $scope.sar.lastKnownPosition = Position.create(selectedPositions[0]).toDegreesAndDecimalMinutes();
+                                        $scope.sar.lastKnownPosition.ts = selectedPositions[0].ts
+                                    }
+                                } else if ($scope.sar.type === embryo.sar.Operation.DatumLine){
+                                    $scope.sar.dsps = [];
+                                    for(var i in selectedPositions){
+                                        var dsp = Position.create(selectedPositions[i]).toDegreesAndDecimalMinutes();
+                                        dsp.ts = selectedPositions[0].ts
+                                        $scope.sar.dsps.push(dsp)
+                                    }
+                                }
+                            }
+                        }
+
+                        initSarTypeSelection();
+                        $scope.tmp.viewOnly = false;
+                        $scope.page.name = "typeSelection";
+                    }).catch(function(error){
+                        $log.error("Error saving sar operation - " + startNewSar)
+                        $log.error(error)
+                        $log.error(typeof error)
+                        if (typeof error === 'object' && error.message) {
+                            $scope.alertMessages.push("Internal error: " + error.message);
+                        } else if (typeof error === 'string') {
+                            $scope.alertMessages.push("Internal error: " + error);
+                        }
+                    });
+
+                } catch (error) {
+                    $log.error(error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                }
+            }
+
+
         $scope.addPoint = function () {
             $scope.sar.surfaceDriftPoints.push({});
         }
@@ -291,10 +477,16 @@ $(function () {
             }
 
             LivePouch.put($scope.sarOperation).then(function () {
-                SarService.selectSar($scope.sarOperation._id);
+                // hack to increase change SAR is drawn before selecting it
+                // this is necessary for zoom to work
+                // TODO remove this, when SAR is drawn in draft mode. It is no longer necessary to select SAR in this scenario.
+                $timeout(function(){
+                    SarService.selectSar($scope.sarOperation._id);
+                })
+                $timeout(function(){
+                    SarService.selectSar($scope.sarOperation._id);
+                }, 1000)
                 $scope.provider.doShow = false;
-            }).catch(function (err) {
-
             });
         }
 
@@ -319,12 +511,43 @@ $(function () {
                     $scope.provider.doShow = false;
                     SarService.selectSar(null);
                 }).catch(function (err) {
-                    console.log(err)
+                    $log.error("getUsers - error")
+                    $log.error(err)
                 });
             });
         }
     }]);
 
+    module.controller("BackTrackPositionSelectionController", ['$scope', 'Position', function ($scope, Position) {
+        if(!$scope.sar.selectedPositions){
+            $scope.sar.selectedPositions = [];
+        }
+        SarLayerSingleton.getInstance().activatePositionSelection(function(pos){
+
+            var objectPos = Position.create($scope.sar.objectPosition);
+            var driftPos = Position.create($scope.sarOperation.output.circle.datum);
+            var position = Position.create(pos)
+
+            var distDrift = driftPos.distanceTo(objectPos);
+            var distPosToDrift = position.distanceTo(driftPos);
+            var distPosToObject = position.distanceTo(objectPos);
+
+            if(Math.abs(distDrift - (distPosToDrift + distPosToObject)) < 0.1){
+                var time = distPosToObject / $scope.sarOperation.output.rdv.speed;
+                pos.ts = $scope.sar.objectPosition.ts - (time * 60 * 60 *1000)
+            }
+
+            $scope.sar.selectedPositions.push(pos);
+
+            if (!$scope.$$phase) {
+                $scope.$apply(function () {
+                });
+            }
+        });
+        $scope.$on("$destroy",function(){
+            SarLayerSingleton.getInstance().deactivatePositionSelection();
+        })
+    }]);
 
     module.controller("SarDspController", ['$scope', function ($scope) {
         if($scope.dspToEditIndex >= 0){
@@ -446,75 +669,44 @@ $(function () {
     targetText[embryo.sar.effort.TargetTypes.Raft15Persons] = "Raft 15 persons";
     targetText[embryo.sar.effort.TargetTypes.Raft20Persons] = "Raft 20 persons";
     targetText[embryo.sar.effort.TargetTypes.Raft25Persons] = "Raft 25 persons";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat15] = "Motorboat <= 15 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat20] = "Motorboat 20 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat33] = "Motorboat 33 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat53] = "Motorboat 53 feet";
-    targetText[embryo.sar.effort.TargetTypes.Motorboat78] = "Motorboat 78 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat15] = "Sailboat 15 feet";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat15] = "Power boat < 5 m (15 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat20] = "Power boat 6 m (20 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat33] = "Power boat 10 m (33 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat53] = "Power boat 16 m (53 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Motorboat78] = "Power boat 24 m (78 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat15] = "Sail boat 5 m (15 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat20] = "Sailboat 20 feet";
     targetText[embryo.sar.effort.TargetTypes.Sailboat25] = "Sailboat 25 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat26] = "Sail boat 8 m (26 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat30] = "Sailboat 30 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat39] = "Sail boat 12 m (39 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat40] = "Sailboat 40 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat49] = "Sail boat 15 m (49 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat50] = "Sailboat 50 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat69] = "Sail boat 21 m (69 ft)";
     targetText[embryo.sar.effort.TargetTypes.Sailboat70] = "Sailboat 70 feet";
-    targetText[embryo.sar.effort.TargetTypes.Sailboat83] = "Sailboat 83 feet";
+    targetText[embryo.sar.effort.TargetTypes.Sailboat83] = "Sail boat 25 m (83 ft)";
     targetText[embryo.sar.effort.TargetTypes.Ship120] = "Ship 120 feet";
     targetText[embryo.sar.effort.TargetTypes.Ship225] = "Ship 225 feet";
-    targetText[embryo.sar.effort.TargetTypes.Ship330] = "Ship >= 300 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat17] = "Boat <= 17 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat23] = "Boat 23 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat40] = "Boat 40 feet";
-    targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 79 feet";
-
-    function targetTypes(sruType) {
-        if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-            return [
-                embryo.sar.effort.TargetTypes.PersonInWater,
-                embryo.sar.effort.TargetTypes.Raft4Persons,
-                embryo.sar.effort.TargetTypes.Raft6Persons,
-                embryo.sar.effort.TargetTypes.Raft15Persons,
-                embryo.sar.effort.TargetTypes.Raft25Persons,
-                embryo.sar.effort.TargetTypes.Boat17,
-                embryo.sar.effort.TargetTypes.Boat23,
-                embryo.sar.effort.TargetTypes.Boat40,
-                embryo.sar.effort.TargetTypes.Boat79,
-            ];
-        }
-
-        return [
-            embryo.sar.effort.TargetTypes.PersonInWater,
-            embryo.sar.effort.TargetTypes.Raft1Person,
-            embryo.sar.effort.TargetTypes.Raft4Persons,
-            embryo.sar.effort.TargetTypes.Raft6Persons,
-            embryo.sar.effort.TargetTypes.Raft8Persons,
-            embryo.sar.effort.TargetTypes.Raft10Persons,
-            embryo.sar.effort.TargetTypes.Raft15Persons,
-            embryo.sar.effort.TargetTypes.Raft20Persons,
-            embryo.sar.effort.TargetTypes.Raft25Persons,
-            embryo.sar.effort.TargetTypes.Motorboat15,
-            embryo.sar.effort.TargetTypes.Motorboat20,
-            embryo.sar.effort.TargetTypes.Motorboat33,
-            embryo.sar.effort.TargetTypes.Motorboat53,
-            embryo.sar.effort.TargetTypes.Motorboat78,
-            embryo.sar.effort.TargetTypes.Sailboat15,
-            embryo.sar.effort.TargetTypes.Sailboat20,
-            embryo.sar.effort.TargetTypes.Sailboat25,
-            embryo.sar.effort.TargetTypes.Sailboat30,
-            embryo.sar.effort.TargetTypes.Sailboat40,
-            embryo.sar.effort.TargetTypes.Sailboat50,
-            embryo.sar.effort.TargetTypes.Sailboat70,
-            embryo.sar.effort.TargetTypes.Sailboat83,
-            embryo.sar.effort.TargetTypes.Ship120,
-            embryo.sar.effort.TargetTypes.Ship225,
-            embryo.sar.effort.TargetTypes.Ship330
-        ];
-    }
+    targetText[embryo.sar.effort.TargetTypes.Ship330] = "Ship >= 330 feet";
+    targetText[embryo.sar.effort.TargetTypes.Ship90to150] = "Ship 27-46 m (90-150 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Ship150to300] = "Ship 46-91 m (150-300 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Ship300] = "Ship > 91 m (300 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat17] = "Boat < 5 m (17 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat23] = "Boat 7 m (23 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat40] = "Boat 12 m (40 ft)";
+    targetText[embryo.sar.effort.TargetTypes.Boat79] = "Boat 24 m (79 ft)";
 
     var typeText = {}
     typeText[embryo.sar.effort.SruTypes.MerchantVessel] = "Merchant vessel";
     typeText[embryo.sar.effort.SruTypes.SmallerVessel] = "Small vessel (40 feet)";
     typeText[embryo.sar.effort.SruTypes.Ship] = "Ship (50 feet)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter150] = "Helicopter (altitude 150 meters)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter300] = "Helicopter (altitude 300 meters)";
+    typeText[embryo.sar.effort.SruTypes.Helicopter600] = "Helicopter (altitude 600 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft150] = "Fixed wing aircraft (altitude 150 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft300] = "Fixed wing aircraft (altitude 300 meters)";
+    typeText[embryo.sar.effort.SruTypes.FixedWingAircraft600] = "Fixed wing aircraft (altitude 600 meters)";
 
     var AllocationStatusTxt = {};
     AllocationStatusTxt[embryo.sar.effort.Status.Active] = "Shared";
@@ -534,8 +726,8 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory',
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory) {
+    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory",
+        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
@@ -551,11 +743,17 @@ $(function () {
             $scope.typeText = typeText;
             $scope.sruTypes = [
                 embryo.sar.effort.SruTypes.MerchantVessel,
-                /*                embryo.sar.effort.SruTypes.SmallerVessel,
-                 embryo.sar.effort.SruTypes.Ship*/
+                /*embryo.sar.effort.SruTypes.SmallerVessel,
+                embryo.sar.effort.SruTypes.Ship,*/
+                embryo.sar.effort.SruTypes.Helicopter150,
+                embryo.sar.effort.SruTypes.Helicopter300,
+                embryo.sar.effort.SruTypes.Helicopter600,
+                embryo.sar.effort.SruTypes.FixedWingAircraft150,
+                embryo.sar.effort.SruTypes.FixedWingAircraft300,
+                embryo.sar.effort.SruTypes.FixedWingAircraft600,
             ]
 
-            $scope.visibilityValues = [1, 3, 5, 10, 15, 20];
+            //$scope.visibilityValues = [1, 3, 5, 10, 15, 20];
 
 
             function loadAllocation(allocationId) {
@@ -564,8 +762,8 @@ $(function () {
                     $scope.effort = allocation;
                     $scope.initEffortAllocation();
                 }).catch(function (error) {
-                    console.log("loadAllocation error")
-                    console.log(error)
+                    $log.error("loadAllocation(" + allocationId + ") error")
+                    $log.error(error)
                 });
             }
 
@@ -607,11 +805,8 @@ $(function () {
                     }
                     $scope.srus = srus
                     $scope.patterns = patternsMap(patterns);
-
-
                 }).catch(function (error) {
-                    console.log("sareffortview error")
-                    console.log(error)
+                    $log.error(error)
                 });
             }
 
@@ -690,6 +885,7 @@ $(function () {
                     $scope.toSrus();
                 }).catch(function (error) {
                     $scope.alertMessages = ["Internal error removing SRU", error];
+                    $log.error(error)
                 });
             }
 
@@ -706,7 +902,10 @@ $(function () {
                 if (!$scope.effort) {
                     $scope.effort = {}
                 }
-                $scope.targetTypes = targetTypes($scope.effort.type);
+
+                var sweepWidthTable = SarTableFactory.getSweepWidthTable($scope.effort.type)
+                $scope.visibilityValues = sweepWidthTable.visibilityOptions();
+                $scope.targetTypes = sweepWidthTable.searchObjectOptions();
 
                 var type = $scope.effort.type;
 
@@ -761,7 +960,7 @@ $(function () {
                     try {
                         allocation = SarService.calculateEffortAllocations($scope.effort, sar);
                     } catch (error) {
-                        console.log(error)
+                        $log.error(error)
                         $scope.alertMessages = ["internal error", error];
                     }
 
@@ -775,6 +974,7 @@ $(function () {
                     }
                 }).catch(function (error) {
                     $scope.alertMessages = ["internal error", error];
+                    $log.error(error)
                 });
             }
 
@@ -789,8 +989,8 @@ $(function () {
                     LivePouch.put(effort).then(function () {
                         $scope.toSrus();
                     }).catch(function (error) {
-                        console.log("error saving effort allocation")
-                        console.log(error)
+                        $log.error("error saving effort allocation")
+                        $log.error(error)
                     })
                 }
 
@@ -819,7 +1019,8 @@ $(function () {
                     }).then(function () {
                         persist(effort);
                     }).catch(function (err) {
-                        console.log(err)
+                        $log.error("deleteEffortAllocationsForSameUser - error")
+                        $log.error(err)
                     });
                 }
 
@@ -835,32 +1036,62 @@ $(function () {
 
             function initSearchPattern(zone, latest) {
                 var SearchPattern = embryo.sar.effort.SearchPattern;
+                var AllocationStatus = embryo.sar.effort.Status;
 
+                $scope.sides = [
+                    {
+                        key : embryo.sar.effort.Side.Starboard,
+                        label : "Starboard (default)"
+                    },{
+                        key : embryo.sar.effort.Side.Port,
+                        label : "Port"
+                    }
+                ]
+                $scope.sp.turn = $scope.sides[0].key
+
+                if(zone.status == AllocationStatus.DraftSRU){
+                    $scope.patterns = [
+                        pattern(SearchPattern.SectorSearch, "Sector search"),
+                        //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
+                        //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
+                    ]
+                }else {
+                    $scope.patterns = [
+                        pattern(SearchPattern.ParallelSweep, "Parallel sweep search"),
+                        pattern(SearchPattern.CreepingLine, "Creeping line search"),
+                        pattern(SearchPattern.ExpandingSquare, "Expanding square search"),
+                        pattern(SearchPattern.SectorSearch, "Sector search"),
+                    ]
+
+                    $scope.other = {
+                        corners: SarService.searchPatternCspLabels(zone)
+                    };
+                }
+
+                // FIXME latest.type may not be available of latest was CreepingLine, but AllocationStatus === DrafSRU and only SectorSearch is available
                 $scope.sp = {
-                    type: latest && latest.type ? latest.type : embryo.sar.effort.SearchPattern.ParallelSweep
+                    type: latest && latest.type ? latest.type : $scope.patterns[0].type
                 };
+
+                var found = false;
+                for(var index in $scope.patterns){
+                    if($scope.patterns[index].type === $scope.sp.type){
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found){
+                    $scope.sp.type = $scope.patterns[0].type
+                }
 
                 $scope.SearchPattern = embryo.sar.effort.SearchPattern;
-                $scope.other = {
-                    corners: SarService.searchPatternCspLabels(zone)
-                };
-                $scope.patterns = [
-                    pattern(SearchPattern.ParallelSweep, "Parallel sweep search"),
-                    pattern(SearchPattern.CreepingLine, "Creeping line search"),
-                    pattern(SearchPattern.ExpandingSquare, "Expanding square search"),
-                    pattern(SearchPattern.SectorPattern, "Sector pattern search"),
-                    pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
-                    pattern(SearchPattern.TrackLine, "Track line search, non-return"),
-                ]
-
                 $scope.spImages = {};
                 $scope.spImages[SearchPattern.ParallelSweep] = "img/sar/parallelsweepsearch.png";
                 $scope.spImages[SearchPattern.CreepingLine] = "img/sar/creepinglinesearch.png";
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
-                $scope.spImages[SearchPattern.SectorPattern] = "img/sar/.png";
+                $scope.spImages[SearchPattern.SectorSearch] = "img/sar/searchSectorPattern.png ";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
                 $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
-
             }
 
             function findNewestSearchPattern(zone, init) {
@@ -874,8 +1105,8 @@ $(function () {
                     }
                     init(zone, SarService.findLatestModified(patterns));
                 }).catch(function (error) {
-                    console.log("sarsearchpattern error")
-                    console.log(error)
+                    $log.error("findNewestSearchPattern error")
+                    $log.error(error)
                 });
 
             }
@@ -912,6 +1143,7 @@ $(function () {
                 }).catch(function (error) {
                     // FIXME don't treat error as a string be default.
                     $scope.errorMessages = [error];
+                    $log.error(error)
                 });
             }
 
@@ -925,18 +1157,50 @@ $(function () {
                 this.generateSearchPattern();
             }
 
+            $scope.calculateSectorCsp = function () {
+                if ($scope.sp && $scope.sp.radius && $scope.sp.direction) {
+                    try {
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+
+                        $scope.sp.csp = SarService.calculateSectorCsp($scope.zone, spCopy)
+                    }catch(error){
+                        console.log(error)
+                        $log.error(error);
+                    }
+                }
+
+                this.generateSearchPattern();
+            }
+
+            $scope.$watch("sp.direction", function(newValue, oldValue){
+                $scope.calculateSectorCsp();
+            })
+
+
             $scope.generateSearchPattern = function () {
-                if (($scope.sp.type === embryo.sar.effort.SearchPattern.ParallelSweep || $scope.sp.type === embryo.sar.effort.SearchPattern.CreepingLine)
-                    && $scope.sp.csp && $scope.sp.csp.lon && $scope.sp.csp.lat) {
-                    $scope.searchPattern = SarService.generateSearchPattern($scope.zone, $scope.sp);
-                    SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                } else if ($scope.sp.type === embryo.sar.effort.SearchPattern.ExpandingSquare) {
-                    var spCopy = clone($scope.sp);
-                    spCopy.sar = $scope.sar;
-                    $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
-                    SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                } else {
-                    SarLayerSingleton.getInstance().removeTemporarySearchPattern();
+                if(!$scope.sp){
+                    return;
+                }
+
+                try{
+                    if (($scope.sp.type === embryo.sar.effort.SearchPattern.ParallelSweep || $scope.sp.type === embryo.sar.effort.SearchPattern.CreepingLine)
+                        && $scope.sp.csp && $scope.sp.csp.lon && $scope.sp.csp.lat) {
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, $scope.sp);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if ($scope.sp.type === embryo.sar.effort.SearchPattern.ExpandingSquare) {
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.SectorSearch && $scope.sp && $scope.sp.radius && $scope.sp.direction){
+                        var spCopy = clone($scope.sp);
+                        spCopy.sar = $scope.sar;
+                        $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    }
+                }catch(error){
+                    $log.error(error)
                 }
             }
 
@@ -947,13 +1211,36 @@ $(function () {
 
             }
 
+            function replaceSearchPattern(searchPattern) {
+                LivePouch.query('sar/searchPattern', {
+                    key: searchPattern.sarId,
+                    include_docs: true
+                }).then(function (result) {
+                    var searchPatterns = [];
+                    for (var index in result.rows) {
+                        var doc = result.rows[index].doc;
+                        if (doc.effId == searchPattern.effId && doc._id !== searchPattern._id) {
+                            searchPatterns.push(doc)
+                            doc._deleted = true;
+                        }
+                    }
+                    //delete allocations and search patterns
+                    return LivePouch.bulkDocs(searchPatterns)
+                }).then(function () {
+                    saveSearchPattern(searchPattern);
+                }).catch(function (err) {
+                    $log.error("deleteEffortAllocationsForSameUser - error")
+                    $log.error(err)
+                });
+            }
+
+
             function saveSearchPattern(pattern) {
                 LivePouch.put(pattern).then(function () {
                     SarLayerSingleton.getInstance().removeTemporarySearchPattern();
                     $scope.toSrus();
                 }).catch(function (err) {
                     // FIXME, don't just assume error is a String
-                    console.log(err);
                     $scope.errorMessages = [err];
                 });
             }
@@ -961,13 +1248,13 @@ $(function () {
             $scope.draftSearchPattern = function () {
                 var pattern = clone($scope.searchPattern);
                 pattern.status = embryo.sar.effort.Status.DraftPattern;
-                saveSearchPattern(pattern);
+                replaceSearchPattern(pattern);
             }
 
             $scope.shareSearchPattern = function () {
                 var pattern = clone($scope.searchPattern);
                 pattern.status = embryo.sar.effort.Status.Active;
-                saveSearchPattern(pattern);
+                replaceSearchPattern(pattern);
             }
 
             $scope.$on("$destroy", function () {
@@ -975,7 +1262,7 @@ $(function () {
             })
         }]);
 
-    module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', function ($scope, SarService, LivePouch) {
+    module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', '$log', function ($scope, SarService, LivePouch, $log) {
         $scope.alertMessages = null;
         $scope.message = null;
 
@@ -992,7 +1279,7 @@ $(function () {
         $scope.saveUnit = function () {
             // If active, then make a new copy in status draft
             // the copy will replace the active zone, when itself being activated
-            // TODO move much of this code into SarService where easier to unit test.
+            // TODO move much of this code into EffortAllocation where easier to unit test.
             var sru = clone($scope.sru);
             sru.name = $scope.participant.user.name;
             sru.mmsi = $scope.participant.user.mmsi;
@@ -1018,9 +1305,9 @@ $(function () {
             LivePouch.put(sru).then(function (result) {
                 $scope.toSrus();
             }).catch(function (error) {
-                console.log(error)
                 $scope.sru = sru2;
                 $scope.alertMessages = ["internal error", error];
+                $log.error(error)
             });
 
         }

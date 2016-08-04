@@ -150,17 +150,17 @@ describe('PositionService', function() {
 
         it('parseLongitudeAsString parses the string 058a10400w to "058"', function() {
             var lon = service.parseLongitudeAsString('058a10400w');
-            expect(lon).toBe("058");
+            expect(lon).toBe("058 10.400W");
         });
 
         it('parseLongitudeAsString parses the string 05a10400w to "05"', function() {
             var lon = service.parseLongitudeAsString('05a10400w');
-            expect(lon).toBe("05");
+            expect(lon).toBe("051 04.00W");
         });
 
         it('parseLongitudeAsString parses the string 05 10400w to "05"', function() {
             var lon = service.parseLongitudeAsString('05 10400w');
-            expect(lon).toBe("05");
+            expect(lon).toBe("051 04.00W");
         });
 
         it('parseLongitudeAsString parses the string 0581 to "058 1"', function() {
@@ -194,7 +194,7 @@ describe('PositionService', function() {
         });
 
         it('parseLatitudeAsStringAsString parses the string 061 10.312N to "06 1"', function() {
-            expect(service.parseLatitudeAsString('061 10.312N')).toBe("06 1");
+            expect(service.parseLatitudeAsString('061 10.312N')).toBe("06 11.0312N");
         });
 
         it('parseLatitudeAsStringAsString parses the string 6110312N to "61 10.312N"', function() {
@@ -218,15 +218,15 @@ describe('PositionService', function() {
         });
 
         it('parseLatitudeAsStringAsString parses the string 61 103.12N to "61 10"', function() {
-            expect(service.parseLatitudeAsString('61 103.12N')).toBe("61 10.3");
+            expect(service.parseLatitudeAsString('61 103.12N')).toBe("61 10.312N");
         });
 
         it('parseLatitudeAsStringAsString parses the string 6 110.312N to ""', function() {
-            expect(service.parseLatitudeAsString('6 110 312N')).toBe("6");
+            expect(service.parseLatitudeAsString('6 110 312N')).toBe("61 10.312N");
         });
 
         it('parseLatitudeAsString parses the string 058 10.400W to "05 8"', function() {
-            expect(service.parseLatitudeAsString('058 10.400W')).toBe("05 8");
+            expect(service.parseLatitudeAsString('058 10.400W')).toBe("05 81.0400");
         });
     });
 

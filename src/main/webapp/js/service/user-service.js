@@ -37,6 +37,13 @@
                 }).success(success).error(function (data, status) {
                     error(embryo.ErrorService.errorStatus(data, status, "loading AIS source filters"), status);
                 });
+            },
+            rolesCount: function (success, error) {
+                $http.get(embryo.baseUrl + "rest/user/roles-count", {
+                    timeout: embryo.defaultTimeout
+                }).success(success).error(function (data, status) {
+                    error(embryo.ErrorService.errorStatus(data, status, "loading count of users with roles"), status);
+                });
             }
         };
     });

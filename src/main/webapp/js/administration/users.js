@@ -35,9 +35,18 @@ $(function() {
             });
         }
 
+        function loadRolesCount() {
+            UserService.rolesCount(function(rolesCount) {
+                $scope.rolesCount = rolesCount;
+            }, function(error) {
+                $scope.alertMessages = error;
+            });
+        }
 
         loadSourceFilters();
         loadUsers();
+        loadRolesCount();
+
 
         $scope.roleText = function(logicalName) {
             if (logicalName == "Reporting") {
@@ -105,6 +114,7 @@ $(function() {
                 $scope.message = "User " + $scope.editUser.login + " created.";
                 $scope.action = "Edit";
                 loadUsers();
+                loadRolesCount();
             }, function(error) {
                 $scope.message = null;
                 $scope.alertMessages = error;
@@ -134,6 +144,7 @@ $(function() {
                     $scope.message = "User " + $scope.editUser.login + " saved.";
                     $scope.action = null;
                     loadUsers();
+                    loadRolesCount();
                 }, function(error) {
                     $scope.message = null;
                     $scope.alertMessages = error;

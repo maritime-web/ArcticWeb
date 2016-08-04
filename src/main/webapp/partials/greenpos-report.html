@@ -28,26 +28,27 @@
 
 <div>
 <div class="control-group form-group">
-<label class="e-control-label">Report recipient</label>
-
-        <div class="controls col-xs-6">
+    <label class="e-control-label">Report recipient</label>
+    <div class="controls col-xs-6">
             <select id="gpRecipient" name="gpRecipient" x-ng-options="key as value for (key , value) in recipients"
                     x-ng-model="report.recipient" class="input-sm form-control" required>
             </select> <span x-ng-show="greenPosForm.gpRecipient.$error.required && greenPosForm.gpRecipient.$dirty"
                             class="msg-invalid">Value required</span>
-        </div>
     </div>
+    <div class="controls col-xs-2" x-ng-if="report.recipient=='soundrep'">
+        <img src="/img/Soundrep.jpg" width="80px"/>
+    </div>
+</div>
 
 <div class="control-group form-group">
-<label class="e-control-label" for="gReportType">Report Type</label>
-
-        <div class="controls col-xs-6">
-            <select id="gReportType" name="gpReportType" x-ng-options="i.id as i.name for i in reportTypes"
-                    x-ng-model="report.type" class="input-sm form-control" required>
-            </select> <span x-ng-show="greenPosForm.gpReportType.$error.required && greenPosForm.gpReportType.$dirty"
-                            class="msg-invalid">Value required</span>
-        </div>
+    <label class="e-control-label" for="gReportType">Report Type</label>
+    <div class="controls col-xs-6">
+        <select id="gReportType" name="gpReportType" x-ng-options="i.id as i.name for i in reportTypes"
+                x-ng-model="report.type" class="input-sm form-control" required>
+        </select> <span x-ng-show="greenPosForm.gpReportType.$error.required && greenPosForm.gpReportType.$dirty"
+                        class="msg-invalid">Value required</span>
     </div>
+</div>
 
     <!--
 

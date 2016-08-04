@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.storageServices', 'embryo.authentication.service', 'embryo.position', 'embryo.geo.services', 'embryo.pouchdb.services']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.pouchdb.services']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -28,14 +28,13 @@
         function TimeElapsed(data) {
             angular.extend(this, data);
         }
-        TimeElapsed.validate = function (startPosition, commenceSearchStart) {
-            assertValue(startPosition, "startPosition");
-            assertObjectFieldValue(startPosition, "ts");
+        TimeElapsed.validate = function (startPositionTs, commenceSearchStart) {
+            assertValue(startPositionTs, "startPositionTs");
             assertValue(commenceSearchStart, "commenceSearchStart");
         }
-        TimeElapsed.build = function(startPosition, commenceSearchStart){
-            TimeElapsed.validate(startPosition, commenceSearchStart);
-            var difference = (commenceSearchStart - startPosition.ts) / 60 / 60 / 1000;
+        TimeElapsed.build = function(startPositionTs, commenceSearchStart){
+            TimeElapsed.validate(startPositionTs, commenceSearchStart);
+            var difference = (commenceSearchStart - startPositionTs) / 60 / 60 / 1000;
             var data = {};
             data.timeElapsed = difference;
             data.hoursElapsed = Math.floor(difference);
@@ -45,28 +44,90 @@
         return TimeElapsed;
     });
 
-    module.factory('SurfaceDrift', ["Position", function (Position) {
-        function SurfaceDrift(data) {
+    module.factory('DriftVector', [function () {
+        function DriftVector(data) {
             angular.extend(this, data);
         }
+        DriftVector.prototype.add = function(vector2){
+            var vector1 = this;
+            var startLocation = vector1.positions[0];
+            var vector1EndPos = startLocation.transformPosition(vector1.direction, vector1.distance);
+            var vector2EndPos = vector1EndPos.transformPosition(vector2.direction, vector2.distance);
 
-        SurfaceDrift.prototype.positionsAsDegreesAndDecimalMinutes = function(){
-            var result = {
-                currentPositions: Position.toDegreesAndDecimalMinutes(this.currentPositions),
-                datumDownwindPositions: Position.toDegreesAndDecimalMinutes(this.datumDownwindPositions),
-                datumMinPositions: Position.toDegreesAndDecimalMinutes(this.datumMinPositions),
-                datumMaxPositions: Position.toDegreesAndDecimalMinutes(this.datumMaxPositions)
+            if(vector1.validFor !== vector2.validFor){
+                throw new Error("vectors must have been applied for equally long");
             }
-            result.datumDownwind = result.datumDownwindPositions[result.datumDownwindPositions.length - 1];
-            result.datumMax = result.datumMaxPositions[result.datumMaxPositions.length - 1];
-            result.datumMin = result.datumMinPositions[result.datumMinPositions.length - 1]
-            return new SurfaceDrift(result);
+
+            return DriftVector.create({
+                positions : [startLocation, vector1EndPos,vector2EndPos],
+                distance : startLocation.rhumbLineDistanceTo(vector2EndPos),
+                direction : startLocation.rhumbLineBearingTo(vector2EndPos),
+                validFor : vector1.validFor,
+            })
         }
-        SurfaceDrift.validate = function (startPosition, commenceSearchStart, surfaceDrifts, searchObject) {
-            assertValue(startPosition, "startPosition");
-            assertValue(commenceSearchStart, "commenceSearchStart");
-            assertValue(surfaceDrifts, "surfaceDrifts");
-            assertValue(searchObject, "searchObject");
+        DriftVector.prototype.reverse = function(){
+            return DriftVector.create({
+                positions : this.positions.reverse(),
+                distance : this.distance,
+                direction : this.direction,
+                validFor : this.validFor,
+            })
+        }
+        DriftVector.prototype.getLastPosition = function(){
+            return this.positions[this.positions.length - 1];
+        }
+        DriftVector.prototype.getFirstPosition = function(){
+            return this.positions[0];
+        }
+        DriftVector.prototype.limitPositionsTo = function(number){
+            var increment = (this.positions.length - 1) / (number - 1);
+            var result = []
+            for(var index = 0; index < this.positions.length; index += increment){
+                result.push(this.positions[index]);
+            }
+            return DriftVector.create({
+                positions : result,
+                distance : this.distance,
+                direction : this.direction,
+                validFor : this.validFor
+            })
+        }
+        DriftVector.prototype.divergence = function(divergence){
+            // We don't need all intermediate positions in final result as only resulting TWC and Leeway vectors are shown
+            // Therefore just leave out all intermediate positions and only return start and end pos en resulting DriftVector
+            var newBearing = this.direction + divergence;
+            var newEndPos = this.positions[0].transformPosition(newBearing, this.distance);
+            return DriftVector.create({
+                positions : [this.positions[0], newEndPos],
+                distance : this.distance,
+                direction : newBearing,
+                validFor : this.validFor
+            })
+        }
+
+        DriftVector.validate = function(data){
+            assertObjectFieldValue(data, "positions");
+            assertObjectFieldValue(data, "distance");
+            assertObjectFieldValue(data, "direction");
+            assertObjectFieldValue(data, "validFor");
+        }
+
+        DriftVector.create = function (data) {
+            DriftVector.validate(data);
+
+            angular.extend(data, {
+                speed : data.distance / data.validFor
+            })
+            return new DriftVector(data)
+        }
+        return DriftVector;
+    }]);
+
+    module.factory('SurfaceDrifts', ['Position', 'DriftVector', function (Position, DriftVector) {
+        function SurfaceDrifts(surfaceDrifts){
+            this.values = surfaceDrifts
+        }
+        SurfaceDrifts.validate = function (surfaceDrifts) {
             for (var i = 0; i < surfaceDrifts.length; i++) {
                 assertObjectFieldValue(surfaceDrifts[i], "ts");
                 assertObjectFieldValue(surfaceDrifts[i], "twcSpeed");
@@ -76,174 +137,128 @@
             }
         }
 
-        SurfaceDrift.calculate2 = function (startPosition, untilTs, surfaceDrifts, searchObject) {
-            var datumDownwindPositions = [];
-            var datumMinPositions = [];
-            var datumMaxPositions = [];
-            var currentPositions = []
-
-            var startTs = startPosition.ts;
-            var validFor = null
-
-            for (var i = surfaceDrifts.length - 1; i >= 0; i--) {
-                // Do we have a next?
-                // How long is the data point valid for?
-                // Is it the last one?
-                if (i == 0) {
-                    // It's the last one - let it last the remainder
-                    validFor = (untilTs - startTs) / 60 / 60 / 1000;
-                } else {
-                    var currentTs = surfaceDrifts[i].ts;
-                    if (currentTs > startPosition.ts) {
-                        currentTs = startPosition.ts;
-                    }
-                    validFor = (startTs - currentTs) / 60 / 60 / 1000;
-                    startTs = surfaceDrifts[i].ts;
-                }
-
-                var currentTWC = surfaceDrifts[i].twcSpeed * validFor;
-
-                var startingLocation = null;
-                if (i == 0) {
-                    startingLocation = Position.create(startPosition.lon, startPosition.lat);
-                } else {
-                    startingLocation = datumDownwindPositions[i - 1];
-                }
-
-                var leewayDivergence = searchObject.divergence;
-                var leewaySpeed = searchObject.leewaySpeed(surfaceDrifts[i].leewaySpeed);
-                var leewayDriftDistance = leewaySpeed * validFor;
-
-                var twcDirectionInDegrees = directionDegrees(surfaceDrifts[i].twcDirection);
-                var currentPos = startingLocation.transformPosition(twcDirectionInDegrees, currentTWC);
-                currentPositions.push(currentPos)
-
-                // TODO move somewhere else
-                var downWind = surfaceDrifts[i].downWind;
-                if (!downWind) {
-                    downWind = directionDegrees(surfaceDrifts[i].leewayDirection) - 180;
-                }
-
-                // Are these calculations correct ?
-                // why are previous datumDownwindPosition/datumMinPosition, datumMaxPosition never used.
-                datumDownwindPositions.push(currentPos.transformPosition(downWind, leewayDriftDistance));
-                datumMinPositions.push(currentPos.transformPosition(downWind - leewayDivergence, leewayDriftDistance));
-                datumMaxPositions.push(currentPos.transformPosition(downWind + leewayDivergence, leewayDriftDistance));
-
-            }
-            var result = {
-                lastVectorValidFor : validFor,
-                currentPositions: currentPositions,
-                datumDownwindPositions: datumDownwindPositions,
-                datumMinPositions: datumMinPositions,
-                datumMaxPositions: datumMaxPositions,
-                datumDownwind : datumDownwindPositions[datumDownwindPositions.length - 1],
-                datumMax : datumMaxPositions[datumMaxPositions.length - 1],
-                datumMin : datumMinPositions[datumMinPositions.length - 1]
-            }
-            return result;
+        SurfaceDrifts.create = function(surfaceDrifts){
+            SurfaceDrifts.validate(surfaceDrifts);
+            return new SurfaceDrifts(surfaceDrifts);
         }
-        SurfaceDrift.calculate = function (startPosition, commenceSearchStart, surfaceDrifts, searchObject) {
-            var datumDownwindPositions = [];
-            var datumMinPositions = [];
-            var datumMaxPositions = [];
-            var currentPositions = []
 
+        SurfaceDrifts.prototype.generateValidFor = function(startPosition, commenceSearchStart){
+            assertValue(startPosition, "startPosition");
+            assertValue(commenceSearchStart, "commenceSearchStart");
+
+            var surfaceDrifts = this.values;
+            var validFor = [];
             var startTs = startPosition.ts;
-            var validFor = null
-
             for (var i = 0; i < surfaceDrifts.length; i++) {
-                // Do we have a next?
-                // How long is the data point valid for?
-                // Is it the last one?
                 if (i == surfaceDrifts.length - 1) {
                     // It's the last one - let it last the remainder
-                    validFor = (commenceSearchStart - startTs) / 60 / 60 / 1000;
+                    validFor.push((commenceSearchStart - startTs) / 60 / 60 / 1000);
                 } else {
                     var currentTs = surfaceDrifts[i].ts;
                     if (currentTs < startPosition.ts) {
                         currentTs = startPosition.ts;
                     }
                     startTs = surfaceDrifts[i + 1].ts;
-                    validFor = (startTs - currentTs) / 60 / 60 / 1000;
+                    validFor.push((startTs - currentTs) / 60 / 60 / 1000);
                 }
-
-                var currentTWC = surfaceDrifts[i].twcSpeed * validFor;
-
-                var startingLocation = null;
-                if (i == 0) {
-                    startingLocation = Position.create(startPosition.lon, startPosition.lat);
-                } else {
-                    startingLocation = datumDownwindPositions[i - 1];
-                }
-
-                var leewayDivergence = searchObject.divergence;
-                var leewaySpeed = searchObject.leewaySpeed(surfaceDrifts[i].leewaySpeed);
-                var leewayDriftDistance = leewaySpeed * validFor;
-
-                var twcDirectionInDegrees = directionDegrees(surfaceDrifts[i].twcDirection);
-                var currentPos = startingLocation.transformPosition(twcDirectionInDegrees, currentTWC);
-                currentPositions.push(currentPos)
-
-                // TODO move somewhere else
-                var downWind = surfaceDrifts[i].downWind;
-                if (!downWind) {
-                    downWind = directionDegrees(surfaceDrifts[i].leewayDirection) - 180;
-                }
-
-                // Are these calculations correct ?
-                // why are previous datumDownwindPosition/datumMinPosition, datumMaxPosition never used.
-                datumDownwindPositions.push(currentPos.transformPosition(downWind, leewayDriftDistance));
-                datumMinPositions.push(currentPos.transformPosition(downWind - leewayDivergence, leewayDriftDistance));
-                datumMaxPositions.push(currentPos.transformPosition(downWind + leewayDivergence, leewayDriftDistance));
-
             }
-            var result = {
-                lastVectorValidFor : validFor,
-                currentPositions: currentPositions,
-                datumDownwindPositions: datumDownwindPositions,
-                datumMinPositions: datumMinPositions,
-                datumMaxPositions: datumMaxPositions,
-                datumDownwind : datumDownwindPositions[datumDownwindPositions.length - 1],
-                datumMax : datumMaxPositions[datumMaxPositions.length - 1],
-                datumMin : datumMinPositions[datumMinPositions.length - 1]
+            this.validFor = validFor;
+            return this.validFor;
+        };
+        SurfaceDrifts.nextTWCPosition = function (fromPos, validFor, surfaceDrift){
+            var currentTWC = surfaceDrift.twcSpeed * validFor;
+            var twcDirectionInDegrees = directionDegrees(surfaceDrift.twcDirection);
+            return fromPos.transformPosition(twcDirectionInDegrees, currentTWC);
+        };
+        SurfaceDrifts.nextLeewayPosition = function (fromPos, validFor, surfaceDrift, searchObject){
+            var speed = searchObject.leewaySpeed(surfaceDrift.leewaySpeed);
+            var driftDistance = speed * validFor;
+            var directionInDegrees = directionDegrees(surfaceDrift.leewayDirection) - 180;
+            return fromPos.transformPosition(directionInDegrees, driftDistance);
+        };
+        SurfaceDrifts.prototype.calculateDrift = function(fnNextPosition, startPosition, commenceSearchStart, searchObject){
+            assertValue(startPosition, "startPosition");
+
+            this.generateValidFor(startPosition, commenceSearchStart);
+
+            var startLocation = Position.create(startPosition.lon, startPosition.lat);
+            var positions = [startLocation];
+
+            for (var i = 0; i < this.values.length; i++) {
+                var fromPos = i == 0 ? startLocation : positions[i - 1];
+                positions.push(fnNextPosition(fromPos, this.validFor[i], this.values[i], searchObject));
             }
-            return result;
+            return DriftVector.create({
+                positions : positions,
+                distance : startLocation.rhumbLineDistanceTo(positions[positions.length - 1]),
+                direction : startLocation.rhumbLineBearingTo(positions[positions.length - 1]),
+                validFor : (commenceSearchStart - startPosition.ts) / 60/ 60 / 1000
+            });
         }
-        SurfaceDrift.build = function(startPosition, commenceSearchStart, surfaceDrifts, searchObject){
-            SurfaceDrift.validate(startPosition, commenceSearchStart, surfaceDrifts, searchObject);
-            var result = SurfaceDrift.calculate(startPosition, commenceSearchStart, surfaceDrifts, searchObject);
-            return new SurfaceDrift(result);
+        SurfaceDrifts.prototype.calculateTWC = function(startPosition, commenceSearchStart){
+            return this.calculateDrift(SurfaceDrifts.nextTWCPosition, startPosition, commenceSearchStart);
         }
-        return SurfaceDrift;
+        SurfaceDrifts.prototype.calculateLeeway = function(startPosition, commenceSearchStart, searchObject){
+            return this.calculateDrift(SurfaceDrifts.nextLeewayPosition, startPosition, commenceSearchStart, searchObject)
+        }
+        return SurfaceDrifts;
     }]);
 
-    module.factory('RDV', function () {
-        function RDV(data) {
-            angular.extend(this, data);
+    module.factory('BackTrackSurfaceDrifts', ['SurfaceDrifts', 'Position', 'DriftVector', function (SurfaceDrifts, Position, DriftVector) {
+        function BackTrackSurfaceDrifts(surfaceDrifts) {
+            this.values = surfaceDrifts
+        }
+        BackTrackSurfaceDrifts.create = function (surfaceDrifts) {
+            SurfaceDrifts.validate(surfaceDrifts);
+            return new BackTrackSurfaceDrifts(surfaceDrifts);
+        }
+        BackTrackSurfaceDrifts.prototype = new SurfaceDrifts();
+
+        BackTrackSurfaceDrifts.prototype.generateValidFor = function (objectPosition, driftFromTs) {
+            assertValue(objectPosition, "startPosition");
+            assertValue(driftFromTs, "driftFromTs");
+
+            var surfaceDrifts = this.values;
+            var validFor = [];
+            var startTs = driftFromTs;
+            for (var i = 0; i < surfaceDrifts.length; i++) {
+                if (i == surfaceDrifts.length - 1) {
+                    // It's the last one - let it last the remainder
+                    validFor.push((objectPosition.ts - startTs) / 60 / 60 / 1000);
+                } else {
+                    var currentTs = surfaceDrifts[i].ts;
+                    if (currentTs < driftFromTs) {
+                        currentTs = driftFromTs;
+                    }
+                    startTs = surfaceDrifts[i + 1].ts;
+                    validFor.push((startTs - currentTs) / 60 / 60 / 1000);
+                }
+            }
+            this.validFor = validFor.reverse();
+            return this.validFor;
+        }
+        BackTrackSurfaceDrifts.prototype.calculateDrift = function(fnNextPosition, objectPosition, driftFromTs, searchObject){
+            assertValue(objectPosition, "objectPosition");
+
+            this.generateValidFor(objectPosition, driftFromTs);
+
+            var startLocation = Position.create(objectPosition.lon, objectPosition.lat);
+            var positions = [startLocation];
+
+            for (var i = 0; i < this.values.length; i++) {
+                var fromPos = i == 0 ? startLocation : positions[i - 1];
+                positions.push(fnNextPosition(fromPos, this.validFor[i], this.values[i], searchObject));
+            }
+            return DriftVector.create({
+                positions : positions,
+                distance : startLocation.rhumbLineDistanceTo(positions[positions.length - 1]),
+                direction : startLocation.rhumbLineBearingTo(positions[positions.length - 1]),
+                validFor : (objectPosition.ts - driftFromTs ) / 60/ 60 / 1000
+            });
         }
 
-        RDV.validate = function(lkp, positions, lastVectorValidFor){
-            assertValue(lkp, "lkp");
-            assertValue(positions, "positions");
-            assertValue(lastVectorValidFor, "lastVectorValidFor");
-        }
-
-        RDV.build = function (lkp, positions, lastVectorValidFor) {
-            RDV.validate(lkp, positions, lastVectorValidFor);
-
-            var fromPos = positions.length > 1 ? positions[positions.length - 2] : lkp;
-            var toPos = positions[positions.length - 1];
-
-            var rdv = {}
-            rdv.direction = fromPos.bearingTo(toPos, embryo.geo.Heading.RL);
-            rdv.distance = fromPos.distanceTo(toPos, embryo.geo.Heading.RL);
-            rdv.speed = rdv.distance / lastVectorValidFor;
-            return new RDV(rdv);
-        }
-
-        return RDV;
-    });
+        return BackTrackSurfaceDrifts;
+    }]);
 
     module.factory('SearchCircle', ["Position", "Circle", function (Position, Circle) {
         function SearchCircle(data) {
@@ -432,68 +447,74 @@
         return service;
     }]);
 
-    module.factory('RapidResponseOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "RapidResponseSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, RapidResponseSearchAreaCalculator) {
+    module.factory('RapidResponseOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "RapidResponseSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, RapidResponseSearchAreaCalculator) {
 
         function RapidResponseOutput(data) {
             angular.extend(this, data);
         }
 
         RapidResponseOutput.calculate = function (input) {
-            var result = TimeElapsed.build(input.lastKnownPosition, input.startTs);
-            var lkp = Position.create(input.lastKnownPosition)
+            var result = TimeElapsed.build(input.lastKnownPosition.ts, input.startTs);
+            var css = input.startTs;
+            var lkp = input.lastKnownPosition;
             var searchObject = findSearchObjectType(input.searchObject);
-            var drift = SurfaceDrift.build(input.lastKnownPosition, input.startTs, input.surfaceDriftPoints, searchObject);
-            result.currentPositions = Position.toDegreesAndDecimalMinutes(drift.currentPositions);
-
+            var drift = SurfaceDrifts.create(input.surfaceDriftPoints);
             // Only correct input values to RDV if only one surfaceDrift value set.
-            result.rdv = RDV.build(lkp, drift.datumDownwindPositions, drift.lastVectorValidFor);
-            result.circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, result.rdv.distance, drift.datumDownwind);
-            result.driftPositions = Position.toDegreesAndDecimalMinutes(drift.datumDownwindPositions);
-            result.searchArea = RapidResponseSearchAreaCalculator.calculate(drift.datumDownwind, result.circle.radius, result.rdv.direction);
+            result.rdv = drift.calculateTWC(lkp, css, searchObject).add(drift.calculateLeeway(lkp, css, searchObject)).limitPositionsTo(2);
+            var datum = result.rdv.getLastPosition();
+            result.circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, result.rdv.distance, datum);
+            result.rdv.positions = Position.toDegreesAndDecimalMinutes(result.rdv.positions);
+            result.searchArea = RapidResponseSearchAreaCalculator.calculate(datum, result.circle.radius, result.rdv.direction);
             return new RapidResponseOutput(result);
         }
         return RapidResponseOutput;
     }]);
 
 
-    module.factory('DatumPointOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "DatumPointSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, DatumPointSearchAreaCalculator) {
+    module.factory('DatumPointOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "DatumPointSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, DatumPointSearchAreaCalculator) {
 
         function DatumPointOutput(data) {
             angular.extend(this, data);
         }
 
         DatumPointOutput.calculate = function (input) {
-            var result = TimeElapsed.build(input.lastKnownPosition, input.startTs);
-            var lkp = Position.create(input.lastKnownPosition)
+            var result = TimeElapsed.build(input.lastKnownPosition.ts, input.startTs);
+            var lkp = input.lastKnownPosition;
+            var css = input.startTs;
             var searchObject = findSearchObjectType(input.searchObject);
-            var drift = SurfaceDrift.build(input.lastKnownPosition, input.startTs, input.surfaceDriftPoints, searchObject);
-            result.currentPositions = drift.currentPositions;
+            var drift = SurfaceDrifts.create(input.surfaceDriftPoints);
 
-            var rdv = RDV.build(lkp, drift.datumDownwindPositions, drift.lastVectorValidFor);
-            var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+
+            var twc = drift.calculateTWC(lkp, css, searchObject);
+            var leeway = drift.calculateLeeway(lkp, css, searchObject)
+            var rdv = twc.add(leeway).limitPositionsTo(3);
+            var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.downWind = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumDownwindPositions
             }
+            result.downWind.rdv.positions = Position.toDegreesAndDecimalMinutes(result.downWind.rdv.positions);
 
-            rdv = RDV.build(lkp, drift.datumMaxPositions, drift.lastVectorValidFor);
-            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
+            var maxLeeway = leeway.divergence(searchObject.divergence)
+            rdv = twc.limitPositionsTo(2).add(maxLeeway).limitPositionsTo(3);
+            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.max = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumMaxPositions
             }
+            result.max.rdv.positions = Position.toDegreesAndDecimalMinutes(result.max.rdv.positions);
 
-            rdv = RDV.build(lkp, drift.datumMinPositions, drift.lastVectorValidFor);
-            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
+
+            var minLeeway = leeway.divergence(0 - searchObject.divergence)
+            rdv = twc.limitPositionsTo(2).add(minLeeway).limitPositionsTo(3);
+            circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
             result.min = {
                 rdv : rdv,
                 circle : circle,
-                driftPositions : drift.datumMinPositions
             }
+            result.min.rdv.positions = Position.toDegreesAndDecimalMinutes(result.min.rdv.positions);
 
             result.searchArea = DatumPointSearchAreaCalculator.calculate(result.min, result.max, result.downWind);
 
@@ -564,8 +585,8 @@
         return service;
     }]);
 
-    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrift", "RDV", "SearchCircle", "DatumLineSearchAreaCalculator",
-        function (Position, TimeElapsed, SurfaceDrift, RDV, SearchCircle, DatumLineSearchAreaCalculator) {
+    module.factory('DatumLineOutput', ["Position", "TimeElapsed", "SurfaceDrifts", "SearchCircle", "DatumLineSearchAreaCalculator",
+        function (Position, TimeElapsed, SurfaceDrifts, SearchCircle, DatumLineSearchAreaCalculator) {
 
         function DatumLineOutput(data) {
             angular.extend(this, data);
@@ -576,38 +597,42 @@
             for (var index in input.dsps) {
                 var dsp = clone(input.dsps[index]);
 
-                var result = TimeElapsed.build(dsp, input.startTs);
+                var css = input.startTs
+                var result = TimeElapsed.build(dsp.ts, input.startTs);
 
-                var startPoint = Position.create(dsp)
                 var searchObject = findSearchObjectType(input.searchObject);
 
-                var surfaceDrifts = dsp.reuseSurfaceDrifts ? input.dsps[0].surfaceDrifts : dsp.surfaceDrifts;
-                var drift = SurfaceDrift.build(dsp, input.startTs, surfaceDrifts, searchObject);
-                result.currentPositions = drift.currentPositions;
+                var drift = SurfaceDrifts.create(dsp.reuseSurfaceDrifts ? input.dsps[0].surfaceDrifts : dsp.surfaceDrifts);
+                var twc = drift.calculateTWC(dsp, css, searchObject);
+                var leeway = drift.calculateLeeway(dsp, css, searchObject)
+                var rdv = twc.add(leeway);
 
-                var rdv = RDV.build(startPoint, drift.datumDownwindPositions, result.timeElapsed);
-                var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
+                var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.downWind = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumDownwindPositions
                 }
+                result.downWind.rdv.positions = Position.toDegreesAndDecimalMinutes(result.downWind.rdv.positions);
 
-                rdv = RDV.build(startPoint, drift.datumMaxPositions, result.timeElapsed);
-                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMax);
+
+                var maxLeeway = leeway.divergence(searchObject.divergence)
+                rdv = twc.add(maxLeeway);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.max = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumMaxPositions
                 }
+                result.max.rdv.positions = Position.toDegreesAndDecimalMinutes(result.max.rdv.positions);
 
-                rdv = RDV.build(startPoint, drift.datumMinPositions, result.timeElapsed);
-                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumMin);
+                var minLeeway = leeway.divergence(0-searchObject.divergence)
+                rdv = twc.add(minLeeway);
+                circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getLastPosition());
                 result.min = {
                     rdv: rdv,
                     circle: circle,
-                    driftPositions: drift.datumMinPositions
                 }
+                result.min.rdv.positions = Position.toDegreesAndDecimalMinutes(result.min.rdv.positions);
+
                 dspResults.push(result);
             }
 
@@ -622,31 +647,28 @@
 
     }]);
 
-    module.factory('BackTrackOutput', [function () {
-        function BackTrackOutput() {
+
+
+    module.factory('BackTrackOutput', ['TimeElapsed', 'Position', 'BackTrackSurfaceDrifts','SearchCircle', function (TimeElapsed, Position, BackTrackSurfaceDrifts,SearchCircle) {
+        function BackTrackOutput(data) {
             angular.extend(this, data);
         }
 
         BackTrackOutput.calculate = function(input){
+            var result = TimeElapsed.build(input.driftFromTs, input.objectPosition.ts);
 
-            var result = TimeElapsed.build(input.objectPosition, input.startTs);
-
-            var startPoint = Position.create(dsp)
+            var driftFromTs = input.driftFromTs;
             var searchObject = findSearchObjectType(input.searchObject);
 
+            var drift = BackTrackSurfaceDrifts.create(input.surfaceDriftPoints);
 
-            var surfaceDrifts = SurfaceDrift.revertDirections(input.surfaceDrifts);
-            var drift = SurfaceDrift.build(input.objectPosition, input.startTs, surfaceDrifts, searchObject);
-            result.currentPositions = drift.currentPositions;
+            var twc = drift.calculateTWC(input.objectPosition, driftFromTs);
+            var leeway = drift.calculateLeeway(input.objectPosition, driftFromTs, searchObject)
+            var rdv = twc.add(leeway).limitPositionsTo(3).reverse();
 
-            var rdv = RDV.build(startPoint, drift.datumDownwindPositions, result.timeElapsed);
-            var circle = SearchCircle.build(dsp.xError, input.yError, input.safetyFactor, rdv.distance, drift.datumDownwind);
-            result.downWind = {
-                rdv: rdv,
-                circle: circle,
-                driftPositions: drift.datumDownwindPositions
-            }
-
+            var circle = SearchCircle.build(input.xError, input.yError, input.safetyFactor, rdv.distance, rdv.getFirstPosition());
+            result.rdv = rdv;
+            result.circle = circle;
 
             return new BackTrackOutput(result);
         }
@@ -692,20 +714,15 @@
     }]);
 
 
-    function EffortAllocationCalculator() {
+    function EffortAllocationCalculator(SarTableFactory) {
+        this.SarTableFactory = SarTableFactory;
     }
 
-    EffortAllocationCalculator.prototype.lookupUncorrectedSweepWidth = function (sruType, targetType, visibility) {
-        if (sruType === embryo.sar.effort.SruTypes.MerchantVessel) {
-            return embryo.sar.effort.createIamsarMerchantSweepWidths()[targetType][Math.floor(visibility / 5)];
+    EffortAllocationCalculator.prototype.lookupVelocityCorrection = function (sruType, targetType, speed) {
+        var table = this.SarTableFactory.getSpeedCorrectionTable(sruType);
+        if(table){
+            return table.lookup(targetType, speed);
         }
-
-        if (sruType === embryo.sar.effort.SruTypes.SmallerVessel || sruType === embryo.sar.effort.SruTypes.Ship) {
-            return embryo.sar.effort.createSweepWidths()[sruType][targetType][visibility];
-        }
-        return 0.0
-    }
-    EffortAllocationCalculator.prototype.lookupVelocityCorrection = function (sruType) {
         // Velocity correction is only necessary for air born SRUs. Should it be used here?
         return 1;
     }
@@ -757,6 +774,8 @@
             return sar.output.circle.datum;
         } else if (sar.input.type == embryo.sar.Operation.DatumPoint) {
             return sar.output.downWind.circle.datum;
+        } else if (sar.input.type == embryo.sar.Operation.DatumLine){
+            return sar.output.dsps[0].downWind.circle.datum;
         }
         return sar.output.circle.datum;
     };
@@ -764,13 +783,22 @@
         //In NM?
         var quadrantLength = Math.sqrt(areaSize);
 
-        var sarA = embryo.geo.Position.create(sarArea.A.lon, sarArea.A.lat);
-        var sarB = embryo.geo.Position.create(sarArea.B.lon, sarArea.B.lat);
-        var sarD = embryo.geo.Position.create(sarArea.D.lon, sarArea.D.lat);
         var center = embryo.geo.Position.create(datum.lon, datum.lat);
 
-        var bearingAB = sarA.rhumbLineBearingTo(sarB);
-        var bearingDA = sarD.rhumbLineBearingTo(sarA);
+        var bearingAB = null;
+        var bearingDA = null;
+
+        if(sarArea.A && sarArea.B && sarArea.D){
+            var sarA = embryo.geo.Position.create(sarArea.A.lon, sarArea.A.lat);
+            var sarB = embryo.geo.Position.create(sarArea.B.lon, sarArea.B.lat);
+            var sarD = embryo.geo.Position.create(sarArea.D.lon, sarArea.D.lat);
+            bearingAB = sarA.rhumbLineBearingTo(sarB);
+            bearingDA = sarD.rhumbLineBearingTo(sarA);
+        } else {
+            bearingAB = 90;
+            bearingDA = 180;
+        }
+
         var zonePosBetweenAandB = center.transformPosition(bearingAB, quadrantLength / 2);
 
         var zoneArea = {};
@@ -784,9 +812,9 @@
     };
 
     EffortAllocationCalculator.prototype.calculate = function (input, sar) {
-        var wu = this.lookupUncorrectedSweepWidth(input.type, input.target, input.visibility);
-        var fw = this.lookupWeatherCorrectionFactor();
-        var fv = this.lookupVelocityCorrection(input.type);
+        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
+        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
+        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
         var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
         var C = this.calculateCoverageFactor(input.pod)
         var S = this.calculateTrackSpacing(wc, C);
@@ -803,6 +831,42 @@
         allocation.modified = Date.now();
         return allocation;
     }
+
+
+    // USED IN sar-edit.js and sar-controller.js
+    module.service('EffortAllocationService', ['LivePouch', '$log', function (LivePouch, $log) {
+
+        var service = {
+            deleteAllocationsForSameUser: function (effort, success) {
+                LivePouch.query('sar/effortView', {
+                    key: effort.sarId,
+                    include_docs: true
+                }).then(function (result) {
+                    var efforts = [];
+                    for (var index in result.rows) {
+                        var doc = result.rows[index].doc;
+                        if (doc['@type'] === embryo.sar.Type.EffortAllocation && doc.name == effort.name
+                            && doc._id !== effort._id) {
+
+                            doc._deleted = true;
+                            efforts.push(doc)
+                        } else if (doc['@type'] === embryo.sar.Type.SearchPattern && doc.name === effort.name) {
+                            doc._deleted = true;
+                            efforts.push(doc)
+                        }
+                    }
+                    //delete allocations and search patterns
+                    return LivePouch.bulkDocs(efforts)
+                }).then(success).catch(function (error) {
+                    $log.error("error during deleteEffortAllocationsForSameUser")
+                    $log.error(error)
+                });
+            }
+
+        };
+        return service;
+    }]);
+
 
     function SearchPatternCalculator() {
     }
@@ -821,6 +885,8 @@
                 });
             }
         }
+
+        corners.sort(toTheNorth)
 
         function label(key, label) {
             return {
@@ -898,7 +964,7 @@
     }
 
     SearchPatternCalculator.prototype.onSceneDistance = function (zone) {
-        return zone.time * zone.speed;
+        return zone.time * zone.speed ;
     }
 
     SearchPatternCalculator.getCalculator = function (type) {
@@ -909,9 +975,9 @@
                 return new CreepingLineCalculator();
             case (embryo.sar.effort.SearchPattern.ExpandingSquare) :
                 return new ExpandingSquareCalculator();
-            /*  case (embryo.sar.effort.SearchPattern.SectorPattern) :
-             return new BackTrackCalculator();
-             case (embryo.sar.effort.SearchPattern.TrackLine) :
+            case (embryo.sar.effort.SearchPattern.SectorSearch) :
+             return new SectorCalculator();
+           /*  case (embryo.sar.effort.SearchPattern.TrackLine) :
              return new RapidResponseCalculator();
              case (embryo.sar.effort.SearchPattern.TrackLineReturn) :
              return new DatumPointCalculator();
@@ -935,6 +1001,7 @@
 
         var onSceneDistance = this.onSceneDistance(zone);
         var lastSearchLegBearing = initialSearchLegBearing;
+        var xtd = zone.S / 2
 
         var lastPosition = CSP;
         var nextIsSearchLeg = true;
@@ -946,7 +1013,7 @@
                 distance = onSceneDistance - totalDistance;
             }
             var lastPosition = lastPosition.transformPosition(bearing, distance);
-            wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, xtd));
 
             if (nextIsSearchLeg) {
                 lastSearchLegBearing = bearing;
@@ -1040,7 +1107,7 @@
     function ExpandingSquareCalculator() {
     }
 
-    ExpandingSquareCalculator.prototype = new ParallelSweepSearchCalculator();
+    ExpandingSquareCalculator.prototype = new SearchPatternCalculator();
 
     ExpandingSquareCalculator.prototype.createWaypoints = function (zone, datum, initialBearing) {
         var index = 0;
@@ -1067,14 +1134,28 @@
     }
 
 
+
     ExpandingSquareCalculator.prototype.calculate = function (zone, sp) {
         var posA = this.cornerPosition(zone, "A");
         var posB = this.cornerPosition(zone, "B");
+        var posC = this.cornerPosition(zone, "C");
 
-        var datum = sp.sar.output.datum ? sp.sar.output.datum : sp.sar.output.downWind.datum;
-        var initialBearing = posA.rhumbLineBearingTo(posB);
+        var distAB = posA.rhumbLineDistanceTo(posB);
+        var distBC = posB.rhumbLineDistanceTo(posC);
 
-        var wayPoints = this.createWaypoints(zone, new embryo.geo.Position(datum.lon, datum.lat), initialBearing);
+
+        if(embryo.Math.round10(distAB, 2) != embryo.Math.round10(distBC, 2)){
+
+        }
+
+
+        var bearingAB = posA.rhumbLineBearingTo(posB);
+        var bearingBC = posB.rhumbLineBearingTo(posC);
+
+        var centerAB = posA.transformPosition(bearingAB, distAB/2);
+        var center = centerAB.transformPosition(bearingBC, distBC/2);
+
+        var wayPoints = this.createWaypoints(zone, center, bearingAB);
 
         var searchPattern = {
             _id: "sarSp-" + Date.now(),
@@ -1089,15 +1170,96 @@
         return searchPattern;
     }
 
+    function SectorCalculator() {
+    }
+
+    SectorCalculator.prototype = new ParallelSweepSearchCalculator();
+
+    SectorCalculator.prototype.createWaypoints = function (zone, csp, center, initialDirection, radius, turn) {
+        var wpIndex = 0;
+        var totalDistance = 0;
+        //var onSceneDistance = this.onSceneDistance(zone);
+
+        var turnPoints = [csp];
+        var direction = embryo.geo.reverseDirection(initialDirection);
+
+        for(var counter = 0; counter < 5; counter++){
+            direction= (direction + (turn === embryo.sar.effort.Side.Port ? -60 : 60)) % 360;
+            turnPoints.push(center.transformPosition(direction, radius))
+        }
+
+        var wayPoints = [];
+        var index = 0;
+        for(var counter = 0; counter < 3; counter++){
+            wayPoints.push(this.createWaypoint(wpIndex++, turnPoints[index], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            wayPoints.push(this.createWaypoint(wpIndex++, center, zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            index = (index + 3) % 6;
+            wayPoints.push(this.createWaypoint(wpIndex++, turnPoints[index], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            index++
+        }
+        wayPoints.push(this.createWaypoint(wpIndex, turnPoints[0], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+        return wayPoints;
+    }
+
+    SectorCalculator.prototype.center = function (zone, sp) {
+        var center;
+        if (sp.sar.output.circle) {
+            center = sp.sar.output.circle.datum;
+        } else if (sp.sar.output.downWind.circle) {
+            center = sp.sar.output.downWind.circle.datum;
+        } else {
+            var posA = this.cornerPosition(zone, "A");
+            var posB = this.cornerPosition(zone, "B");
+            var posC = this.cornerPosition(zone, "C");
+
+            var distAB = posA.rhumbLineDistanceTo(posB);
+            var distBC = posB.rhumbLineDistanceTo(posC);
+
+            var bearingAB = posA.rhumbLineBearingTo(posB);
+            var bearingBC = posB.rhumbLineBearingTo(posC);
+
+            var centerAB = posA.transformPosition(bearingAB, distAB / 2);
+            var center = centerAB.transformPosition(bearingBC, distBC / 2);
+        }
+        return center
+    }
+
+    SectorCalculator.prototype.calculate = function (zone, sp) {
+        var center = this.center(zone,sp);
+
+        var direction = parseInt(sp.direction)
+
+        var wayPoints = this.createWaypoints(zone, sp.csp, center, direction, sp.radius, sp.turn);
+
+        var searchPattern = {
+            _id: "sarSp-" + Date.now(),
+            sarId: zone.sarId,
+            effId: zone._id,
+            type: embryo.sar.effort.SearchPattern.SectorSearch,
+            name: zone.name,
+            wps: wayPoints,
+            direction : sp.direction,
+            radius : sp.radius,
+            turn : sp.turn
+        }
+        searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+        return searchPattern;
+    }
+
+    SectorCalculator.prototype.calculateCSP = function (zone, sp) {
+        var center = this.center(zone,sp);
+        return center.transformPosition(embryo.geo.reverseDirection(sp.direction), sp.radius)
+    }
+
+
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
     }
 
-
-
     // USED IN sar-edit.js and sar-controller.js
-    module.service('SarService', ['$log', '$timeout', 'Subject', 'PositionService', 'Position',
-        function ($log, $timeout, Subject, PositionService, Position) {
+    module.service('SarService', ['$log', '$timeout', 'Subject', 'Position', 'SarTableFactory',
+        function ($log, $timeout, Subject, Position, SarTableFactory) {
 
         var selectedSarById;
         var listeners = {};
@@ -1166,15 +1328,9 @@
 
                 return this.findLatestModified(zones, isZone);
             },
-            validateSarInput: function (input) {
-                // this was written to prevent Chrome browser running in indefinite loops
-                getCalculator(input.type, PositionService).validate(input);
-            },
             calculateEffortAllocations: function (allocationInputs, sar) {
                 var s = clone(sar);
-                s.input.lastKnownPosition = Position.create(s.input.lastKnownPosition);
-                //s.output = getCalculator(s.input.type, PositionService).convertPositionsToDegrees(s.output)
-                var result = new EffortAllocationCalculator().calculate(allocationInputs, s);
+                var result = new EffortAllocationCalculator(SarTableFactory).calculate(allocationInputs, s);
                 var area = clone(result.area);
 
                 area.A = result.area.A.toDegreesAndDecimalMinutes();
@@ -1209,20 +1365,42 @@
                 zone.area = service.toGeoPositions(zone.area);
                 return new SearchPatternCalculator().calculateCSP(zone, cornerKey);
             },
+            calculateSectorCsp: function(z, sp){
+                var zone = clone(z);
+                if(zone.area){
+                    zone.area = service.toGeoPositions(zone.area);
+                }
+                if(sp.sar && sp.sar.output){
+                    sp = clone(sp);
+                    if(sp.sar.output.circle){
+                        sp.sar.output.circle.datum = Position.create(sp.sar.output.circle.datum);
+                    }else if (sp.sar.output.downWind && sp.sar.output.downWind.circle){
+                        sp.sar.output.downWind.circle.datum = Position.create(sp.sar.output.downWind.circle.datum);
+                    }
+                }
+                var sectorCalculator =SearchPatternCalculator.getCalculator(embryo.sar.effort.SearchPattern.SectorSearch);
+                return sectorCalculator.calculateCSP(zone,sp);
+            },
             toGeoPositions : function(area){
                 return {
-                    A : PositionService.stringsToPositions(area.A),
-                    B : PositionService.stringsToPositions(area.B),
-                    C : PositionService.stringsToPositions(area.C),
-                    D : PositionService.stringsToPositions(area.D)
+                    A : Position.create(area.A),
+                    B : Position.create(area.B),
+                    C : Position.create(area.C),
+                    D : Position.create(area.D)
                 }
             },
             generateSearchPattern: function (z, sp) {
                 var zone = clone(z);
-                zone.area = service.toGeoPositions(zone.area);
+                if(zone.area){
+                    zone.area = service.toGeoPositions(zone.area);
+                }
                 if(sp.sar && sp.sar.output){
-                    sp.sar = clone(sp.sar);
-                    sp.sar.output.datum = PositionService.stringsToDegrees(sp.sar.output.datum);
+                    sp = clone(sp);
+                    if(sp.sar.output.circle){
+                        sp.sar.output.circle.datum = Position.create(sp.sar.output.circle.datum);
+                    }else if (sp.sar.output.downWind && sp.sar.output.downWind.circle){
+                        sp.sar.output.downWind.circle.datum = Position.create(sp.sar.output.downWind.circle.datum);
+                    }
                 }
                 var calculator = SearchPatternCalculator.getCalculator(sp.type);
                 return calculator.calculate(zone, sp);
@@ -1290,22 +1468,37 @@
                 if (sa['@type'] != embryo.sar.Type.SearchArea){
                     return sa;
                 }
-
-                var result = clone(sa);
-
                 var details = Subject.getDetails();
                 if(details.userName === sa.coordinator.name || (details.shipMmsi && details.shipMmsi == sa.coordinator.mmsi)){
                     return sa;
                 }
                 var searchArea = clone(sa);
-                if(searchArea.output.datum){
-                    delete searchArea.output.datum;
-                    delete searchArea.output.rdv;
-                    delete searchArea.output.radius;
-                } else if (searchArea.output.downWind){
-                    delete searchArea.output.downWind;
-                    delete searchArea.output.min;
-                    delete searchArea.output.max;
+                if(searchArea.output.driftPositions) {
+                    delete searchArea.output.driftPositions;
+                }if(searchArea.output.currentPositions) {
+                    delete searchArea.output.currentPositions;
+                }if(searchArea.output.downWind){
+                    delete searchArea.output.downWind.driftPositions;
+                }
+                if (searchArea.output.min){
+                    delete searchArea.output.min.driftPositions;
+                }
+                if (searchArea.output.max){
+                    delete searchArea.output.max.driftPositions;
+                }
+                if(searchArea.output.dsps){
+                    for(var index in searchArea.output.dsps){
+                        var dsp =  searchArea.output.dsps[index];
+                        if(dsp.downWind){
+                            delete dsp.downWind.driftPositions;
+                        }
+                        if (dsp.min){
+                            delete dsp.min.driftPositions;
+                        }
+                        if (dsp.max){
+                            delete dsp.max.driftPositions;
+                        }
+                    }
                 }
                 return searchArea;
             }

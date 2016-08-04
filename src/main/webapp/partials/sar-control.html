@@ -70,112 +70,88 @@
                             </span>
                         </div>
                     </div>
+                    <h6>Search Object</h6>
+                    {{tmp.searchObject.text}}<br/>
 
                     <h6>Date and Time</h6>
-                    <div class="row">
+                    <div class="row" x-ng-if="sar.input.objectPosition.ts">
+                        <div class="col-md-7">Found object:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(sar.input.objectPosition.ts)}}</div>
+                    </div>
+                    <div class="row" x-ng-if="sar.input.driftFromTs">
+                        <div class="col-md-7">Drift calculated back until:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(sar.input.driftFromTs)}}</div>
+                    </div>
+                    <div class="row" x-ng-repeat="dsp in sar.input.dsps">
+                        <div class="col-md-7">Drift Search Position {{$index + 1}}:</div>
+                        <div class="col-md-5 nopadding">{{formatTs(dsp.ts)}}</div>
+                    </div>
+                    <div class="row" x-ng-if="sar.input.lastKnownPosition.ts">
                         <div class="col-md-7">Last Known Position (LKP):</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.lastKnownPosition.ts)}}</div>
                     </div>
-                    <div class="row">
+                    <div class="row" x-ng-if="sar.input.startTs">
                         <div class="col-md-7">Commence Search Start:</div>
                         <div class="col-md-5 nopadding">{{formatTs(sar.input.startTs)}}</div>
                     </div>
-                    <div class="row">
+                    <div class="row" x-ng-if="sar.output.hoursElapsed >= 0">
                         <div class="col-md-7">Time elapsed:</div>
                         <div class="col-md-5 nopadding">{{sar.output.hoursElapsed}} hour<span
                                 x-ng-if="sar.output.hoursElapsed != 1">s</span>, {{sar.output.minutesElapsed}}
                             minute<span x-ng-if="sar.output.minutesElapsed != 1">s</span>.
                         </div>
                     </div>
-
-                    <h6>Last Surface Drifts dw continuation</h6>
-                    <div class="row">
-                        <div class="col-md-7">Direction</div>
-                        <div class="col-md-5 nopadding">{{formatDecimal(sar.output.rdv ? sar.output.rdv.direction :
-                            sar.output.downWind.rdv.direction, -2)}}
+                    <div class="row" x-ng-if="sar.output.dsps.length > 0 && sar.output.dsps[0].hoursElapsed >= 0">
+                        <div class="col-md-7">Max time elapsed:</div>
+                        <div class="col-md-5 nopadding">{{sar.output.dsps[0].hoursElapsed}} hour<span
+                                x-ng-if="sar.output.dsps[0].hoursElapsed != 1">s</span>, {{sar.output.dsps[0].minutesElapsed}}
+                            minute<span x-ng-if="sar.output.dsps[0].minutesElapsed != 1">s</span>.
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-7">Speed</div>
-                        <div class="col-md-5 nopadding">{{formatDecimal(sar.output.rdv.speed ? sar.output.rdv.speed :
-                            sar.output.downWind.rdv.speed, -2)}} kn
+                    <div class="row" x-ng-if="sar.output.dsps.length > 1 && sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed >= 0">
+                        <div class="col-md-7">Min time elapsed:</div>
+                        <div class="col-md-5 nopadding">{{sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed}} hour<span
+                                x-ng-if="sar.output.dsps[sar.output.dsps.length - 1].hoursElapsed != 1">s</span>, {{sar.output.dsps[sar.output.dsps.length - 1].minutesElapsed}}
+                            minute<span x-ng-if="sar.output.dsps[sar.output.dsps.length - 1].minutesElapsed != 1">s</span>.
                         </div>
                     </div>
 
-                    <h6>Position of Datum to LKP</h6>
-                    <table class="table table-condensed ctrl">
-                        <tr>
-                            <td></td>
-                            <td>Latitude</td>
-                            <td>Longitude</td>
-                            <td>RDV</td>
-                            <td>Radius</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.circle">
-                            <td>DW</td>
-                            <td>{{sar.output.circle.datum.lat}}</td>
-                            <td>{{sar.output.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.downWind">
-                            <td>DW</td>
-                            <td>{{sar.output.downWind.circle.datum.lat}}</td>
-                            <td>{{sar.output.downWind.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.downWind.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.downWind.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.min">
-                            <td>Min</td>
-                            <td>{{sar.output.min.circle.datum.lat}}</td>
-                            <td>{{sar.output.min.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.min.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.min.circle.radius, -2)}} nm</td>
-                        </tr>
-                        <tr x-ng-if="sar.output.max">
-                            <td>Max</td>
-                            <td>{{sar.output.max.circle.datum.lat}}</td>
-                            <td>{{sar.output.max.circle.datum.lon}}</td>
-                            <td>{{formatDecimal(sar.output.max.rdv.distance, -2)}} nm</td>
-                            <td>{{formatDecimal(sar.output.max.circle.radius, -2)}} nm</td>
-                        </tr>
-                    </table>
-
-                    <h6>Search Area</h6>
-                    <div x-ng-if="sar.output.searchArea.A">
-                        <div class="row">
-                            <div class="col-md-4"></div>
-                            <div class="col-md-4 nopadding">Latitude</div>
-                            <div class="col-md-4 nopadding">Longitude</div>
+                    <div x-ng-if="sar.output.searchArea">
+                        <h6 >Search Area</h6>
+                        <div x-ng-if="sar.output.searchArea.A">
+                            <div class="row">
+                                <div class="col-md-4"></div>
+                                <div class="col-md-4 nopadding">Latitude</div>
+                                <div class="col-md-4 nopadding">Longitude</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">A</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">B</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">C</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">D</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
+                                <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                            </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4">A</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.A.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">B</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.B.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">C</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.C.lon}}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-4">D</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lat}}</div>
-                            <div class="col-md-4 nopadding">{{sar.output.searchArea.D.lon}}</div>
+                        <div class="row" style="margin-top:5px">
+                            <div class="col-md-4">Size</div>
+                            <div class="col-md-4 nopadding"></div>
+                            <div class="col-md-4 nopadding">
+                                <span>{{formatDecimal(sar.output.searchArea.size, 0)}} nm<sup>2</sup></span></div>
                         </div>
                     </div>
-                    <div class="row" style="margin-top:5px">
-                        <div class="col-md-4">Size</div>
-                        <div class="col-md-4 nopadding"></div>
-                        <div class="col-md-4 nopadding">
-                            <span>{{formatDecimal(sar.output.searchArea.size, 0)}} nm<sup>2</sup></span></div>
-                    </div>
-
                     <!--
                     <h6>Search Area Progression in minutes after CSS</h6>
                     <div class="row">
@@ -189,15 +165,17 @@
                         </div>
                     </div>-->
 
-                    <div class="row sarButtons"
-                         x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                    <div class="row sarButtons">
                         <div class="col-md-12">
                             <span class="pull-right">
-                                <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
-                                    SAR
-                                </button>
-                                <button type="button" class="btn btn-primary btn-xs" x-ng-click="edit()">Reopen
-                                    SAR calculations
+                                <span x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                                    <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
+                                        SAR
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-xs" x-ng-click="edit()">Recalculate
+                                    </button>
+                                </span>
+                                <button type="button" class="btn btn-primary btn-xs" x-ng-click="view()">View details
                                 </button>
                             </span>
                         </div>
@@ -253,18 +231,18 @@
                                 </td>
                             </tr>
                         </table>
-                        <div class="row">
+                        <!--<div class="row">
                             <div class="col-md-12">
                                 <div class="checkbox">
                                     <label><input type="checkbox" value="Mig">Show Dynamic Pattern</label>
                                 </div>
                             </div>
-                        </div>
+                        </div>-->
                         <div class="row">
                             <div class="col-md-12">
-                                <button type="button" class="btn btn-primary btn-xs pull-right" x-ng-click="effort()">
-                                    Manage effort
-                                    allocations
+                                <button type="button" class="btn btn-primary btn-xs pull-right" x-ng-click="effort()"
+                                        x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
+                                    Manage effort allocations
                                 </button>
                             </div>
                         </div>
@@ -320,12 +298,20 @@
                         </div>
                         <div class="form-group" x-ng-show="position.use">
                             <div class="col-xs-4">
-                                <input latitude x-ng-model="msg.lat" type="text" class="form-control input-sm lat"
-                                       x-ng-required="position.use" placeholder="56 22.456N"/>
+                                <input latitude2 x-ng-model="msg.lat" x-ng-required="position.use" name="msgLat"
+                                       class="form-control input-sm lat" type="text" placeholder="56 22.456N"/>
+                                <span x-ng-if="sarLogForm.msgLat.$error.latitude" class="error-block">
+                                    Use correct format, e.g. 04 34.023N
+                                </span>
+
                             </div>
                             <div class="col-xs-5">
-                                <input longitude x-ng-model="msg.lon" type="text" class="form-control input-sm lat"
-                                       x-ng-required="position.use" placeholder="058 13.637W"/>
+                                <input longitude2 x-ng-model="msg.lon" x-ng-required="position.use" name="msgLon"
+                                       type="text" class="form-control input-sm lat" placeholder="058 13.637W"/>
+                                <span x-ng-if="sarLogForm.msgLon.$error.longitude" class="error-block">
+                                    Use correct format, e.g. 004 04.033E
+                                </span>
+
                             </div>
                             <div class="col-xs-3">
                                 <button class="btn btn-sm" x-ng-click="noPosition()">Remove</button>
