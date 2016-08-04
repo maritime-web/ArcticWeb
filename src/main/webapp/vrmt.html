@@ -27,7 +27,7 @@
 
     <!-- build:css css/arcticweb-vrmt.css -->
     <link href="css/common.css" rel="stylesheet">
-    <link href="vrmt/css/vrmt.css" rel="stylesheet">
+    <link href="vrmt/vrmt.css" rel="stylesheet">
     <!-- endbuild -->
 
     <!-- build:js js/arcticweb-vrmt.js -->
@@ -41,29 +41,33 @@
     <script src="js/service/schedule-service.js" defer="defer"></script>
     <script src="vrmt/app.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/app-ctrl.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/risk-assessment-service.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/map/position.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/map/map-service.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/map/map-directives.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/timeline/timeline-controller.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/risk-assessment/risk-assessment-service.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/ol3-map/position.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/ol3-map/map-service.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/ol3-map/map-directives.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/map/map-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/vrmt-directives.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/assessment/assessment-editor.controller.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/sidebar/sidebar-controller.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/configuration/assessment-factor-config-controller.js" defer="defer" type="text/javascript"></script>
     <!-- endbuild -->
 
 </head>
 
 <body>
 <div x-ng-include="'partials/common/authentication.html'"></div>
-<div x-ng-include="'vrmt/partials/add-assessment-location.html'"></div>
+<div x-ng-include="'vrmt/location/add-assessment-location.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div class="menuDivider"></div>
 
 <div class="container-fluid" ng-controller="AppController">
-    <div x-ng-include="'vrmt/partials/context-function-list.html'"></div>
     <div class="row">
-        <div x-ng-include="'vrmt/partials/map.html'"></div>
-        <div x-ng-include="'vrmt/partials/sidebar.html'"></div>
-        <div x-ng-include="'vrmt/partials/assessment-editor.html'"></div>
-        <div x-ng-include="'vrmt/partials/assessment-factor-config.html'"></div>
-        <div x-ng-include="'vrmt/partials/timeline.html'"></div>
+        <div x-ng-include="'vrmt/map/map.html'"></div>
+        <div x-ng-include="'vrmt/sidebar/sidebar.html'"></div>
+        <div x-ng-include="'vrmt/assessment/assessment-editor.html'"></div>
+        <div x-ng-include="'vrmt/configuration/assessment-factor-config.html'"></div>
+        <div x-ng-include="'vrmt/timeline/timeline.html'"></div>
     </div>
 </div>
 

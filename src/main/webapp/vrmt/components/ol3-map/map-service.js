@@ -225,7 +225,7 @@ angular.module('vrmt.map')
                             type: 'base',
                             visible: true,
                             source: new ol.source.OSM()
-                        }),
+                        })
                     ]
                 });
             };
