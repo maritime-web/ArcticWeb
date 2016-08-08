@@ -170,12 +170,10 @@ angular.module('vrmt.map')
                         scope.mapState['zoom'] = view.getZoom();
                         scope.mapState['center'] = MapService.round(MapService.toLonLat(view.getCenter()), 4);
                         scope.mapState['extent'] = MapService.round(MapService.toLonLatExtent(extent), 4);
-                        scope.mapState['wktextent'] = MapService.extentToWkt(extent);
                         scope.$$phase || scope.$apply();
                     };
                     map.on('moveend', scope.mapChanged);
                 }
-
 
                 // Update the map size if the element size changes.
                 // In theory, this should not be necessary, but it seems to fix a problem
@@ -194,18 +192,6 @@ angular.module('vrmt.map')
 
                 scope.$watch(function() { return element[0].clientWidth; }, updateSizeEventHandler);
                 scope.$watch(function() { return element[0].clientHeight; }, updateSizeEventHandler);
-/*
-                scope.$watchGroup([
-                    function() { return element[0].clientWidth; },
-                    function() { return element[0].clientHeight; }
-                ], function () {
-                    if (isDefined(updateSizeTimer)) {
-                        $timeout.cancel(updateSizeTimer);
-                    }
-                    updateSizeTimer = $timeout(scope.updateSize, 100);
-                });
-*/
-
 
                 // Resolve the map object to the promises
                 scope.setMap(map);
@@ -344,109 +330,6 @@ angular.module('vrmt.map')
         };
     }])
 
-
-    /**
-     * The map-layer-switcher adds a layer switcher to the map.
-     */
-    .directive('mapLayerSwitcher', [function () {
-        return {
-            restrict: 'E',
-            require: '^olMap',
-            link: function(scope, element, attrs, ctrl) {
-                var olScope         = ctrl.getOpenlayersScope();
-                var layerSwitcher   = new ol.control.LayerSwitcher();
-
-                olScope.getMap().then(function(map) {
-                    map.addControl(layerSwitcher);
-
-                    // When destroyed, clean up
-                    scope.$on('$destroy', function() {
-                        map.removeControl(layerSwitcher);
-                    });
-
-                });
-            }
-        };
-    }])
-
-
-    /**
-     * The map-current-pos-btn directive will add a current-position button to the map.
-     */
-    .directive('mapCurrentPosBtn', ['$window', 'MapService', function ($window, MapService) {
-        return {
-            restrict: 'E',
-            replace: false,
-            require: '^olMap',
-            template:
-                "<span class='map-current-pos-btn'>" +
-                    "<span><i class='fa fa-location-arrow' ng-click='currentPos()' tooltip='Current Position' aria-hidden='true'></i></span>" +
-                //"  <span class='glyphicon glyphicon-map-marker' ng-click='currentPos()' tooltip='Current Position'></span>" +
-                "</span>",
-            scope: {
-            },
-            link: function(scope, element, attrs, ctrl) {
-                var olScope     = ctrl.getOpenlayersScope();
-
-                olScope.getMap().then(function(map) {
-
-                    scope.currentPos = function () {
-                        $window.navigator.geolocation.getCurrentPosition(function (pos) {
-                            console.log('Got current position', pos.coords);
-
-                            var center = MapService.fromLonLat([pos.coords.longitude, pos.coords.latitude]);
-                            map.getView().setCenter(center);
-                            map.getView().setZoom(15);
-
-                        }, function () {
-                            console.error('Unable to get current position');
-                        });
-                    }
-
-                });
-
-            }
-        };
-    }])
-
-    /**
-     * The map-current-pos-btn directive will add a current-position button to the map.
-     */
-    .directive('mapCurrentPosOrientationBtn', ['$window', 'MapService', function ($window, MapService) {
-        return {
-            restrict: 'E',
-            replace: false,
-            require: '^olMap',
-            template:
-            "<span class='map-current-pos-orientation-btn'>" +
-            " <span><i class='fa fa-location-arrow' aria-hidden='true' ng-click='currentPosOrientation()' tooltip='Current Position and orientation' ></i></span>" +
-            "</span>",
-            scope: {
-            },
-            link: function(scope, element, attrs, ctrl) {
-                var olScope     = ctrl.getOpenlayersScope();
-
-                olScope.getMap().then(function(map) {
-
-                    scope.currentPosOrientation = function () {
-                        $window.navigator.geolocation.getCurrentPosition(function (pos) {
-                            console.log('Got current position and rotation', pos.coords);
-                            // set up geolocation to track our position
-
-
-                            //var center = MapService.fromLonLat([pos.coords.longitude, pos.coords.latitude]);
-                            //map.getView().setCenter(center);
-                        }, function () {
-                            console.error('Unable to get current position and orientation');
-                        });
-                    }
-
-                });
-
-            }
-        };
-    }])
-
     /**
      * The map-scale-line directive will add a scale line to the map.
      */
@@ -482,7 +365,6 @@ angular.module('vrmt.map')
             }
         };
     }])
-
 
     /**
      * The map-mouse-position directive will add a current-mouse position panel the map.

@@ -1,52 +1,52 @@
 <script type="text/ng-template" id="addAssessmentLocation">
     <div class="modal-header">
         <button type="button" class="close" x-ng-click="$dismiss('aborted')">x</button>
-        <h2>Create new assessment location</h2>
+        <h2>Create a new assessment location</h2>
     </div>
     <div class="modal-body">
         <div class="container-fluid form-horizontal">
             <div class="form-group">
-                <div class="col-xs-offset-4 col-xs-3">Latitude</div>
-                <div class="col-xs-3">Longitude</div>
+                <div class="col-xs-offset-4 col-xs-4">Latitude</div>
+                <div class="col-xs-4">Longitude</div>
             </div>
             <div class="form-group" ng-if="loc.route">
-                <div class="col-xs-4">Location on route:</div>
-                <div class="col-xs-3">
+                <label class="control-label col-xs-4">Location on route:</label>
+                <div class="col-xs-4">
                     <input type="text" disabled class="form-control input-sm" id="y" ng-model="loc.route.lat"/>
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                     <input type="text" disabled class="form-control input-sm" id="x" ng-model="loc.route.lon"/>
                 </div>
             </div>
 
             <div class="form-group" ng-if="loc.vessel">
-                <div class="col-xs-4">Ais location:</div>
-                <div class="col-xs-3">
+                <label class="control-label col-xs-4">Ais location:</label>
+                <div class="col-xs-4">
                     <input type="text" disabled class="form-control input-sm" id="y" ng-model="loc.vessel.ais.lat"/>
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                     <input type="text" disabled class="form-control input-sm" id="x" ng-model="loc.vessel.ais.lon"/>
                 </div>
             </div>
             <div class="form-group" ng-if="loc.vessel">
-                <div class="col-xs-4">Override ais location:</div>
-                <div class="col-xs-3">
+                <label class="control-label col-xs-4">Override ais location:</label>
+                <div class="col-xs-4">
                     <input type="number" step="any" class="form-control input-sm" id="y" ng-model="loc.vessel.override.lat"/>
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                     <input type="number" step="any" class="form-control input-sm" id="x" ng-model="loc.vessel.override.lon"/>
                 </div>
             </div>
             <div class="form-group">
                 <label class="control-label col-xs-4" for="name">Name:</label>
-                <div class="col-xs-3">
+                <div class="col-xs-4">
                     <input type="text" class="form-control input-sm" id="name" ng-model="loc.name"/>
                 </div>
             </div>
             <div class="form-group">
-                <div class="col-xs-offset-4 col-xs-3">
-                    <button class="btn btn-default btn-sm" ng-click="$close(loc)">Save</button>
-                    <button class="btn btn-default btn-sm" ng-click="$dismiss('assessment location creation cancelled')">Cancel</button>
+                <div class="col-xs-offset-4 col-xs-4">
+                    <button class="btn btn-primary btn-xs" ng-click="$close(loc)">Save</button>
+                    <button class="btn btn-default btn-xs" ng-click="$dismiss('assessment location creation cancelled')">Cancel</button>
                 </div>
             </div>
         </div>

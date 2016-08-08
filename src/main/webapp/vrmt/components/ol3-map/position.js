@@ -44,25 +44,6 @@ function formatLatLon(lonlat, decimals, pp) {
     return formatLatitude(lonlat.lat, decimals, pp) + divider + formatLongitude(lonlat.lon, decimals, pp);
 }
 
-function parseLatLon(value) {
-    if (!value) {
-        throw "Format exception";
-    }
-    value = value.trim().toUpperCase();
-    var index = value.indexOf("N");
-    if (index == -1) {
-        index = value.indexOf("S");
-    }
-    if (index == -1) {
-        throw "Format exception";
-    }
-    return {
-        lat: parseLatitude(value.substring(0, index + 1).trim()),
-        lon: parseLongitude(value.substring(index + 2).trim())
-    };
-
-}
-
 function cleanUpDegree(deg) {
     // Get rid of potential lat-lon divider ('-'), degree (°), minute (') and second symbols (")
     deg = deg.replace(/°|'|"|-|/g, '');

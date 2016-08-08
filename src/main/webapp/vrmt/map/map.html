@@ -1,9 +1,9 @@
 
-<div id="wrap" ng-controller="MapController">
+<div id="wrap" ng-controller="MapController as map">
     <div x-ng-include="'vrmt/map/context-function-list.html'"></div>
 
     <ol-map class="map col-xs-12 col-sm-12 col-md-12 col-lg-12" map-state="mapState">
-        <map-layer-group layer-group="mapBackgroundLayers" layer-switcher="true"></map-layer-group>
+        <map-layer-group layer-group="map.mapBackgroundLayers" layer-switcher="true"></map-layer-group>
         <map-scale-line units="nautical"></map-scale-line>
         <map-mouse-position></map-mouse-position>
         <map-overview collapsed="true"></map-overview>

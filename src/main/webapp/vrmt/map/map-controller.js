@@ -1,40 +1,44 @@
-angular.module('vrmt.app')
-    .controller("MapController", ['$scope', 'MapService', 'RiskAssessmentService', function ($scope, MapService, RiskAssessmentService) {
-        // Map state and layers
-        $scope.mapState = {};
-        $scope.mapBackgroundLayers = MapService.createStdBgLayerGroup();
+(function () {
+    angular
+        .module('vrmt.app')
+        .controller("MapController", MapController);
 
-        /**
-         * Context function control structure
-         */
-        $scope.contextFunctions = {
-            hide: true,
-            style: {position: "absolute", 'z-index': 200, top: 0, left: 0},
-            functions: [],
-            close: function () {
-                this.hide = true;
-            }
-        };
+    MapController.$inject = ['$scope', 'MapService', 'RiskAssessmentService'];
+
+    function MapController($scope, MapService, RiskAssessmentService) {
+        var vm = this;
+
+        vm.hide = true;
+        vm.style = {position: "absolute", 'z-index': 200, top: 0, left: 0};
+        vm.functions = [];
+        vm.close = close;
+
+        $scope.mapState = {};
+        vm.mapBackgroundLayers = MapService.createStdBgLayerGroup();
+
+        function close() {
+            vm.hide = true;
+        }
 
         /**
          * Assessment location map functions
          */
         $scope.$watch("assessmentLocationState['locationClick']", function (newValue, oldValue) {
             if (newValue && newValue !== oldValue) {
-                $scope.contextFunctions.style.top = newValue.y + "px";
-                $scope.contextFunctions.style.left = newValue.x + "px";
-                $scope.contextFunctions.functions = [
+                vm.style.top = newValue.y + "px";
+                vm.style.left = newValue.x + "px";
+                vm.functions = [
                     {
                         name: 'New Assesment',
                         choose: function () {
-                            $scope.contextFunctions.close();
+                            vm.close();
                             $scope.editorActivator.showAssessmentEditor += 1;
                         }
                     },
                     {
                         name: 'Delete',
                         choose: function () {
-                            $scope.contextFunctions.close();
+                            vm.close();
                             var locationToDelete = $scope.assessmentLocationState['chosen'].location;
                             RiskAssessmentService.deleteAssessmentLocation(locationToDelete)
                                 .then(function () {
@@ -46,7 +50,7 @@ angular.module('vrmt.app')
                     }
 
                 ];
-                $scope.contextFunctions.hide = false;
+                vm.hide = false;
             }
         });
 
@@ -55,13 +59,13 @@ angular.module('vrmt.app')
          */
         $scope.$watch("mapState['vesselClick']", function (newValue, oldValue) {
             if (newValue && newValue !== oldValue) {
-                $scope.contextFunctions.style.top = newValue.y + "px";
-                $scope.contextFunctions.style.left = newValue.x + "px";
-                $scope.contextFunctions.functions = [
+                vm.style.top = newValue.y + "px";
+                vm.style.left = newValue.x + "px";
+                vm.functions = [
                     {
                         name: 'New Assesment location',
                         choose: function () {
-                            $scope.contextFunctions.hide = true;
+                            vm.hide = true;
                             $scope.assessmentLocationState['new'] = {
                                 vessel: {
                                     ais: {
@@ -75,7 +79,8 @@ angular.module('vrmt.app')
                     }
 
                 ];
-                $scope.contextFunctions.hide = false;
+                vm.hide = false;
             }
         });
-    }]);
+    }
+})();

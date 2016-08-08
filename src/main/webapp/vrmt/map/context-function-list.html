@@ -1,5 +1,5 @@
-<div ng-style="contextFunctions.style" ng-hide="contextFunctions.hide" on-escape="contextFunctions.close()" outside-click="contextFunctions.close()">
+<div ng-style="map.style" ng-hide="map.hide" on-escape="map.close()" outside-click="map.close()">
     <div class="btn-group-vertical button-dropdown">
-        <button type="button" class="btn btn-default btn-xs" ng-click="function.choose()" ng-repeat="function in contextFunctions.functions">{{function.name}}</button>
+        <button type="button" class="btn btn-default btn-xs" ng-click="function.choose()" ng-repeat="function in map.functions">{{function.name}}</button>
     </div>
 </div>
