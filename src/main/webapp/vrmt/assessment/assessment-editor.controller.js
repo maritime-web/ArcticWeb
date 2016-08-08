@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentEditorController", AssessmentEditorController);
 
-    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService'];
+    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService'];
 
-    function AssessmentEditorController($scope, RiskAssessmentService) {
+    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService) {
         var vm = this;
 
         vm.hide = true;
@@ -44,7 +44,7 @@
         }
 
         function show() {
-            RiskAssessmentService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
+            RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
                 vm.factorAssessments = riskFactors.map(function (riskFactor) {
                     return new FactorAssessmentViewModel(riskFactor);
                 });

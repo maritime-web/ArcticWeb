@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', '$modal'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'RiskAssessmentLocationService', '$modal'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, $modal) {
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, RiskAssessmentLocationService, $modal) {
 
         /**
          * Initialize variables
@@ -142,7 +142,7 @@
                 }
 
                 locParam.routeId = $scope.route.id;
-                RiskAssessmentService.createAssessmentLocation(locParam)
+                RiskAssessmentLocationService.createAssessmentLocation(locParam)
                     .then(function (location) {
                         $scope.assessmentLocationEvents['created'] = location;
                     });

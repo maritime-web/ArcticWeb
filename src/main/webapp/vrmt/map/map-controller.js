@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("MapController", MapController);
 
-    MapController.$inject = ['$scope', 'MapService', 'RiskAssessmentService'];
+    MapController.$inject = ['$scope', 'MapService', 'RiskAssessmentLocationService'];
 
-    function MapController($scope, MapService, RiskAssessmentService) {
+    function MapController($scope, MapService, RiskAssessmentLocationService) {
         var vm = this;
 
         vm.hide = true;
@@ -40,7 +40,7 @@
                         choose: function () {
                             vm.close();
                             var locationToDelete = $scope.assessmentLocationState['chosen'].location;
-                            RiskAssessmentService.deleteAssessmentLocation(locationToDelete)
+                            RiskAssessmentLocationService.deleteAssessmentLocation(locationToDelete)
                                 .then(function () {
                                     $scope.assessmentLocationEvents['deleted'] = locationToDelete;
                                 }, function (errorReason) {

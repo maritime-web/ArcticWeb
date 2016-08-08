@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("AssessmentFactorConfigController", AssessmentFactorConfigController);
 
-    AssessmentFactorConfigController.$inject = ['$scope', 'RiskAssessmentService'];
+    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService'];
 
-    function AssessmentFactorConfigController($scope, RiskAssessmentService) {
+    function AssessmentFactorConfigController($scope, RiskFactorService) {
         var vm = this;
         vm.hide = true;
         vm.vesselName = $scope.mmsi;
@@ -41,7 +41,7 @@
         }
 
         function save(riskFactorView) {
-            RiskAssessmentService.saveRiskFactor(riskFactorView.toRiskFactor())
+            RiskFactorService.saveRiskFactor(riskFactorView.toRiskFactor())
                 .then(function (riskFactor) {
                     console.log("Saved risk factor with id " + riskFactor.id);
                 }, function (reason) {
@@ -71,7 +71,7 @@
             return this.riskFactor;
         };
 
-        RiskAssessmentService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
+        RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
             vm.riskFactors = riskFactors.map(function (riskFactor) {
                 return new RiskFactorView(riskFactor);
             });
