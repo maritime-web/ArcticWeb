@@ -3,7 +3,7 @@ module.exports = function(config) {
 		// base path, that will be used to resolve files and exclude
 		basePath : '../../../',
 
-		frameworks : [ 'jasmine' ],
+		frameworks : [ 'jasmine', 'jasmine-matchers' ],
 
 		// list of files / patterns to load in the browser
 		files : [
@@ -75,6 +75,7 @@ module.exports = function(config) {
 		// possible values: config.LOG_DISABLE || config.LOG_ERROR ||
 		// config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
 		// CLI --log-level debug
+		// logLevel : config.LOG_DEBUG,
 		logLevel : config.LOG_INFO,
 
 		// enable / disable watching file and executing tests whenever any file
@@ -105,7 +106,7 @@ module.exports = function(config) {
 		// CLI --report-slower-than 500
 		reportSlowerThan : 500,
 
-		plugins : [ 'karma-jasmine', 'karma-chrome-launcher',
-				'karma-firefox-launcher', 'karma-junit-reporter', 'karma-phantomjs-launcher' ]
+		plugins : [ 'karma-jasmine', 'karma-jasmine-matchers', 'karma-chrome-launcher',
+				'karma-firefox-launcher', 'karma-junit-reporter', 'karma-phantomjs-launcher', 'karma-spec-reporter' ]
 	});
 };

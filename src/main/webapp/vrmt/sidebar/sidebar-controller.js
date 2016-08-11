@@ -90,7 +90,7 @@
             this.factorAssessments = assessment.scores || [];
         }
 
-        $scope.$watch('latestRiskAssessments', function (newValue, oldValue) {
+        $scope.$watch("assessmentLocationState['latestRiskAssessments']", function (newValue, oldValue) {
             if (newValue && newValue !== oldValue) {
                 vm.meta.assessmentViews = [];
                 vm.meta.currentAssessment = null;

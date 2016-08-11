@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .service('RiskAssessmentService', RiskAssessmentService);
 
-    RiskAssessmentService.$inject = ['RiskAssessmentDataService', '$q', '$timeout'];
+    RiskAssessmentService.$inject = ['$q', 'RiskAssessmentDataService'];
 
-    function RiskAssessmentService(RiskAssessmentDataService, $q, $timeout) {
+    function RiskAssessmentService($q, RiskAssessmentDataService) {
 
         /**
          * Finds the latest assessments for the given route. If an assessment location doesn't have an associated
@@ -17,57 +17,74 @@
          * @returns {deferred.promise|{then, catch, finally}}
          */
         this.getLatestRiskAssessmentsForRoute = getLatestRiskAssessmentsForRoute;
+        /**
+         * Creates a new Risk assessment for the given route and location.
+         *
+         * @param routeId
+         * @param locationId
+         * @param scores
+         * @returns {deferred.promise|{then, catch, finally}}
+         */
         this.createRiskAssessment = createRiskAssessment;
 
         function getLatestRiskAssessmentsForRoute(routeId) {
-            var deferred = $q.defer();
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(getLatestRiskAssessmentsForRoute_);
 
-            $timeout(function () {
-                var assessmentData = RiskAssessmentDataService.getAssessmentData(routeId);
-
-                deferred.resolve(assessmentData
-                    .map(function (entry) {
-                        var hasAssessments = entry.assessments.length > 0;
-                        return hasAssessments ? entry.assessments[entry.assessments.length - 1] : new RiskAssessment({
-                            assessmentLocation: entry.location,
-                            scores: [],
-                            id: 1
-                        });
-                    })
+            function getLatestRiskAssessmentsForRoute_(assessmentData) {
+                return assessmentData
+                    .map(toRiskAssessment)
                     .filter(function (assessment) {
                         return assessment && assessment != null;
-                    }));
-            });
+                    });
 
-            return deferred.promise;
+                function toRiskAssessment(entry) {
+                    var hasAssessments = entry.assessments.length > 0;
+                    return hasAssessments ? getMostRecent(entry.assessments) : new RiskAssessment({
+                        assessmentLocation: entry.location,
+                        scores: [],
+                        id: 1
+                    });
+                }
+
+                function getMostRecent(assessments) {
+                    return assessments.sort(compare)[0];
+
+                    function compare(assessmentOne, assessmentTwo) {
+                        var timeOne = assessmentOne.time;
+                        var timeTwo = assessmentTwo.time;
+                        return -timeOne.localeCompare(timeTwo);
+                    }
+                }
+            }
         }
 
         function createRiskAssessment(routeId, locationId, scores) {
-            var deferred = $q.defer();
-
-            $timeout(function () {
-                var assessmentData = RiskAssessmentDataService.getAssessmentData(routeId);
-
-                var entry = assessmentData.find(function (e) {
-                    return e.location.id === locationId;
-                });
-                if (entry) {
-                    var riskAssessment = new RiskAssessment({
-                        id: entry.assessments.length + 1,
-                        time: new Date(),
-                        assessmentLocation: entry.location,
-                        scores: scores
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (assessmentData) {
+                    var entry = assessmentData.find(function (e) {
+                        return e.location.id === locationId;
                     });
-                    entry.assessments.push(riskAssessment);
-                    RiskAssessmentDataService.storeAssessmentData(routeId, assessmentData);
+                    if (entry) {
+                        var assessment = createAssessment(entry);
+                        entry.assessments.push(assessment);
+                        return RiskAssessmentDataService.storeAssessmentData(routeId, assessmentData)
+                            .then(function () {
+                                return $q.when(assessment);
+                            });
+                    } else {
+                        $q.reject("Could not find assessment data for location defined by " + locationId);
+                    }
+                });
 
-                    deferred.resolve(riskAssessment);
-                } else {
-                    deferred.reject("Could not find assessment data for location defined by " + locationId);
-                }
-            });
-
-            return deferred.promise;
+            function createAssessment(entry) {
+                return new RiskAssessment({
+                    id: entry.assessments.length + 1,
+                    time: new Date(),
+                    assessmentLocation: entry.location,
+                    scores: scores
+                });
+            }
         }
     }
 })();

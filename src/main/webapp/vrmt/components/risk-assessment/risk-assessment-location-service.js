@@ -5,55 +5,56 @@
         .module('vrmt.app')
         .service('RiskAssessmentLocationService', RiskAssessmentLocationService);
 
-    RiskAssessmentLocationService.$inject = ['RiskAssessmentDataService', '$q', '$timeout'];
+    RiskAssessmentLocationService.$inject = ['$q', 'RiskAssessmentDataService'];
 
-    function RiskAssessmentLocationService(RiskAssessmentDataService, $q, $timeout) {
+    function RiskAssessmentLocationService($q, RiskAssessmentDataService) {
 
         this.createAssessmentLocation = createAssessmentLocation;
         this.deleteAssessmentLocation = deleteAssessmentLocation;
 
-        function getNextAssessmentLocationId(routeId) {
-            var assessmentData = RiskAssessmentDataService.getAssessmentData(routeId);
+        function getNextAssessmentLocationId(assessmentData) {
             return assessmentData.length + 1;
         }
 
         function createAssessmentLocation(locationAttributes) {
-            var deferred = $q.defer();
-
-            $timeout(function () {
-                var routeId = locationAttributes.routeId;
-                var assessmentData = RiskAssessmentDataService.getAssessmentData(routeId);
-
-                locationAttributes.id = getNextAssessmentLocationId(routeId);
-                var assessmentLocation = new RiskAssessmentLocation(locationAttributes);
-                assessmentData.push({location: assessmentLocation, assessments: []});
-                RiskAssessmentDataService.storeAssessmentData(routeId, assessmentData);
-
-                deferred.resolve(assessmentLocation);
-            });
-            return deferred.promise;
+            var routeId = locationAttributes.routeId;
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (assessmentData) {
+                    try {
+                        locationAttributes.id = getNextAssessmentLocationId(assessmentData);
+                        var assessmentLocation = new RiskAssessmentLocation(locationAttributes);
+                        assessmentData.push({location: assessmentLocation, assessments: []});
+                        return RiskAssessmentDataService.storeAssessmentData(routeId, assessmentData)
+                            .then(function () {
+                                return $q.when(assessmentLocation);
+                            });
+                    } catch (e) {
+                        $q.reject(e);
+                    }
+                });
         }
 
         function deleteAssessmentLocation(assessmentLocation) {
-            var deferred = $q.defer();
-            $timeout(function () {
-                try {
-                    var routeId = assessmentLocation.routeId;
-                    var data = RiskAssessmentDataService.getAssessmentData(routeId);
-                    var index = data.findIndex(function (entry) {
-                        return entry.location.id === assessmentLocation.id;
-                    });
+            var routeId = assessmentLocation.routeId;
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (data) {
+                    try {
+                        var index = data.findIndex(function (entry) {
+                            return entry.location.id === assessmentLocation.id;
+                        });
 
-                    var deletedAssessmentLocationArray = data.splice(index, 1);
+                        var deletedAssessmentLocationArray = data.splice(index, 1);
 
-                    RiskAssessmentDataService.storeAssessmentData(routeId, data);
-                    deferred.resolve(deletedAssessmentLocationArray);
-                } catch (e) {
-                    deferred.reject(e);
-                }
-            });
+                        RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                            .then(function () {
+                                return $q.when(deletedAssessmentLocationArray);
+                            });
+                    } catch (e) {
+                        $q.reject(e);
+                    }
 
-            return deferred.promise;
+                });
+
         }
     }
 

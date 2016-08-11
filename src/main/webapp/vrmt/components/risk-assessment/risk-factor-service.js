@@ -13,8 +13,16 @@
         this.saveRiskFactor = saveRiskFactor;
 
         function getRiskFactorData(vesselId) {
-            var riskFactorData = $window.localStorage.getItem(vesselId);
-            return angular.fromJson(riskFactorData) || undefined;
+            var deferred = $q.defer();
+            $timeout(function () {
+                try {
+                    var riskFactorData = $window.localStorage.getItem(vesselId);
+                    deferred.resolve(angular.fromJson(riskFactorData) || undefined);
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            });
+            return deferred.promise;
         }
 
         function getDefaultRiskFactorData(vesselId) {
@@ -324,42 +332,38 @@
         }
 
         function saveRiskFactorData(vesselId, riskFactorData) {
-            $window.localStorage.setItem(vesselId, angular.toJson(riskFactorData));
-        }
-
-        function getRiskFactors(vesselId) {
-            var deferred = $q.defer();
-            $timeout(function () {
-                var riskFactors = getRiskFactorData(vesselId) || getDefaultRiskFactorData(vesselId);
-                if (riskFactors) {
-                    deferred.resolve(riskFactors);
-                } else {
-                    deferred.reject("Unable to retrieve risk factors for vessel '" + vesselId + "'");
-                }
-            });
-
-            return deferred.promise;
-        }
-
-        function saveRiskFactor(riskFactor) {
             var deferred = $q.defer();
             $timeout(function () {
                 try {
-                    var vesselId = riskFactor.vesselId;
-                    var riskFactors = getRiskFactorData(vesselId) || getDefaultRiskFactorData(vesselId);
+                    deferred.resolve($window.localStorage.setItem(vesselId, angular.toJson(riskFactorData)));
+                } catch (e) {
+                    deferred.reject(e);
+                }
+            });
+            return deferred.promise;
+        }
+
+        function getRiskFactors(vesselId) {
+            return getRiskFactorData(vesselId)
+                .then(function (riskFactors) {
+                    return riskFactors || getDefaultRiskFactorData(vesselId);
+                });
+        }
+
+        function saveRiskFactor(riskFactor) {
+            var vesselId = riskFactor.vesselId;
+            return getRiskFactors(vesselId)
+                .then(function (riskFactors) {
                     var id = riskFactor.id;
                     var indexOfRiskFactor = riskFactors.findIndex(function (r) {
                         return r.id === id
                     });
                     riskFactors.splice(indexOfRiskFactor, 1, riskFactor);
-                    saveRiskFactorData(vesselId, riskFactors);
-                    deferred.resolve(riskFactor);
-                } catch (e) {
-                    deferred.reject(e);
-                }
-            });
 
-            return deferred.promise;
+                    return saveRiskFactorData(vesselId, riskFactors).then(function () {
+                        return riskFactor;
+                    });
+                });
         }
     }
 })();

@@ -19,6 +19,20 @@ var mountFolder = function (connect, dir) {
     return connect.static(require('path').resolve(dir));
 };
 
+var libFiles = [
+    {src: ['src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js']},
+    {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/angular.js']},
+    {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/!(*min*).js']},
+    {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']}
+];
+var testUtilityFiles = [
+    {src: ['src/test/**/utilities/*.js']},
+];
+var vrmtFiles = [
+    {src: ['src/**/vrmt/**/app.js']},
+    {src: ['src/**/vrmt/**/*.js']}
+];
+
 module.exports = function (grunt) {
     // Project configuration.
     grunt.initConfig({
@@ -356,11 +370,19 @@ module.exports = function (grunt) {
                 browsers: [ 'PhantomJS' ]
             },
             unit: {
+                browsers: [ 'PhantomJS' ],
                 singleRun: false,
                 autoWatch: true,
                 keepalive: true
+            },
+            vrmt_unit: {
+                browsers: [ 'PhantomJS' ],
+                reporters : [ 'spec' ],
+                singleRun: false,
+                autoWatch: true,
+                keepalive: true,
+                files: libFiles.concat(testUtilityFiles).concat(vrmtFiles)
             }
-
         }
     });
 
