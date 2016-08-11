@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'RiskAssessmentLocationService', '$modal'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, RiskAssessmentLocationService, $modal) {
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService) {
 
         /**
          * Initialize variables
@@ -106,49 +106,6 @@
             if (newValue && newValue != oldValue) {
                 loadLatestAssessments();
             }
-        });
-
-        /**
-         * assessment location creation
-         */
-        $scope.$watch("assessmentLocationState['new']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
-            if (!newAssessmentLocationEvent || newAssessmentLocationEvent == oldAssessmentLocationEvent) return;
-
-            var modalInstance = $modal.open({
-                templateUrl: "addAssessmentLocation",
-                controller: 'ModalInstanceCtrl',
-                resolve: {
-                    event: function () {
-                        return newAssessmentLocationEvent;
-                    }
-                }
-            });
-
-            modalInstance.result.then(function (locParam) {
-                var route = locParam.route;
-                if (route) {
-                    locParam.lat = route.lat;
-                    locParam.lon = route.lon;
-                }
-                var vessel = locParam.vessel;
-                if (vessel) {
-                    locParam.lat = vessel.ais.lat;
-                    locParam.lon = vessel.ais.lon;
-                    var override = vessel.override;
-                    if (override && override.lat && override.lon) {
-                        locParam.lat = override.lat;
-                        locParam.lon = override.lon;
-                    }
-                }
-
-                locParam.routeId = $scope.route.id;
-                RiskAssessmentLocationService.createAssessmentLocation(locParam)
-                    .then(function (location) {
-                        $scope.assessmentLocationEvents['created'] = location;
-                    });
-            }, function (dismissReason) {
-                console.log("assessment Location dismissed with reason '" + dismissReason + "'");
-            })
         });
 
         /**
