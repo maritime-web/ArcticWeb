@@ -17,29 +17,6 @@ function getCookie(c_name) {
     }
 }
 
-function openCollapse(id) {
-    $(".collapse", $(id).parents(".panel-group")).data("collapse", null);
-    
-    function openSelected(){
-        if (!$(id).hasClass("in")) {
-            $("a[href=#" + $(id).attr("id") + "]").click();
-        }
-        
-        if (!$(id).hasClass("in")) {
-            setTimeout(openSelected, 10);
-        }
-    }
-    
-    openSelected();
-}
-
-function closeCollapse(id) {
-    $(".collapse", $(id).parents(".panel-group")).data("collapse", null);
-    if ($(id).hasClass("in")) {
-        $("a[href=#" + $(id).attr("id") + "]").click();
-    }
-}
-
 /* To be replaced by embryo.geo.Position.formatLongitude*/
 function formatLongitude(longitude) {
     var ns = "E";
@@ -74,10 +51,6 @@ function formatLatitude(latitude) {
     }
 
     return (hours / 100.0).toFixed(2).substring(2) + " " + latStr + ns;
-}
-
-function formatLonLat(lonlat) {
-    return formatLatitude(lonlat.lat) + " " + formatLongitude(lonlat.lon);
 }
 
 function formatNauticalMile(km) {
@@ -184,12 +157,12 @@ var browser = {
         return myNav.indexOf('msie') != -1;
     },
     ieVersion : function() {
-        var index = null, version = 999; // we assume a sane browser
+        var version = 999; // we assume a sane browser
         var myNav = navigator.userAgent.toLowerCase();
 
         var parts = myNav.split(";");
         
-        for(index in parts){
+        for(var index in parts){
             if(parts[index].indexOf("msie") >= 0){
                 return parseFloat(parts[index].split("msie")[1]);
             }
@@ -197,11 +170,11 @@ var browser = {
         return version;
     },
     chromeVersion : function() {
-        var index = null, version = 999; // we assume a sane browser
+        var version = 999; // we assume a sane browser
         var myNav = navigator.userAgent.toLowerCase();
         var parts = myNav.split(" ");
         
-        for(index in parts){
+        for(var index in parts){
             if(parts[index].indexOf("chrome") >= 0){
                 return parts[index].split("chrome/")[1];
             }
