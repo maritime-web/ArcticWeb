@@ -1,6 +1,7 @@
 describe('embryo.sar.service', function () {
     beforeEach(function () {
         module('embryo.sar.service');
+        module('embryo.sar.service');
     });
 
     function execWithTryCatch(fn) {

@@ -37,7 +37,7 @@
                     <div class="col-xs-5">
                         <select ng-model="sar.type" name="type" required
                                 class="input-sm form-control"
-                                x-ng-options="sarTypeDatas[type].text for (key,type) in sarTypeValues">
+                                x-ng-options="sarTypeDatas[type].text group by sarTypeDatas[type].group for (key,type) in sarTypeValues">
                         </select>
                     </div>
                 </div>
@@ -63,11 +63,15 @@
                         {{sarTypeDatas[sar.type].text}} is used when an object connected to the missing vessel has
                         been located. By reversing the objects movements a possible search area can be established.
                     </p>
+                    <p x-ng-if="sar.type === sarTypes.TrackLine">
+                        Track line search is normally employed when an aircraft or vessel has disappeared
+                        without a trace while en <i>route</i> from one point to another. The track line search consists
+                        of a rapid and reasonably thorough search along the intended route of the distressed craft.
+                    </p>
                 </div>
 
                 <div class="sar-img-type-container" style="text-align: center;">
-                    <img style="max-width:500px; max-height:250px" ng-if="sar.type"
-                         ng-src="{{sarTypeDatas[sar.type].img}}"/>
+                    <img style="max-width:500px; max-height:250px" ng-if="sar.type" ng-src="{{sarTypeDatas[sar.type].img}}"/>
                 </div>
 
                 <div class="col-xs-12">

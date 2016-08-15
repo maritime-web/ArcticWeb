@@ -9,7 +9,8 @@
         "RapidResponse": "rr",
         "DatumPoint": "dp",
         "DatumLine": "dl",
-        "BackTrack": "bt"
+        "BackTrack": "bt",
+        "TrackLine" : "tl"
     })
 
     embryo.sar.Type = Object.freeze({

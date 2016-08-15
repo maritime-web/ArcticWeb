@@ -1,93 +1,23 @@
-$(function () {
+(function () {
 
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.views', ['embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
+    var module = angular.module('embryo.sar.views', ['embryo.lteq.directive', 'embryo.gteq.directive', 'embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.datepicker', 'embryo.position']);
 
-    module.directive('lteq', function () {
-        return {
-            require: 'ngModel',
-            link: function (scope, element, attr, ngModelController) {
-                var path = attr.lteq.split('.');
-
-                function comparedTo() {
-                    var value = scope;
-                    for (var index in path) {
-                        var v = path[index];
-                        value = value[v];
-                    }
-                    return value
-                }
-
-                function valid(value1, value2) {
-                    return value1 <= value2;
-                }
-
-                //For DOM -> model validation
-                ngModelController.$parsers.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('lteq', valid(value, otherValue));
-                    return value;
-                });
-
-                //For model -> DOM validation
-                ngModelController.$formatters.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('lteq', valid(value, otherValue));
-                    return value;
-                });
-            }
-        };
-    });
-
-    module.directive('gteq', function () {
-        return {
-            require: '^ngModel',
-            link: function (scope, element, attr, ngModelController) {
-                var path = attr.gteq.split('.');
-
-                function comparedTo() {
-                    var value = scope;
-                    for (var index in path) {
-                        var v = path[index];
-                        value = value[v];
-                    }
-                    return value
-                }
-
-                function valid(value1, value2) {
-                    return value1 > value2;
-                }
-
-                //For DOM -> model validation
-                ngModelController.$parsers.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('gteq', valid(value, otherValue));
-                    return value;
-                });
-
-                //For model -> DOM validation
-                ngModelController.$formatters.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('gteq', valid(value, otherValue));
-                    return value;
-                });
-            }
-        };
-    });
-
-    function SarTypeData(text, img) {
+    function SarTypeData(group, text, img) {
+        this.group = group;
         this.text = text;
         this.img = img;
     }
 
     //var sarTypes = embryo.sar.Operation;
     var sarTypeDatas = {}
-    sarTypeDatas[embryo.sar.Operation.RapidResponse] = new SarTypeData("Rapid response", "/img/sar/generic.png");
-    sarTypeDatas[embryo.sar.Operation.DatumPoint] = new SarTypeData("Datum point", "/img/sar/datumpoint.png");
-    sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
-    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/backtrack.png")
+    sarTypeDatas[embryo.sar.Operation.RapidResponse] = new SarTypeData("Drift", "Rapid response", "/img/sar/generic.png");
+    sarTypeDatas[embryo.sar.Operation.DatumPoint] = new SarTypeData("Drift","Datum point", "/img/sar/datumpoint.png");
+    sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Drift", "Datum line", "/img/sar/datumline.png");
+    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Drift","Back track", "/img/sar/backtrack.png")
+    sarTypeDatas[embryo.sar.Operation.TrackLine] = new SarTypeData("Search","Track line search", "/img/sar/tracklinesss.png")
 
     module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout', '$log', 'Position',
         function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout, $log, Position) {
@@ -103,7 +33,7 @@ $(function () {
                 if($scope.backTrackInitializer){
                     $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine];
                 }else{
-                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
+                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack, embryo.sar.Operation.TrackLine];
                 }
 
                 $scope.sarOperation = {}
@@ -165,7 +95,7 @@ $(function () {
                     }
                 }
                 $scope.backTrackInitializer = null;
-                $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
+                $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack, embryo.sar.Operation.TrackLine];
                 if (context.sarId) {
                     LivePouch.get(context.sarId).then(function (sarOperation) {
                         $scope.sarOperation = sarOperation;
@@ -238,7 +168,10 @@ $(function () {
         $scope.next = function () {
             if($scope.sar.type === embryo.sar.Operation.BackTrack){
                 $scope.page.name = 'drift';
-            }else{
+            } else if ($scope.sar.type === embryo.sar.Operation.TrackLine){
+                $scope.page.name = 'route';
+                $scope.createTrackline();
+            } else{
                 $scope.page.name = 'sarInputs';
             }
             if($scope.backTrackInitializer){
@@ -326,6 +259,52 @@ $(function () {
                     $scope.$apply(function () {
                     });
                 }
+            });
+        }
+
+        $scope.createTrackline = function () {
+            var sarInput = $scope.sar;
+
+            UserPouch.allDocs({
+                include_docs: true
+            }).then(function (result) {
+                var users = SarService.extractDbDocs(result);
+
+                try {
+                    $scope.alertMessages = [];
+                    // retain PouchDB fields like _id and _rev
+                    var calculatedOperation = SarOperationFactory.createSarOperation(sarInput);
+                    $scope.sarOperation['@type'] = calculatedOperation['@type'];
+                    $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
+                    $scope.sarOperation.input = calculatedOperation.input;
+                    $scope.sarOperation.output = calculatedOperation.output;
+
+                    if (!$scope.sarOperation._id) {
+                        $scope.sarOperation._id = "sar-" + Date.now();
+                        $scope.sarOperation.status = embryo.SARStatus.DRAFT;
+                    }
+
+                    return LivePouch.put($scope.sarOperation)
+                } catch (error) {
+                    $log.error(error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                }
+            }).then(function (putResponse) {
+                if(!$scope.sar.planedRoute){
+                    $scope.sar.planedRoute = {}
+                }
+                if(!$scope.sar.planedRoute.points){
+                    $scope.sar.planedRoute.points = [{}];
+                }
+                return LivePouch.get(putResponse.id)
+            }).then(function(sarOperation){
+                // SarOperation with updated _rev number
+                $scope.page.name = 'route';
+                $scope.sarOperation = sarOperation;
             });
         }
 
@@ -1313,4 +1292,4 @@ $(function () {
         }
     }]);
 
-});
+})();
