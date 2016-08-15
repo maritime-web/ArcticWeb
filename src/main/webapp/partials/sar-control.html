@@ -64,6 +64,9 @@
                          x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
                         <div class="col-md-12">
                             <span class="pull-right">
+                                <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
+                                    SAR
+                                </button>
                                 <button type="button" class="btn btn-primary btn-xs" x-ng-click="newCoordinator()">
                                     Assign new coordinator
                                 </button>
@@ -169,9 +172,6 @@
                         <div class="col-md-12">
                             <span class="pull-right">
                                 <span x-ng-if="sar.status != SARStatus.ENDED && (selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName)">
-                                    <button type="button" class="btn btn-xs" x-ng-click="confirmEnd()">End
-                                        SAR
-                                    </button>
                                     <button type="button" class="btn btn-primary btn-xs" x-ng-click="edit()">Recalculate
                                     </button>
                                 </span>
@@ -181,23 +181,7 @@
                         </div>
                     </div>
                 </div>
-                <div x-ng-if="!selected.sar">
-                    Search and rescue operation not selected
-                </div>
-            </div>
-        </div>
-
-        <div accordion-group
-             heading="Effort Allocation{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}">
-
-            <div x-ng-if="selected.sar">
                 <div x-ng-controller="EffortAllocationControl" class="sar-operation-control">
-                    <div class="row">
-                        <div class="col-md-7">Operation status:</div>
-                        <div class="col-md-5 nopadding"><span class="label"
-                                                              x-ng-class="SARStatusLabel[selected.sar.status]">{{SARStatusTxt[selected.sar.status]}}</span>
-                        </div>
-                    </div>
 
                     <h6>Effort allocations</h6>
                     <table class="table table-condensed ctrl">
