@@ -5,7 +5,8 @@
         .module('vrmt.map')
         .directive('route', route);
 
-    function route() {
+    route.$inject = ['NotifyService', 'Events'];
+    function route(NotifyService, Events) {
         var directive = {
             restrict: 'E',
             require: '^olMap',
@@ -18,8 +19,52 @@
         return directive;
 
         function link(scope, element, attrs, ctrl) {
-            var route = angular.isDefined(scope.route.wps) ? scope.route : undefined;
+            NotifyService.subscribe(scope, Events.RouteChanged, addOrReplaceRoute);
             var routeLayer;
+
+            var source = new ol.source.Vector();
+
+            routeLayer = new ol.layer.Vector({
+                source: source,
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: '#FF0000',
+                        width: 2,
+                        lineDash: [5, 5, 0, 5]
+                    }),
+                    image: new ol.style.Circle({
+                        radius: 4,
+                        stroke: new ol.style.Stroke({
+                            color: '#FF0000',
+                            width: 1
+                        })
+                    })
+                })
+            });
+
+            function addOrReplaceRoute(event, route) {
+                source.clear();
+
+                var markers = [];
+                angular.forEach(route.wps, function (wp) {
+                    var m = ol.proj.transform([wp.longitude, wp.latitude], 'EPSG:4326', 'EPSG:3857');
+                    markers.push(m);
+                    var pointFeature = new ol.Feature({
+                        geometry: new ol.geom.Point(m)
+                    });
+
+                    source.addFeature(pointFeature);
+                });
+
+                // Create feature with linestring
+                var line = new ol.geom.LineString(markers, 'XY');
+                var feature = new ol.Feature({
+                    geometry: line
+                });
+
+                source.addFeature(feature);
+            }
+
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {
@@ -37,53 +82,14 @@
                     }
                 });
 
-                var source = new ol.source.Vector();
 
-                routeLayer = new ol.layer.Vector({
-                    source: source,
-                    style: new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: '#FF0000',
-                            width: 2,
-                            lineDash: [5, 5, 0, 5]
-                        }),
-                        image: new ol.style.Circle({
-                            radius: 4,
-                            stroke: new ol.style.Stroke({
-                                color: '#FF0000',
-                                width: 1
-                            })
-                        })
-                    })
-                });
-
+/*
                 scope.$watch("route", function (newRoute) {
                     if (newRoute && newRoute.wps) {
                         addOrReplaceRoute(newRoute);
                     }
                 });
-
-                function addOrReplaceRoute(route) {
-                    source.clear();
-
-                    var markers = [];
-                    angular.forEach(route.wps, function (wp) {
-                        var m = ol.proj.transform([wp.longitude, wp.latitude], 'EPSG:4326', 'EPSG:3857');
-                        markers.push(m);
-                        var pointFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(m)
-                        });
-
-                        source.addFeature(pointFeature);
-                    });
-
-                    // Create feature with linestring
-                    var line = new ol.geom.LineString(markers, 'XY');
-                    var feature = new ol.Feature({
-                        geometry: line
-                    });
-                    source.addFeature(feature);
-                }
+*/
 
 
                 var onMoveKey = map.on('pointermove', function (e) {
@@ -117,6 +123,7 @@
                 });
 
                 routeLayer.setVisible(true);
+
                 map.addLayer(routeLayer);
             })
         }

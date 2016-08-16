@@ -4,9 +4,9 @@
         .module('vrmt.app')
         .controller("SidebarController", SidebarController);
 
-    SidebarController.$inject = ['$scope', 'RouteService', 'ScheduleService'];
+    SidebarController.$inject = ['$scope', 'RouteService', 'ScheduleService', 'NotifyService', 'Events'];
 
-    function SidebarController($scope, RouteService, ScheduleService) {
+    function SidebarController($scope, RouteService, ScheduleService, NotifyService, Events) {
         var vm = this;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
@@ -27,10 +27,10 @@
             assessmentViews: [],
             currentAssessment: null,
             chooseAssessment: function (assessmentView) {
-                $scope.assessmentLocationState['chosen'] = assessmentView.assessment;
+                NotifyService.notify(Events.AssessmentLocationChosen, assessmentView.assessment);
             },
             newAssessment: function () {
-                $scope.editorActivator.showAssessmentEditor += 1;
+                NotifyService.notify(Events.OpenAssessmentEditor);
             }
         };
 
@@ -42,17 +42,16 @@
         RouteView.prototype.choose = function () {
             vm.routeDropdownOpen = false;
             RouteService.getRoute(this.routeId, function (route) {
-                $scope.fireRouteChange(route);
+                NotifyService.notify(Events.RouteChanged, route);
             });
         };
-
 
         function toggleVisibility() {
             vm.hidden = !vm.hidden;
         }
 
         function configure() {
-            $scope.editorActivator.showAssessmentFactorEditor += 1;
+            NotifyService.notify(Events.OpenAssessmentFactorEditor);
         }
 
         function routeDropdownClicked() {
@@ -90,43 +89,35 @@
             this.factorAssessments = assessment.scores || [];
         }
 
-        $scope.$watch("assessmentLocationState['latestRiskAssessments']", function (newValue, oldValue) {
-            if (newValue && newValue !== oldValue) {
-                vm.meta.assessmentViews = [];
-                vm.meta.currentAssessment = null;
-                var currentLocationId = $scope.assessmentLocationState['chosen'] ? $scope.assessmentLocationState['chosen'].location.id : -1;
-                newValue.forEach(function (assessment) {
-                    var assessmentView = new AssessmentView(assessment);
-                    vm.meta.assessmentViews.push(assessmentView);
-                    if (assessment.location.id === currentLocationId) {
-                        vm.meta.currentAssessment = assessmentView;
-                        $scope.assessmentLocationState['chosen'] = assessment;
-                    }
-                });
+        NotifyService.subscribe($scope, Events.LatestRiskAssessmentsLoaded, onLatestRiskAssessmentsLoaded);
+        function onLatestRiskAssessmentsLoaded(event, assessments) {
+            vm.meta.assessmentViews = [];
+            vm.meta.currentAssessment = null;
+            assessments.forEach(function (assessment) {
+                var assessmentView = new AssessmentView(assessment);
+                vm.meta.assessmentViews.push(assessmentView);
+            });
+        }
 
-                if (!vm.meta.currentAssessment && vm.meta.assessmentViews.length > 0) {
-                    vm.meta.currentAssessment = vm.meta.assessmentViews[0];
-                    $scope.assessmentLocationState['chosen'] = newValue[0];
-                }
-            }
-        });
+        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+        function onAssessmentLocationChosen(event, chosen) {
+            vm.meta.currentAssessment = getViewForAssessment(chosen);
+        }
 
-        $scope.$watch('route', function (newRoute, oldRoute) {
-            if (newRoute && newRoute !== oldRoute) {
-                vm.meta.routeView = {id: newRoute.id, name: newRoute.name};
-            }
-        });
+        function getViewForAssessment(assessment) {
+            return vm.meta.assessmentViews.find(function (view) {
+                return view.locationId === assessment.location.id;
+            })
+        }
 
-        $scope.$watch('vessel', function (newVessel) {
-            if (newVessel && newVessel.aisVessel) {
-                vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
-            }
-        });
+        NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
+        function onRouteChange(event, newRoute) {
+            vm.meta.routeView = {id: newRoute.id, name: newRoute.name};
+        }
 
-        $scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
-            if (newValue && newValue !== oldValue) {
-                vm.meta.currentAssessment = new AssessmentView(newValue);
-            }
-        });
+        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        function onVesselLoaded(event, newVessel) {
+            vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
+        }
     }
 })();

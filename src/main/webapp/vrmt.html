@@ -67,6 +67,7 @@
     <script src="vrmt/components/render/mw-select-renderer-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/render-utilities.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/notify/notify-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/assessment/assessment-editor.controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/sidebar/sidebar-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/configuration/assessment-factor-config-controller.js" defer="defer" type="text/javascript"></script>
@@ -81,7 +82,7 @@
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div class="menuDivider"></div>
 
-<div class="container-fluid" ng-controller="AppController">
+<div class="container-fluid" ng-controller="AppController as app">
     <div class="row">
         <div x-ng-include="'vrmt/map/map.html'"></div>
         <div x-ng-include="'vrmt/sidebar/sidebar.html'"></div>

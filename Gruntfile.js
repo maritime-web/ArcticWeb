@@ -30,7 +30,9 @@ var testUtilityFiles = [
 ];
 var vrmtFiles = [
     {src: ['src/**/vrmt/**/app.js']},
-    {src: ['src/**/vrmt/**/*.js']}
+    {src: ['src/**/vrmt/**/*.js']},
+    {src: ['src/**/js/embryo-for-test.js']},
+    {src: ['src/**/js/authentication.js']}
 ];
 
 module.exports = function (grunt) {

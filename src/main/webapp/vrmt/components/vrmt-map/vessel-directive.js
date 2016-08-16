@@ -5,7 +5,9 @@
         .module('vrmt.map')
         .directive('vessel', vessel);
 
-    function vessel() {
+    vessel.$inject = ['NotifyService', 'Events'];
+
+    function vessel(NotifyService, Events) {
         var directive = {
             restrict: 'E',
             require: '^olMap',
@@ -19,7 +21,7 @@
 
         function link(scope, element, attrs, ctrl) {
             var vesselLayer = createVesselLayer();
-            addOrReplaceVessel(scope.vessel);
+            NotifyService.subscribe(scope, Events.VesselLoaded, addOrReplaceVessel);
 
             function createVesselLayer() {
                 return new ol.layer.Vector({
@@ -38,7 +40,7 @@
                 });
             }
 
-            function addOrReplaceVessel(vessel) {
+            function addOrReplaceVessel(event, vessel) {
                 if (vessel && vessel.aisVessel) {
                     addOrReplaceVesselFeature(vessel.aisVessel.lat, vessel.aisVessel.lon);
                     updateStyle(((vessel.aisVessel.cog - 90) * (Math.PI / 180)));
@@ -58,12 +60,6 @@
             function updateStyle(radian) {
                 vesselLayer.getStyle().getImage().setRotation(radian);
             }
-
-            scope.$watch("vessel", function (newVessel) {
-                if (newVessel && newVessel.aisVessel) {
-                    addOrReplaceVessel(newVessel);
-                }
-            });
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {

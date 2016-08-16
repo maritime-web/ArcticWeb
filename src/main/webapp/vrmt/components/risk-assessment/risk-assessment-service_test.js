@@ -145,6 +145,7 @@ describe('RiskAssessmentService', function () {
             expect(latestAssessments.length).toEqual(1);
             expect(latestAssessments[0] instanceof RiskAssessment).toBe(true);
             expect(latestAssessments[0].scores).toEqual([]);
+            expect(latestAssessments[0].location).toEqual(location);
         });
 
         it('should return the assessment with the most recent timestamp for each location', function () {

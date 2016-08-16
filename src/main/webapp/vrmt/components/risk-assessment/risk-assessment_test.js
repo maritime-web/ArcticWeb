@@ -14,4 +14,19 @@ describe('Risk Assessment Classes', function() {
             }).toThrowError(Error, "A risk factor can't have both score options and score interval");
         });
     });
+
+    describe('RiskAssessment', function() {
+        var params = {
+            assessmentLocation: "",
+            scores: []
+        };
+
+        it('should should assign param.assessmentLocation to location ', function() {
+            params.assessmentLocation = "a location";
+
+            var cut = new RiskAssessment(params);
+
+            expect(cut.location).toEqual(params.assessmentLocation);
+        });
+    });
 });

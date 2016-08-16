@@ -4,7 +4,9 @@
     angular.module('vrmt.map')
         .directive('assessmentLocations', assessmentLocations);
 
-    function assessmentLocations() {
+    assessmentLocations.$inject = ['NotifyService', 'Events'];
+
+    function assessmentLocations(NotifyService, Events) {
         var directive = {
             restrict: 'E',
             require: '^olMap',
@@ -89,27 +91,28 @@
             }
 
 
+
             /**
              * Model listeners
              */
-            scope.$watch("assessmentLocationState['latestRiskAssessments']", function (newLocations) {
-                if (newLocations) {
-                    select.getFeatures().clear();
-                    locationLayer.getSource().clear();
-                    newLocations.forEach(function (latestAssessment) {
-                        addOrReplaceLocation(latestAssessment);
-                    });
-                }
-            });
-            scope.$watch("assessmentLocationState['chosen']", function (newValue, oldValue) {
-                if (newValue && (newValue !== oldValue || select.getFeatures().getLength() === 0)) {
-                    select.getFeatures().clear();
+            NotifyService.subscribe(scope, Events.LatestRiskAssessmentsLoaded, onLatestRiskAssessmentsLoaded);
+            function onLatestRiskAssessmentsLoaded(event, assessments) {
 
-                    var featureToSelect = locationLayer.getSource().getFeatureById(newValue.location.id);
-                    select.getFeatures().push(featureToSelect);
-                    panToFeature(featureToSelect);
-                }
-            });
+                locationLayer.getSource().clear();
+                assessments.forEach(function (assessment) {
+                    addOrReplaceLocation(assessment);
+                });
+            }
+
+            NotifyService.subscribe(scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+            function onAssessmentLocationChosen(event, chosen) {
+                select.getFeatures().clear();
+
+                var featureToSelect = locationLayer.getSource().getFeatureById(chosen.location.id);
+
+                select.getFeatures().push(featureToSelect);
+                panToFeature(featureToSelect);
+            }
 
             /**
              * Interactions
@@ -131,7 +134,7 @@
             select.on('select', function (e) {
                 if (e.selected.length == 1) {
                     var selectedFeature = e.selected[0];
-                    scope.assessmentLocationState['chosen'] = selectedFeature.get("assessmentLocation");
+                    NotifyService.notify(Events.AssessmentLocationChosen, selectedFeature.get("assessmentLocation"));
                 }
 
                 scope.$apply();

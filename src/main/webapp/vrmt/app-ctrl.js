@@ -3,109 +3,101 @@
 
     angular
         .module('vrmt.app')
+        .constant('Events', {
+            AssessmentCreated: "AssessmentCreated",
+            AssessmentDeleted: "AssessmentDeleted",
+            AssessmentLocationCreated: "AssessmentLocationCreated",
+            AssessmentLocationDeleted: "AssessmentLocationDeleted",
+            RouteChanged: "RouteChanged",
+            VesselLoaded: "VesselLoaded",
+            LatestRiskAssessmentsLoaded: "LatestRiskAssessmentsLoaded",
+            OpenAssessmentEditor: "OpenAssessmentEditor",
+            OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
+            AssessmentLocationChosen: "AssessmentLocationChosen",
+        })
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService) {
-
-        /**
-         * Initialize variables
-         */
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout) {
+        var vm = this;
         $scope.mmsi = embryo.authentication.shipMmsi;
-        $scope.vessel = {};
-        $scope.route = {};
+        vm.route = {};
+        vm.chosenAssessment = null;
         $scope.assessmentLocationState = {};
-        $scope.assessmentLocationEvents = {
-            created: null,
-            deleted: null,
-            updated: null
-        };
-        $scope.riskAssessmentEvents = {
-            created: null,
-            deleted: null,
-            updated: null
-        };
-        $scope.latestRiskAssessments = [];
-
-        $scope.editorActivator = {
-            showAssessmentEditor: 0,
-            showAssessmentFactorEditor: 0
-        };
 
         /**
          * Load data
          */
         function loadVessel() {
             VesselService.details($scope.mmsi, function (v) {
-                if (v && v.aisVessel) {
-                    console.log("Got vessel info for " + $scope.mmsi + " Lat: " + v.aisVessel.lat + " Lon: " + v.aisVessel.lon);
-                } else {
-                    console.log("Got vessel info for " + $scope.mmsi);
-                }
-                $scope.vessel = v;
+                NotifyService.notify(Events.VesselLoaded, v);
             });
         }
-
-        loadVessel();
-        var stop = $interval(loadVessel, 300000);
-
-        RouteService.getActive($scope.mmsi, function (r) {
-            $scope.fireRouteChange(r);
-        });
-
-        $scope.fireRouteChange = function (r) {
-            $scope.route = r;
-            $scope.assessmentLocationState['route'] = r;
-        };
 
         function loadLatestAssessments(assessmentLocationToChoose) {
             RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
                 .then(function (assessments) {
+                    if (assessments.length === 0) return;
+
                     if (assessmentLocationToChoose) {
-                        $scope.assessmentLocationState['chosen'] = assessments.find(function (assessment) {
+                        vm.chosenAssessment = assessments.find(function (assessment) {
                             return assessmentLocationToChoose.id === assessment.location.id;
                         });
                     } else {
-                        $scope.assessmentLocationState['chosen'] = null;
+                        vm.chosenAssessment = assessments[0];
                     }
-                    $scope.latestRiskAssessments = assessments;
-                    $scope.assessmentLocationState['latestRiskAssessments'] = assessments;
+
+                    NotifyService.notify(Events.LatestRiskAssessmentsLoaded, assessments);
+                    NotifyService.notify(Events.AssessmentLocationChosen, vm.chosenAssessment);
                 })
         }
 
         /**
          * Reload data when Rute changes
          */
-        $scope.$watch('route', function (newRoute, oldRoute) {
-            if (newRoute && newRoute !== oldRoute) {
-                console.log("Route changed: " + newRoute.name);
-                loadLatestAssessments();
-            }
-        });
+        NotifyService.subscribe($scope, Events.RouteChanged, onRouteChanged);
+        function onRouteChanged(event, newRoute) {
+            $scope.route = newRoute;
+            loadLatestAssessments();
+        }
 
         /**
          * Reload data when CRUD operations have been performed
          */
-        $scope.$watch("riskAssessmentEvents['created']", function (newValue, oldValue) {
-            if (newValue && newValue != oldValue) {
-                loadLatestAssessments($scope.assessmentLocationState['chosen'].location);
-            }
-        });
-        $scope.$watch("riskAssessmentEvents['deleted']", function (newValue, oldValue) {
-            if (newValue && newValue != oldValue) {
-                loadLatestAssessments($scope.assessmentLocationState['chosen'].location);
-            }
-        });
-        $scope.$watch("assessmentLocationEvents['created']", function (newValue, oldValue) {
-            if (newValue && newValue != oldValue) {
-                loadLatestAssessments(newValue);
-            }
-        });
-        $scope.$watch("assessmentLocationEvents['deleted']", function (newValue, oldValue) {
-            if (newValue && newValue != oldValue) {
-                loadLatestAssessments();
-            }
+        NotifyService.subscribe($scope, Events.AssessmentCreated, onAssessmentCRUD);
+        NotifyService.subscribe($scope, Events.AssessmentDeleted, onAssessmentCRUD);
+        function onAssessmentCRUD() {
+            loadLatestAssessments(vm.chosenAssessment.location);
+        }
+
+        NotifyService.subscribe($scope, Events.AssessmentLocationCreated, onAssessmentLocationCreated);
+        function onAssessmentLocationCreated(event, newLocation) {
+            loadLatestAssessments(newLocation);
+        }
+
+        NotifyService.subscribe($scope, Events.AssessmentLocationDeleted, onAssessmentLocationDeleted);
+        function onAssessmentLocationDeleted() {
+            loadLatestAssessments();
+        }
+
+
+        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+        function onAssessmentLocationChosen(event, chosen) {
+            vm.chosenAssessment = chosen;
+        }
+
+        //initial load of vessel and route
+        var stop = $interval(loadVessel, 300000);
+
+        //Make sure that all subscribers for vessel and route data have been registered before loading data
+        $timeout(function () {
+            $scope.$apply(function () {
+                loadVessel();
+                RouteService.getActive($scope.mmsi, function (r) {
+                    NotifyService.notify(Events.RouteChanged, r);
+                });
+            });
         });
 
         /**

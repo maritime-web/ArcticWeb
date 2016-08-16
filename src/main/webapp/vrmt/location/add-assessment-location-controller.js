@@ -7,9 +7,9 @@
         .controller("ModalInstanceCtrl", ModalInstanceCtrl);
 
 
-    AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentLocationService'];
+    AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentLocationService', 'NotifyService', 'Events'];
 
-    function AssessmentLocationController($scope, $modal, RiskAssessmentLocationService) {
+    function AssessmentLocationController($scope, $modal, RiskAssessmentLocationService, NotifyService, Events) {
         $scope.$watch("assessmentLocationState['new']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
             if (!newAssessmentLocationEvent || newAssessmentLocationEvent == oldAssessmentLocationEvent) return;
 
@@ -43,7 +43,7 @@
                 locParam.routeId = $scope.route.id;
                 RiskAssessmentLocationService.createAssessmentLocation(locParam)
                     .then(function (location) {
-                        $scope.assessmentLocationEvents['created'] = location;
+                        NotifyService.notify(Events.AssessmentLocationCreated, location);
                     });
             }, function (dismissReason) {
                 console.log("assessment Location dismissed with reason '" + dismissReason + "'");

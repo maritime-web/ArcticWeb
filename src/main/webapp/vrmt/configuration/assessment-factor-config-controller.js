@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("AssessmentFactorConfigController", AssessmentFactorConfigController);
 
-    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService'];
+    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'Events'];
 
-    function AssessmentFactorConfigController($scope, RiskFactorService) {
+    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, Events) {
         var vm = this;
         vm.hide = true;
         vm.vesselName = $scope.mmsi;
@@ -15,18 +15,14 @@
         vm.save = save;
         vm.riskFactors = [];
 
-        $scope.$watch('vessel', function (newVessel) {
-            if (newVessel && newVessel.aisVessel) {
+        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        function onVesselLoaded(event, newVessel) {
+            if (newVessel.aisVessel) {
                 vm.vesselName = newVessel.aisVessel.name || $scope.mmsi;
             }
-        });
+        }
 
-        $scope.$watch("editorActivator['showAssessmentFactorEditor']", function (newValue, oldValue) {
-            if (newValue && newValue !== oldValue) {
-                console.log("Opening assessment factor editor for the '" + newValue + "' time");
-                vm.show();
-            }
-        });
+        NotifyService.subscribe($scope, Events.OpenAssessmentFactorEditor, vm.show);
 
         function show() {
             vm.hide = false;

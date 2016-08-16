@@ -3,22 +3,37 @@
         .module('vrmt.app')
         .controller("MapController", MapController);
 
-    MapController.$inject = ['$scope', 'MapService', 'RiskAssessmentLocationService'];
+    MapController.$inject = ['$scope', 'MapService', 'RiskAssessmentLocationService', 'NotifyService', 'Events'];
 
-    function MapController($scope, MapService, RiskAssessmentLocationService) {
+    function MapController($scope, MapService, RiskAssessmentLocationService, NotifyService, Events) {
         var vm = this;
 
         vm.hide = true;
         vm.style = {position: "absolute", 'z-index': 200, top: 0, left: 0};
         vm.functions = [];
         vm.close = close;
+        vm.vessel = null;
+        vm.chosenAssessment = null;
 
         $scope.mapState = {};
         vm.mapBackgroundLayers = MapService.createStdBgLayerGroup();
 
+
+        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        function onVesselLoaded(event, loadedVessel) {
+            vm.vessel = loadedVessel;
+        }
+
+
+        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+        function onAssessmentLocationChosen(event, chosen) {
+            vm.chosenAssessment = chosen;
+        }
+
         function close() {
             vm.hide = true;
         }
+
 
         /**
          * Assessment location map functions
@@ -32,17 +47,17 @@
                         name: 'New Assesment',
                         choose: function () {
                             vm.close();
-                            $scope.editorActivator.showAssessmentEditor += 1;
+                            NotifyService.notify(Events.OpenAssessmentEditor);
                         }
                     },
                     {
                         name: 'Delete',
                         choose: function () {
                             vm.close();
-                            var locationToDelete = $scope.assessmentLocationState['chosen'].location;
+                            var locationToDelete = vm.chosenAssessment.location;
                             RiskAssessmentLocationService.deleteAssessmentLocation(locationToDelete)
                                 .then(function () {
-                                    $scope.assessmentLocationEvents['deleted'] = locationToDelete;
+                                    NotifyService.notify(Events.AssessmentLocationDeleted, locationToDelete);
                                 }, function (errorReason) {
                                     console.log(errorReason);
                                 });
@@ -69,8 +84,8 @@
                             $scope.assessmentLocationState['new'] = {
                                 vessel: {
                                     ais: {
-                                        lon: $scope.vessel.aisVessel.lon,
-                                        lat: $scope.vessel.aisVessel.lat
+                                        lon: vm.vessel.aisVessel.lon,
+                                        lat: vm.vessel.aisVessel.lat
                                     },
                                     override: {}
                                 }

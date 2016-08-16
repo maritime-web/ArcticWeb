@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentEditorController", AssessmentEditorController);
 
-    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService'];
+    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'NotifyService', 'Events'];
 
-    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService) {
+    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, NotifyService, Events) {
         var vm = this;
 
         vm.hide = true;
@@ -19,13 +19,15 @@
         vm.sum = sum;
         vm.factorAssessments = [];
 
+        var chosenAssessment = null;
+
         function dismiss() {
             vm.hide = true;
             vm.clear();
         }
 
         function save() {
-            var locationId = $scope.assessmentLocationState['chosen'].location.id;
+            var locationId = chosenAssessment.location.id;
 
             var fas = vm.factorAssessments.map(function (fa) {
                 return fa.toScore();
@@ -33,7 +35,7 @@
             RiskAssessmentService.createRiskAssessment($scope.route.id, locationId, fas)
                 .then(
                     function (result) {
-                        $scope.riskAssessmentEvents['created'] = result;
+                        NotifyService.notify(Events.AssessmentCreated, result);
                     },
                     function (reason) {
                         //TODO display error reason
@@ -59,8 +61,7 @@
         }
 
         function chosenLocation() {
-            var ca = $scope.assessmentLocationState['chosen'];
-            return ca ? ca.location.id + '. ' + ca.location.name : null;
+            return chosenAssessment ? chosenAssessment.location.id + '. ' + chosenAssessment.location.name : null;
         }
 
         function sum() {
@@ -97,11 +98,11 @@
             });
         };
 
-        $scope.$watch("editorActivator['showAssessmentEditor']", function (newValue, oldValue) {
-            if (newValue && newValue !== oldValue) {
-                console.log("Opening assessment editor for the '" + newValue + "' time");
-                vm.show();
-            }
-        });
+        NotifyService.subscribe($scope, Events.OpenAssessmentEditor, vm.show);
+
+        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+        function onAssessmentLocationChosen(event, chosen) {
+            chosenAssessment = chosen;
+        }
     }
 })();
