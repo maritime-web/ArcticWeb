@@ -10,10 +10,7 @@
         var directive = {
             restrict: 'E',
             require: '^olMap',
-            scope: {
-                route: '=',
-                assessmentLocationState: '='
-            },
+            scope: {},
             link: link
         };
         return directive;
@@ -82,16 +79,6 @@
                     }
                 });
 
-
-/*
-                scope.$watch("route", function (newRoute) {
-                    if (newRoute && newRoute.wps) {
-                        addOrReplaceRoute(newRoute);
-                    }
-                });
-*/
-
-
                 var onMoveKey = map.on('pointermove', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
                     var hit = map.hasFeatureAtPixel(pixel);
@@ -111,12 +98,12 @@
 
                     if (hitThis && !hitOther) {
                         var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                        scope.assessmentLocationState['new'] = {
+                        NotifyService.notify(Events.AddAssessmentLocation, {
                             route: {
                                 lon: coord[0],
                                 lat: coord[1]
                             }
-                        };
+                        });
                     }
                     scope.$apply();
 

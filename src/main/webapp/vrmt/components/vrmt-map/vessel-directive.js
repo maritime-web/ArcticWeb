@@ -11,10 +11,7 @@
         var directive = {
             restrict: 'E',
             require: '^olMap',
-            scope: {
-                mapState: '=',
-                vessel: '='
-            },
+            scope: {},
             link: link
         };
         return directive;
@@ -72,10 +69,10 @@
                     });
 
                     if (hitThis) {
-                        scope.mapState['vesselClick'] = {
+                        NotifyService.notify(Events.VesselClicked, {
                             x: e.originalEvent.clientX,
                             y: e.originalEvent.clientY
-                        };
+                        });
                     }
                     scope.$apply();
 

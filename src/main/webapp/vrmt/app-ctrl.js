@@ -14,6 +14,9 @@
             OpenAssessmentEditor: "OpenAssessmentEditor",
             OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
             AssessmentLocationChosen: "AssessmentLocationChosen",
+            AssessmentLocationClicked: "AssessmentLocationClicked",
+            VesselClicked: "VesselClicked",
+            AddAssessmentLocation: "AddAssessmentLocation"
         })
         .controller("AppController", AppController);
 
@@ -24,7 +27,6 @@
         $scope.mmsi = embryo.authentication.shipMmsi;
         vm.route = {};
         vm.chosenAssessment = null;
-        $scope.assessmentLocationState = {};
 
         /**
          * Load data

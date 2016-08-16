@@ -10,9 +10,9 @@
     AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentLocationService', 'NotifyService', 'Events'];
 
     function AssessmentLocationController($scope, $modal, RiskAssessmentLocationService, NotifyService, Events) {
-        $scope.$watch("assessmentLocationState['new']", function (newAssessmentLocationEvent, oldAssessmentLocationEvent) {
-            if (!newAssessmentLocationEvent || newAssessmentLocationEvent == oldAssessmentLocationEvent) return;
 
+        NotifyService.subscribe($scope, Events.AddAssessmentLocation, onAddAssessmentLocation);
+        function onAddAssessmentLocation(event, newAssessmentLocationEvent) {
             var modalInstance = $modal.open({
                 templateUrl: "addAssessmentLocation",
                 controller: 'ModalInstanceCtrl',
@@ -48,7 +48,7 @@
             }, function (dismissReason) {
                 console.log("assessment Location dismissed with reason '" + dismissReason + "'");
             })
-        });
+        }
     }
 
     ModalInstanceCtrl.$inject = ['$scope', '$modalInstance', 'event'];
