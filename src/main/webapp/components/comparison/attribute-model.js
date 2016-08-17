@@ -1,4 +1,4 @@
-(function(){
+$(function(){
     var module = angular.module('embryo.attribute.model',[]);
 
     module.factory('Attribute', function () {
@@ -19,4 +19,4 @@
         }
         return Attribute;
     });
-})();
+});
