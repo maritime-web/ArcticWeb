@@ -606,8 +606,9 @@
         /**
          * Can be used with
          * - two parameters (longitude, latitude) in the format "degree and decimal minutes" (e.g. 010 12.432W, 12 43.123N)
-         * - two paramters (longitude, latitude) in the format "degrees" (e.g. 10.5 and 12.34)
-         * - on parameter, an object with "lon" and "lat" properties having values following either of the above.
+         * - two parameters (longitude, latitude) in the format "degrees" (e.g. 10.5 and 12.34)
+         * - a parameter, an object with "lon" and "lat" properties having values following either of the above.
+         * - a parameter, an object with "longitude" and "latitude" properties having values following either of the above.
         */
         embryo.geo.Position.create = function (){
             var lon, lat;
