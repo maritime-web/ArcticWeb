@@ -1274,18 +1274,29 @@
             var route = Route.build({
                 waypoints : wps
             });
-            var length = route.length();
 
             // TODO if great circle we need to include all points between waypoints
-            var centerStart = Position.create(route.waypoints[0]);
-            var initialBearing = centerStart.bearingTo(Position.create(route.waypoints[1]), embryo.geo.Heading.RL);
-            var centerEnd = centerStart.transformPosition(initialBearing, routeLengthToTravel);
-            var CSP =  centerStart.transformPosition(initialBearing - 90, zone.S/2)
+            var turnPointsOut = []
+            var turnPointsReturn = []
 
-            var turnPoints = [CSP];
-            turnPoints.push(centerEnd.transformPosition(initialBearing - 90, zone.S/2));
-            turnPoints.push(centerEnd.transformPosition(initialBearing + 90, zone.S/2));
-            turnPoints.push(centerStart.transformPosition(initialBearing + 90, zone.S/2));
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var p1 = Position.create(route.waypoints[i]);
+                var p2 = Position.create(route.waypoints[i+1]);
+                var distance =  p1.distanceTo(p2, embryo.geo.Heading.RL);
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
+
+                turnPointsOut.push(p1.transformPosition(bearing + 90, zone.S/2))
+                turnPointsReturn.push(p1.transformPosition(bearing - 90, zone.S/2))
+
+                if(distance >= routeLengthToTravel){
+                    p2 = p1.transformPosition(bearing, routeLengthToTravel);
+                }
+                turnPointsOut.push(p2.transformPosition(bearing + 90, zone.S/2))
+                turnPointsReturn.push(p2.transformPosition(bearing - 90, zone.S/2))
+                routeLengthToTravel -= distance;
+            }
+
+            var turnPoints = turnPointsOut.concat(turnPointsReturn.reverse());
 
             var wayPoints = [];
             for(var i in turnPoints){
@@ -1339,19 +1350,33 @@
             var route = Route.build({
                 waypoints : wps
             });
-            var length = route.length();
 
             // TODO if great circle we need to include all points between waypoints
-            var CSP = Position.create(route.waypoints[0]);
-            var initialBearing = CSP.bearingTo(Position.create(route.waypoints[1]), embryo.geo.Heading.RL);
-            var centerEnd = CSP.transformPosition(initialBearing, routeLengthToTravel);
+            var leg1Out = [];
+            var leg2Return = [];
+            var leg3Out =[];
 
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var p1 = Position.create(route.waypoints[i]);
+                var p2 = Position.create(route.waypoints[i+1]);
+                var distance =  p1.distanceTo(p2, embryo.geo.Heading.RL);
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
 
-            var turnPoints = [CSP, centerEnd];
-            turnPoints.push(centerEnd.transformPosition(initialBearing + 90, zone.S));
-            turnPoints.push(CSP.transformPosition(initialBearing + 90, zone.S));
-            turnPoints.push(CSP.transformPosition(initialBearing - 90, zone.S));
-            turnPoints.push(centerEnd.transformPosition(initialBearing - 90, zone.S));
+                leg1Out.push(p1);
+                leg2Return.push(p1.transformPosition(bearing + 90, zone.S))
+                leg3Out.push(p1.transformPosition(bearing - 90, zone.S))
+
+                if(distance >= routeLengthToTravel){
+                    p2 = p1.transformPosition(bearing, routeLengthToTravel);
+                }
+
+                leg1Out.push(p2);
+                leg2Return.push(p2.transformPosition(bearing + 90, zone.S))
+                leg3Out.push(p2.transformPosition(bearing - 90, zone.S))
+                routeLengthToTravel -= distance;
+            }
+
+            var turnPoints = leg1Out.concat(leg2Return.reverse()).concat(leg3Out);
 
             var wayPoints = [];
             for(var i in turnPoints){
