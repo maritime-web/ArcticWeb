@@ -47,9 +47,10 @@ module.exports = function(config) {
                 'src/main/webapp/js/control/additional-information.js',
 			    'src/main/webapp/components/**/*-model.js',
 			    'src/main/webapp/components/**/*-directive.js',
+				'src/main/webapp/components/**/*-service.js',
+				'src/main/webapp/components/**/*-test.js',
 			    'src/test/jsUnit/*Test.js',
-			    'src/test/jsUnit/*-test.js',
-			    'src/main/webapp/components/**/*-test.js'],
+			    'src/test/jsUnit/*-test.js'],
 
 
 		// list of files to exclude
