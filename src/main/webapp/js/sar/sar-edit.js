@@ -254,11 +254,9 @@
             }).then(function(sarOperation){
                 // SarOperation with updated _rev number
                 $scope.page.name = 'route';
+                $scope.page.back = 'drift';
+                $scope.page.next = 'lkp';
                 $scope.sarOperation = sarOperation;
-                if (!$scope.$$phase) {
-                    $scope.$apply(function () {
-                    });
-                }
             });
         }
 
@@ -273,16 +271,17 @@
                 try {
                     $scope.alertMessages = [];
                     // retain PouchDB fields like _id and _rev
-                    var calculatedOperation = SarOperationFactory.createSarOperation(sarInput);
-                    $scope.sarOperation['@type'] = calculatedOperation['@type'];
-                    $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
-                    $scope.sarOperation.input = calculatedOperation.input;
-                    $scope.sarOperation.output = calculatedOperation.output;
 
-                    if (!$scope.sarOperation._id) {
-                        $scope.sarOperation._id = "sar-" + Date.now();
-                        $scope.sarOperation.status = embryo.SARStatus.DRAFT;
+                    if(!$scope.sarOperation._id){
+                        $scope.sarOperation = {
+                            _id : "sar-" + Date.now(),
+                            status : embryo.SARStatus.DRAFT,
+                            '@type' : embryo.sar.Type.SearchArea,
+                            output : {}
+                        }
+                        $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
                     }
+                    $scope.sarOperation.input =  clone(sarInput);
 
                     return LivePouch.put($scope.sarOperation)
                 } catch (error) {
@@ -304,6 +303,8 @@
             }).then(function(sarOperation){
                 // SarOperation with updated _rev number
                 $scope.page.name = 'route';
+                $scope.page.back = 'typeSelection';
+                $scope.page.next = 'tracklineResult';
                 $scope.sarOperation = sarOperation;
             });
         }
@@ -495,6 +496,15 @@
                 });
             });
         }
+
+
+    }]);
+
+    module.controller("TracklineResultController", ['$scope', 'ViewService', function ($scope, ViewService) {
+        $scope.effortAllocationProvider = ViewService.viewProviders()['effort'];
+        $scope.manageEffortAllocations = function () {
+            $scope.effortAllocationProvider.show({sarId: $scope.sarOperation._id});
+        }
     }]);
 
     module.controller("BackTrackPositionSelectionController", ['$scope', 'Position', function ($scope, Position) {
@@ -577,6 +587,7 @@
             $scope.page.name = "sarInputs";
         }
     }]);
+
 
     module.controller("SARCoordinatorController", ['$scope', 'LivePouch', 'SarService', function ($scope, LivePouch, SarService) {
         $scope.coordinator = {
@@ -705,8 +716,8 @@
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory",
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory) {
+    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory", "TrackLineReturn", "TrackLineNonReturn",
+        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory, TrackLineReturn, TrackLineNonReturn) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
@@ -957,6 +968,36 @@
                 });
             }
 
+            $scope.calculateTrackSpacing = function () {
+                if ($scope.effort.status === embryo.sar.effort.Status.Active) {
+                    delete $scope.effort._rev;
+                    delete $scope.effort.area;
+                    $scope.effort._id = "sarEf-" + Date.now();
+                }
+
+                LivePouch.get($scope.effort.sarId).then(function (sar) {
+                    var allocation = null;
+                    try {
+                        allocation = SarService.calculateTrackSpacing($scope.effort);
+                    } catch (error) {
+                        $log.error(error)
+                        $scope.alertMessages = ["internal error", error];
+                    }
+
+                    if (allocation) {
+                        LivePouch.put(allocation).then(function () {
+                            // TODO fix problem. View closing after first save
+                            $scope.toSrus();
+                        }).catch(function (error) {
+                            $scope.alertMessages = ["internal error", error];
+                        });
+                    }
+                }).catch(function (error) {
+                    $scope.alertMessages = ["internal error", error];
+                    $log.error(error)
+                });
+            }
+
             $scope.activate = function () {
                 // CONFIRM calculation and movement within circle before sending to other vessels
                 // this to minimize data traffic
@@ -1031,8 +1072,8 @@
                 if(zone.status == AllocationStatus.DraftSRU){
                     $scope.patterns = [
                         pattern(SearchPattern.SectorSearch, "Sector search"),
-                        //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
-                        //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
+                        pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
+                        pattern(SearchPattern.TrackLineNonReturn, "Track line search, non-return"),
                     ]
                 }else {
                     $scope.patterns = [
@@ -1070,7 +1111,7 @@
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
                 $scope.spImages[SearchPattern.SectorSearch] = "img/sar/searchSectorPattern.png ";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
-                $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
+                $scope.spImages[SearchPattern.TrackLineNonReturn] = "img/sar/tracklinesearchnonreturn.png";
             }
 
             function findNewestSearchPattern(zone, init) {
@@ -1176,6 +1217,12 @@
                         var spCopy = clone($scope.sp);
                         spCopy.sar = $scope.sar;
                         $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineReturn ){
+                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sar);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn ){
+                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sar);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     }
                 }catch(error){

@@ -1,4 +1,4 @@
-$(function(){
+(function(){
 
     var module = angular.module('embryo.lteq.directive',['embryo.attribute.model']);
 
@@ -34,5 +34,4 @@ $(function(){
             }
         };
     }]);
-})
-
+})();

@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.pouchdb.services']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.pouchdb.services', 'embryo.route.model']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -676,6 +676,7 @@
         return BackTrackOutput;
     }]);
 
+
     // USED IN sar-edit.js and sar-controller.js
     module.factory('SarOperationFactory', ['RapidResponseOutput', "DatumPointOutput", "DatumLineOutput", "BackTrackOutput",
         function (RapidResponseOutput, DatumPointOutput, DatumLineOutput, BackTrackOutput) {
@@ -760,7 +761,12 @@
         var val1 = (-5.0 / 8.0) * Math.log(1 - POD / 100);
         return Math.pow(val1, -5.0 / 7.0);
     }
-    EffortAllocationCalculator.prototype.calculateTrackSpacing = function (wc, C) {
+    EffortAllocationCalculator.prototype.calculateTrackSpacing = function (input) {
+        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
+        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
+        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
+        var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
+        var C = this.calculateCoverageFactor(input.pod)
         return wc * C;
     }
     EffortAllocationCalculator.prototype.calculateSearchEndurance = function (onSceneTime) {
@@ -812,12 +818,7 @@
     };
 
     EffortAllocationCalculator.prototype.calculate = function (input, sar) {
-        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
-        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
-        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
-        var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
-        var C = this.calculateCoverageFactor(input.pod)
-        var S = this.calculateTrackSpacing(wc, C);
+        var S = this.calculateTrackSpacing(input);
         var T = this.calculateSearchEndurance(input.time);
         var zoneAreaSize = this.calculateZoneAreaSize(input.speed, S, T);
         var datum = this.getDatum(sar);
@@ -1143,11 +1144,9 @@
         var distAB = posA.rhumbLineDistanceTo(posB);
         var distBC = posB.rhumbLineDistanceTo(posC);
 
-
         if(embryo.Math.round10(distAB, 2) != embryo.Math.round10(distBC, 2)){
 
         }
-
 
         var bearingAB = posA.rhumbLineBearingTo(posB);
         var bearingBC = posB.rhumbLineBearingTo(posC);
@@ -1253,6 +1252,137 @@
     }
 
 
+    module.factory('TrackLineReturn',['Position', 'Route', function (Position, Route) {
+
+        function TrackLineReturn(){};
+
+        TrackLineReturn.prototype = new SearchPatternCalculator();
+
+        TrackLineReturn.prototype.createWaypoints = function (zone, routePoints) {
+            var distanceToTravel = zone.time * zone.speed;
+
+            var routeLengthToTravel = (distanceToTravel - zone.S)/2
+
+            var wps = []
+            for(var i in routePoints){
+                wps.push({
+                    longitude : routePoints[i].lon,
+                    latitude : routePoints[i].lat
+                })
+            }
+
+            var route = Route.build({
+                waypoints : wps
+            });
+            var length = route.length();
+
+            // TODO if great circle we need to include all points between waypoints
+            var centerStart = Position.create(route.waypoints[0]);
+            var initialBearing = centerStart.bearingTo(Position.create(route.waypoints[1]), embryo.geo.Heading.RL);
+            var centerEnd = centerStart.transformPosition(initialBearing, routeLengthToTravel);
+            var CSP =  centerStart.transformPosition(initialBearing - 90, zone.S/2)
+
+            var turnPoints = [CSP];
+            turnPoints.push(centerEnd.transformPosition(initialBearing - 90, zone.S/2));
+            turnPoints.push(centerEnd.transformPosition(initialBearing + 90, zone.S/2));
+            turnPoints.push(centerStart.transformPosition(initialBearing + 90, zone.S/2));
+
+            var wayPoints = [];
+            for(var i in turnPoints){
+                wayPoints.push(this.createWaypoint(i, turnPoints[i], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            }
+            return wayPoints;
+        }
+
+
+        TrackLineReturn.prototype.calculate = function (zone, sar) {
+
+            console.log(sar)
+
+            var wayPoints = this.createWaypoints(zone, sar.input.planedRoute.points);
+
+            var searchPattern = {
+                _id: "sarSp-" + Date.now(),
+                sarId: zone.sarId,
+                effId: zone._id,
+                type: embryo.sar.effort.SearchPattern.TrackLineReturn,
+                name: zone.name,
+                wps: wayPoints,
+            }
+            searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+            return searchPattern;
+        }
+
+        return new TrackLineReturn();
+    }]);
+
+    module.factory('TrackLineNonReturn',['Position', 'Route', function (Position, Route) {
+
+        function TrackLineNonReturn(){};
+
+        TrackLineNonReturn.prototype = new SearchPatternCalculator();
+
+        TrackLineNonReturn.prototype.createWaypoints = function (zone, routePoints) {
+            var distanceToTravel = zone.time * zone.speed;
+
+            var routeLengthToTravel = (distanceToTravel - 3 * zone.S)/3
+
+            var wps = []
+            for(var i in routePoints){
+                wps.push({
+                    longitude : routePoints[i].lon,
+                    latitude : routePoints[i].lat
+                })
+            }
+
+            var route = Route.build({
+                waypoints : wps
+            });
+            var length = route.length();
+
+            // TODO if great circle we need to include all points between waypoints
+            var CSP = Position.create(route.waypoints[0]);
+            var initialBearing = CSP.bearingTo(Position.create(route.waypoints[1]), embryo.geo.Heading.RL);
+            var centerEnd = CSP.transformPosition(initialBearing, routeLengthToTravel);
+
+
+            var turnPoints = [CSP, centerEnd];
+            turnPoints.push(centerEnd.transformPosition(initialBearing + 90, zone.S));
+            turnPoints.push(CSP.transformPosition(initialBearing + 90, zone.S));
+            turnPoints.push(CSP.transformPosition(initialBearing - 90, zone.S));
+            turnPoints.push(centerEnd.transformPosition(initialBearing - 90, zone.S));
+
+            var wayPoints = [];
+            for(var i in turnPoints){
+                wayPoints.push(this.createWaypoint(i, turnPoints[i], zone.speed, embryo.geo.Heading.RL, zone.S));
+            }
+            return wayPoints;
+        }
+
+
+        TrackLineNonReturn.prototype.calculate = function (zone, sar) {
+
+            console.log(sar)
+
+            var wayPoints = this.createWaypoints(zone, sar.input.planedRoute.points);
+
+            var searchPattern = {
+                _id: "sarSp-" + Date.now(),
+                sarId: zone.sarId,
+                effId: zone._id,
+                type: embryo.sar.effort.SearchPattern.TrackLineNonReturn,
+                name: zone.name,
+                wps: wayPoints,
+            }
+            searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+            return searchPattern;
+        }
+
+        return new TrackLineNonReturn();
+    }]);
+
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
     }
@@ -1339,6 +1469,14 @@
                 area.D = result.area.D.toDegreesAndDecimalMinutes();
                 result.area = area;
                 return result;
+            },
+            calculateTrackSpacing: function (input) {
+                var S = new EffortAllocationCalculator(SarTableFactory).calculateTrackSpacing(input);
+                var allocation = clone(input);
+                allocation.S = S;
+                // FIXME can not rely on local computer time
+                allocation.modified = Date.now();
+                return allocation;
             },
             findSarIndex: function (sars, id) {
                 for (var index in sars) {

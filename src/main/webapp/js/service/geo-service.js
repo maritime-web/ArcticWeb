@@ -612,9 +612,13 @@
         embryo.geo.Position.create = function (){
             var lon, lat;
             if(arguments.length == 1 && typeof arguments[0] === "object"){
-                assertObjectFieldValue(arguments[0], "lon");
-                assertObjectFieldValue(arguments[0], "lat");
-                lon = arguments[0].lon, lat = arguments[0].lat;
+                if(arguments[0].longitude && arguments[0].latitude){
+                    lon = arguments[0].longitude, lat = arguments[0].latitude;
+                }else {
+                    assertObjectFieldValue(arguments[0], "lon");
+                    assertObjectFieldValue(arguments[0], "lat");
+                    lon = arguments[0].lon, lat = arguments[0].lat;
+                }
             } else if(arguments.length == 2){
                 lon = arguments[0], lat = arguments[1];
             }

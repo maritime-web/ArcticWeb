@@ -90,7 +90,7 @@
         ParallelSweep: "PS",
         CreepingLine: "CL",
         TrackLineReturn: "TLR",
-        TrackLine: "TL",
+        TrackLineNonReturn: "TLNR",
         ExpandingSquare: "ES",
         SectorSearch: "SS"
     });

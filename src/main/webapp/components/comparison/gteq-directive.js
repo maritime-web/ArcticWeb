@@ -1,4 +1,4 @@
-$(function(){
+(function(){
 
     var module = angular.module('embryo.gteq.directive', ['embryo.attribute.model']);
     module.directive('gteq', ['Attribute', function (Attribute) {
@@ -27,4 +27,4 @@ $(function(){
             }
         };
     }]);
-});
+})();

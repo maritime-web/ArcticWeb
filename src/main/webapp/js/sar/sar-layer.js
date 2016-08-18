@@ -482,7 +482,7 @@ function SarLayer() {
             this.layers.sar.addFeatures(createSearchArea(sar, active));
         }
 
-        if(sar.input.type === embryo.sar.Operation.BackTrack){
+        if(sar.input.type === embryo.sar.Operation.BackTrack || sar.input.type === embryo.sar.Operation.TrackLine){
             var pos;
             if(sar.input.objectPosition){
                 pos = embryo.geo.Position.create(sar.input.objectPosition)
@@ -687,6 +687,4 @@ var SarLayerSingleton = {
 embryo.postLayerInitialization(function () {
     SarLayerSingleton.instance = new SarLayer();
     addLayerToMap("sar", SarLayerSingleton.instance, embryo.map);
-})
-
-
+});

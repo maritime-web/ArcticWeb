@@ -467,14 +467,14 @@
                     <tbody>
                     <tr ng-form="rpForm" x-ng-repeat="point in sar.planedRoute.points">
                         <td>
-                            <div x-ng-if="$index==0">
+                            <div x-ng-if="$index==0 && page.next=='lkp'">
                                 <datetimepicker name="pointTs" x-ng-model="point.ts"
                                                 lteq="sar.objectPosition.ts"/>
                                 <span x-ng-if="rpForm.pointTs.$error.lteq" class="error-block">
                                     Time of first planed route point must be before time of registered position for found object
                                 </span>
                             </div>
-                            <div x-ng-if="$index > 0">
+                            <div x-ng-if="$index > 0 || page.next!='lkp'">
                                 <datetimepicker name="pointTs" x-ng-model="point.ts"/>
                             </div>
                         </td>
@@ -498,9 +498,9 @@
 
                 <div class="col-xs-12">
                     <span class="pull-right">
-                        <button type="button" class="btn btn-sm" x-ng-click="page.name='drift'">Back</button> &nbsp;
-                        <button type="button" class="btn btn-sm" x-ng-click="page.name='lkp'">Skip</button> &nbsp;
-                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="saveSarOperation('lkp')"
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name=page.back">Back</button> &nbsp;
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name=page.next">Skip</button> &nbsp;
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="saveSarOperation(page.next)"
                                 x-ng-disabled="routeForm.$invalid">Save route
                         </button>
                     </span>
@@ -894,6 +894,26 @@
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)" x-ng-if="tmp.viewOnly">Close</button>
                     </span>
                     <span class="pull-right" >
+                    </span>
+                </div>
+            </div>
+            <div x-ng-if="page.name == 'tracklineResult'">
+                <hr/>
+                Track line operation no {{sarOperation.input.no}}
+                <hr/>
+
+                Planed route of found object: <br/>
+                <span x-ng-repeat="point in sarOperation.input.planedRoute.points">
+                    {{formatTs(point.ts)}}, {{formatPos(point)}} <br/>
+                </span>
+                <hr/>
+
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-sm" x-ng-click="page.name = 'route'" x-ng-if="!tmp.viewOnly">Back</button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="manageEffortAllocations()" x-ng-controller="TracklineResultController">Assign SRUs with search pattern</button>
+                        <button type="button" class="btn btn-sm" x-ng-click="close($event)"x-ng-if="!tmp.viewOnly">Cancel</button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)" x-ng-if="tmp.viewOnly">Close</button>
                     </span>
                 </div>
             </div>
