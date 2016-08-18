@@ -4,19 +4,6 @@
 embryo = {};
 
 // fn to add blank (noOp) function for all console methods
-var key, names = [ "log" ];
-embryo.logger = {};
-
-for (key in names) {
-    if (window.console && window.console[names[key]]) {
-        embryo.logger[names[key]] = function() {
-            return window.console[names[key]](arguments);
-        };
-    } else {
-        embryo.logger[names[key]] = function() {
-        };
-    }
-}
 
 embryo.baseMap = "world_merc";
 // embryo.baseMap = "osm";
@@ -168,7 +155,7 @@ embryo.ErrorService = {
         524 : "A timeout occurred"
     },
 
-    extractError : function(data, status, config) {
+    extractError : function(data, status) {
         var message = status + " " + this.statusTxt[status] + ". ";
         var texts = [ message ];
         if (data instanceof Array) {
