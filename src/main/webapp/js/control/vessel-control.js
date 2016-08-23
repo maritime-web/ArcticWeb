@@ -54,11 +54,12 @@ $(function() {
     };
 
     embryo.vessel.selectVessel = function(vessel) {
+        embryo.eventbus.fireEvent(embryo.eventbus.VesselSelectedEvent(vessel.mmsi));
         if (vessel.type) {
-            vesselLayer.select(vessel.mmsi);
+            var blockChainOfSelectEvents = true
+            vesselLayer.select(vessel.mmsi, blockChainOfSelectEvents);
         } else {
             vesselLayer.select(null);
-            embryo.eventbus.fireEvent(embryo.eventbus.VesselSelectedEvent(vessel.mmsi));
         }
     };
 
@@ -283,20 +284,28 @@ $(function() {
 
                 embryo.vesselSelected(function(e) {
                     VesselInformation.hideAll();
-                    $scope.selected.vesselName = "loading data";
                     $scope.selected.open = true;
-                    $scope.selected.vesselInformation = VesselInformation;
+                    // handle case, where selected in left panel and also marked in vessellayer (last provokes a selection event)
+                    if($scope.selected.loadingMmsi == e.vesselId){
+                        return;
+                    }
+
+                    $scope.selected.vesselName = "loading data";
+                    $scope.selected.loadingMmsi = e.vesselId;
 
                     VesselService.details(e.vesselId, function(vesselDetails) {
+                        $scope.selected.vesselInformation = VesselInformation;
                         $scope.selected.vesselAis = vesselAis(vesselDetails);
                         $scope.selected.vesselOverview = embryo.vessel.lookupVessel(e.vesselId);
                         $scope.selected.vesselName = $scope.selected.vesselOverview.name;
                         $scope.selected.vesselDetails = vesselDetails;
+                        delete $scope.selected.loadingMmsi;
                     }, function(errorMsg, status) {
                         embryo.messagePanel.show({
                             text : errorMsg,
                             type : "error"
                         });
+                        delete $scope.selected.loadingMmsi;
                     });
                     if (!$scope.$$phase) {
                         $scope.$apply(function() {

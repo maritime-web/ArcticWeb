@@ -191,7 +191,7 @@ function EmbryoLayer() {
                     }
                 }
             }
-            if (!didSelect)
+            if (!didSelect && !b)
                 this.map.select(null);
         }
     };
