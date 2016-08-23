@@ -95,7 +95,7 @@
              */
             NotifyService.subscribe(scope, Events.LatestRiskAssessmentsLoaded, onLatestRiskAssessmentsLoaded);
             function onLatestRiskAssessmentsLoaded(event, assessments) {
-
+                select.getFeatures().clear();
                 locationLayer.getSource().clear();
                 assessments.forEach(function (assessment) {
                     addOrReplaceLocation(assessment);

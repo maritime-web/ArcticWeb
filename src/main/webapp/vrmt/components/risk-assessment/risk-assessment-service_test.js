@@ -220,5 +220,22 @@ describe('RiskAssessmentService', function () {
             expect(theNewAssessment).toBeDefined();
         });
 
+        it('should return assessment containing a score named - Special area 1A -', function () {
+            var theNewAssessment = undefined;
+            var expectedName = "Special area 1A";
+            scores[0].name = expectedName;
+            dataService.storeAssessmentData = getFunctionResolving();
+            dataService.getAssessmentData = getFunctionResolving(locationWithNoAssessments);
+
+            cut.createRiskAssessment(location.routeId, location.id, scores)
+                .then(function (data) {
+                    theNewAssessment = data;
+                });
+
+            $rootScope.$apply();
+
+            expect(theNewAssessment.scores[0].name).toEqual(expectedName);
+        });
+
     });
 });

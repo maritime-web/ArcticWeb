@@ -23,15 +23,19 @@ var libFiles = [
     {src: ['src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js']},
     {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/angular.js']},
     {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/!(*min*).js']},
-    {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']}
+    {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']},
+    {src: ['src/**/js/ext/moment.min.js']},
+    {src: ['src/**/js/ext/turf.min.js']},
+    {src: ['src/**/js/ext/arc.js']}
 ];
 var testUtilityFiles = [
-    {src: ['src/test/**/utilities/*.js']},
+    {src: ['src/test/**/utilities/*.js']}
 ];
 var vrmtFiles = [
     {src: ['src/**/vrmt/**/app.js']},
     {src: ['src/**/vrmt/**/*.js']},
     {src: ['src/**/js/embryo-for-test.js']},
+    {src: ['src/**/js/service/geo-service.js']},
     {src: ['src/**/js/authentication.js']}
 ];
 

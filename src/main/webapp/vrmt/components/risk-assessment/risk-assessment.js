@@ -4,6 +4,9 @@ function RiskAssessmentLocation(parameters) {
     this.name = parameters.name;
     this.lat = parameters.lat;
     this.lon = parameters.lon;
+    this.getLatLon = function () {
+        return [this.lat, this.lon];
+    }
 }
 
 function RiskAssessment(parameters) {
@@ -17,7 +20,7 @@ function RiskAssessment(parameters) {
 }
 
 function Score(parameters) {
-    this.riskFactor = parameters.riskFactor;
+    this.riskFactorId = parameters.riskFactor.id;
     this.scoreOption = parameters.scoreOption;
     this.index = parameters.index;
     this.factorName = parameters.riskFactor.name;
@@ -46,5 +49,89 @@ function RiskFactor(parameters) {
     }
     if (!parameters.scoreOptions && !parameters.scoreInterval) {
         throw new Error("A risk factor must have either score options or a score interval");
+    }
+}
+
+function Route(route) {
+    var delegate = route;
+
+    var routeAsLinestring = toLineString();
+    var legs = toLegs();
+
+    function toLineString() {
+        var coords = delegate.wps.map(function (wp) {
+            return [wp.latitude, wp.longitude];
+        });
+        return turf.linestring(coords);
+    }
+
+    function toLegs() {
+        var res = [];
+
+        for (var i = 0; i < delegate.wps.length - 1; i++) {
+            res.push(createLeg(delegate.wps[i], delegate.wps[i+1]));
+        }
+
+        function createLeg(wp1, wp2) {
+            var leg = {};
+            leg.speed = wp1.speed;
+            leg.p1 = [wp1.latitude, wp1.longitude];
+            leg.p2 = [wp2.latitude, wp2.longitude];
+            leg.lineString = turf.linestring([leg.p1, leg.p2]);
+            leg.length = turf.lineDistance(leg.lineString, "miles");
+            leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
+            return leg;
+        }
+
+        return res;
+    }
+
+    this.getTimeAtPosition = function (latLon) {
+        var givenPosition = turf.point(latLon);
+        var positionOnRoute =  getClosestPointOnRoute(givenPosition);
+        var hours = getHoursToReachPosition(positionOnRoute);
+
+        var departure = moment(delegate.etaDep);
+        return departure.hour(hours);
+    };
+
+    function getHoursToReachPosition(positionOnRoute) {
+        var distance = getDistanceFromOrigin(positionOnRoute);
+        var length = 0;
+        var hours = 0;
+        for (var i = 0; length < distance && i < legs.length; i++) {
+            var leg = legs[i];
+            length += leg.length;
+            if (length > distance) {
+                var p1 = turf.point(leg.p1);
+                var p2 = positionOnRoute;
+                var ls = leg.lineString;
+                var slice = turf.lineSlice(p1, p2, ls);
+
+                var dist = turf.lineDistance(slice, "miles");
+                hours += dist / leg.speed;
+            } else {
+                hours += leg.hours;
+            }
+        }
+
+        return hours;
+    }
+
+    function getClosestPointOnRoute(givenPosition) {
+        var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
+        var distanceBetween = turf.distance(closestPoint, givenPosition, "miles");
+        if (distanceBetween > 10) {
+            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
+            throw errorMsg;
+        }
+        return turf.pointOnLine(routeAsLinestring, givenPosition);
+    }
+
+    function getDistanceFromOrigin(pointOnLine) {
+        var pStart = turf.point([delegate.wps[0].latitude, delegate.wps[0].longitude]);
+        var slice = turf.lineSlice(pStart, pointOnLine, routeAsLinestring);
+
+        return  turf.lineDistance(slice, "miles");
     }
 }

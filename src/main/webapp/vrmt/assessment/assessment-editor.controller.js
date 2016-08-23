@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentEditorController", AssessmentEditorController);
 
-    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'NotifyService', 'Events'];
+    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'RiskFactorAssessorService', 'NotifyService', 'Events'];
 
-    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, NotifyService, Events) {
+    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, RiskFactorAssessorService, NotifyService, Events) {
         var vm = this;
 
         vm.hide = true;
@@ -29,10 +29,10 @@
         function save() {
             var locationId = chosenAssessment.location.id;
 
-            var fas = vm.factorAssessments.map(function (fa) {
+            var scores = vm.factorAssessments.map(function (fa) {
                 return fa.toScore();
             });
-            RiskAssessmentService.createRiskAssessment($scope.route.id, locationId, fas)
+            RiskAssessmentService.createRiskAssessment($scope.route.id, locationId, scores)
                 .then(
                     function (result) {
                         NotifyService.notify(Events.AssessmentCreated, result);
@@ -45,18 +45,28 @@
             vm.clear();
         }
 
+        function chooseOption(viewModel) {
+            RiskFactorAssessorService.chooseOption(chosenAssessment.location, viewModel.riskFactor).then(function (chosenOption) {
+                viewModel.model = chosenOption;
+            });
+        }
+
+        function toViewModel(riskFactor) {
+            return new FactorAssessmentViewModel(riskFactor);
+        }
+
         function show() {
             RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
-                vm.factorAssessments = riskFactors.map(function (riskFactor) {
-                    return new FactorAssessmentViewModel(riskFactor);
-                });
+                vm.factorAssessments = riskFactors.map(toViewModel);
+                vm.factorAssessments.forEach(chooseOption);
                 vm.hide = false;
             });
         }
 
+
         function clear() {
             vm.factorAssessments.forEach(function (f) {
-                f.model = {text: '-', index: 0};
+                f.model = {name: '-', index: 0};
             })
         }
 
@@ -82,18 +92,19 @@
             this.minIndex = param.minIndex;
             this.maxIndex = param.maxIndex;
         }
+
         FactorAssessmentViewModel.prototype.toScore = function () {
             var chosenOptionName = this.model.name;
-            var scoringOption;
+            var scoreOption;
             if (this.scoreOptions) {
-                scoringOption = this.scoreOptions.find(function (option) {
-                    return option.name === chosenOptionName;
+                scoreOption = this.scoreOptions.find(function (option) {
+                    return option.name == chosenOptionName;
                 });
             }
 
             return new Score({
                 riskFactor: this.riskFactor,
-                scoringOption: scoringOption,
+                scoreOption: scoreOption,
                 index: this.model.index
             });
         };

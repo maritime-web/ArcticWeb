@@ -40,7 +40,10 @@
         function loadLatestAssessments(assessmentLocationToChoose) {
             RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
                 .then(function (assessments) {
-                    if (assessments.length === 0) return;
+                    if (assessments.length === 0) {
+                        NotifyService.notify(Events.LatestRiskAssessmentsLoaded, assessments);
+                        return;
+                    }
 
                     if (assessmentLocationToChoose) {
                         vm.chosenAssessment = assessments.find(function (assessment) {
