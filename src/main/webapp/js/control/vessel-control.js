@@ -56,8 +56,7 @@ $(function() {
     embryo.vessel.selectVessel = function(vessel) {
         embryo.eventbus.fireEvent(embryo.eventbus.VesselSelectedEvent(vessel.mmsi));
         if (vessel.type) {
-            var blockChainOfSelectEvents = true
-            vesselLayer.select(vessel.mmsi, blockChainOfSelectEvents);
+            vesselLayer.selectVessel(vessel.mmsi);
         } else {
             vesselLayer.select(null);
         }
@@ -381,8 +380,8 @@ $(function() {
         });
         $scope.select = function($event, vessel) {
             $event.preventDefault();
-            embryo.vessel.goToVesselLocation(vessel);
             embryo.vessel.selectVessel(vessel);
+            embryo.vessel.goToVesselLocation(vessel);
         };
     } ]);
 

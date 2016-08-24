@@ -39,7 +39,7 @@ function VesselLayer(conf) {
     }
 
     this.init = function() {
-        this.zoomLevels = [3, 4, 5, 6, 7, 8, 9, 10];
+        this.zoomLevels = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
         var that = this;
 
@@ -59,7 +59,7 @@ function VesselLayer(conf) {
                 return that.active ? 0.8 : 0.4;
             },
             vesselSize: function() {
-                return [0.5, 0.5, 0.55, 0.60, 0.65, 0.70, 0.8, 0.90, 1.0][that.zoomLevel];
+                return [0.5, 0.5, 0.55, 0.60, 0.65, 0.70, 0.8, 0.85, 0.90, 0.925, 0.95, 1.0, 1.0][that.zoomLevel];
             },
             label: function (feature) {
                 return feature.attributes.label ? feature.attributes.label : '';
@@ -226,7 +226,7 @@ function VesselLayer(conf) {
             });
     }
 
-    function createVesselFeatures(vessels, context, selectedFeature, markedVesselId) {
+    function createVesselFeatures(vessels, context, selectedId) {
         var result = {
             vesselFeatures: [],
             unSelectable: [],
@@ -235,7 +235,7 @@ function VesselLayer(conf) {
 
         $.each(vessels, function (key, value) {
             if (value.type != null) {
-                if (!selectedFeature || selectedFeature.attributes.vessel.mmsi != value.mmsi) {
+                if (selectedId != value.mmsi) {
                     result.vesselFeatures.push(createVesselFeature(value, context));
                 }
                 if (value.inAW) {
@@ -285,8 +285,13 @@ function VesselLayer(conf) {
         {zoom: 5, size: 0.40},
         {zoom: 6, size: 0.20},
         {zoom: 7, size: 0.10},
-        {zoom: 8, size: 0.05},
-        {zoom: 9, size: 0.02}
+        {zoom: 8, size: 0.06},
+        {zoom: 9, size: 0.03},
+        {zoom: 10, size: 0.015},
+        {zoom: 11, size: 0.0075},
+        {zoom: 12, size: 0.0025},
+        {zoom: 13, size: 0.001},
+        {zoom: 14, size: 0.0005}
     ];
 
     function getClusterSize(zoom) {
@@ -299,7 +304,7 @@ function VesselLayer(conf) {
         return clusterSizes[clusterSizes.length - 1].size;
     }
 
-    function createClusterFeatures(vessels, context, selectedFeature, zoom) {
+    function createClusterFeatures(vessels, context, selectedId, zoom) {
         var result = {
             vesselFeatures: [],
             unSelectable: [],
@@ -317,7 +322,7 @@ function VesselLayer(conf) {
                 for (var index in cell.items) {
                     var vessel = cell.items[index];
                     if (vessel.type != null) {
-                        if (!selectedFeature || selectedFeature.attributes.vessel.mmsi != vessel.mmsi) {
+                        if (selectedId != vessel.mmsi) {
                             result.vesselFeatures.push(createVesselFeature(vessel, context));
                         }
                         if (vessel.inAW) {
@@ -346,12 +351,27 @@ function VesselLayer(conf) {
         return result;
     }
 
+    this.selectVessel = function(mmsi){
+        function vesselFeatureExists(feature){
+            return feature.attributes.vessel && feature.attributes.vessel.mmsi == mmsi;
+        }
+
+        if(this.config.clusteringEnabled && !this.containsFeature(vesselFeatureExists)){
+            this.selectedId = mmsi;
+            this.draw2();
+        }
+
+        var blockChainOfSelectEvents = true
+        this.select(mmsi, blockChainOfSelectEvents);
+    }
+
     this.draw2 = function () {
         if (!this.vessels) {
             return
         }
 
         var selectedFeature = null;
+        var selectedVessel = null;
         var that = this;
 
         $.each(this.layers.vessel.features, function (k, v) {
@@ -367,24 +387,30 @@ function VesselLayer(conf) {
             if (vessel.mmsi == that.markedVesselId) {
                 markedIndex = index;
                 markedVessel = vessel;
+            }else if (vessel.mmsi == that.selectedId) {
+                selectedVessel = vessel;
             }
         });
         if (markedIndex != null) vesselsCp.splice(markedIndex, 1);
 
         var context = this.context;
 
-        var features = createFeatures(vesselsCp, context, selectedFeature, this.zoomLevel);
+        var features = createFeatures(vesselsCp, context, that.selectedId, that.zoomLevel);
         if (markedVessel != null) {
             features.vesselFeatures.push(createVesselFeature(markedVessel, context));
         }
 
-        var vesselLayer = this.layers.vessel;
-        var arr = vesselLayer.features.slice();
-        var idx = $.inArray(selectedFeature, arr);
-        if (idx != -1) arr.splice(idx, 1);
-        vesselLayer.addFeatures(features.vesselFeatures);
-        vesselLayer.destroyFeatures(arr);
-        vesselLayer.redraw();
+        // If feature already selected, then do not remove, add and redraw it, as this will remove selection
+        var arr = this.layers.vessel.features.slice();
+        if(selectedFeature){
+            var idx = $.inArray(selectedFeature, arr);
+            if (idx != -1) arr.splice(idx, 1);
+        } else if(selectedVessel){
+            features.vesselFeatures.push(createVesselFeature(selectedVessel, context));
+        }
+        this.layers.vessel.destroyFeatures(arr);
+        this.layers.vessel.addFeatures(features.vesselFeatures);
+        this.layers.vessel.redraw();
 
         this.layers.unselectable.removeAllFeatures();
         this.layers.unselectable.addFeatures(features.unSelectable);
