@@ -4,29 +4,34 @@
     angular
         .module('vrmt.app')
         .constant('Events', {
-            AssessmentCreated: "AssessmentCreated",
-            AssessmentDeleted: "AssessmentDeleted",
-            AssessmentLocationCreated: "AssessmentLocationCreated",
-            AssessmentLocationDeleted: "AssessmentLocationDeleted",
+            LocationAssessmentCreated: "LocationAssessmentCreated",
+            LocationAssessmentDeleted: "LocationAssessmentDeleted",
+            RouteLocationCreated: "RouteLocationCreated",
+            RouteLocationDeleted: "RouteLocationDeleted",
             RouteChanged: "RouteChanged",
             VesselLoaded: "VesselLoaded",
             LatestRiskAssessmentsLoaded: "LatestRiskAssessmentsLoaded",
             OpenAssessmentEditor: "OpenAssessmentEditor",
             OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
-            AssessmentLocationChosen: "AssessmentLocationChosen",
-            AssessmentLocationClicked: "AssessmentLocationClicked",
+            RouteLocationChosen: "RouteLocationChosen",
+            RouteLocationClicked: "RouteLocationClicked",
             VesselClicked: "VesselClicked",
-            AddAssessmentLocation: "AddAssessmentLocation"
+            AddRouteLocation: "AddRouteLocation",
+            RouteLocationsLoaded: "RouteLocationsLoaded",
+            AssessmentUpdated: "AssessmentUpdated",
+            NewAssessmentStarted: "NewAssessmentStarted",
+            AssessmentCompleted: "AssessmentCompleted",
+            AssessmentDiscarded: "AssessmentDiscarded"
         })
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'RouteLocationService', 'NotifyService', 'Events', '$timeout'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout) {
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, RouteLocationService, NotifyService, Events, $timeout) {
         var vm = this;
         $scope.mmsi = embryo.authentication.shipMmsi;
         vm.route = {};
-        vm.chosenAssessment = null;
+        vm.chosenRouteLocation = null;
 
         /**
          * Load data
@@ -37,24 +42,27 @@
             });
         }
 
-        function loadLatestAssessments(assessmentLocationToChoose) {
-            RiskAssessmentService.getLatestRiskAssessmentsForRoute($scope.route.id)
-                .then(function (assessments) {
-                    if (assessments.length === 0) {
-                        NotifyService.notify(Events.LatestRiskAssessmentsLoaded, assessments);
-                        return;
+        function loadCurrentAssessment() {
+            RiskAssessmentService.getCurrentAssessment($scope.route.id)
+                .then(function (currentAssessment) {
+                    if (!vm.currentLocationAssessment) {
+                        vm.currentLocationAssessment = currentAssessment.locationsToAssess[0];
                     }
+                    NotifyService.notify(Events.AssessmentUpdated, currentAssessment);
+                    NotifyService.notify(Events.RouteLocationChosen, vm.currentLocationAssessment);
+                })
+                .catch(function (reason) {
+                    loadRouteLocations();
+                });
+        }
 
-                    if (assessmentLocationToChoose) {
-                        vm.chosenAssessment = assessments.find(function (assessment) {
-                            return assessmentLocationToChoose.id === assessment.location.id;
-                        });
-                    } else {
-                        vm.chosenAssessment = assessments[0];
+        function loadRouteLocations() {
+            RouteLocationService.getRouteLocations($scope.route.id)
+                .then(function (routeLocations) {
+                    NotifyService.notify(Events.RouteLocationsLoaded, routeLocations);
+                    if (routeLocations.length > 0) {
+                        NotifyService.notify(Events.RouteLocationChosen, routeLocations[0]);
                     }
-
-                    NotifyService.notify(Events.LatestRiskAssessmentsLoaded, assessments);
-                    NotifyService.notify(Events.AssessmentLocationChosen, vm.chosenAssessment);
                 })
         }
 
@@ -64,33 +72,36 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChanged);
         function onRouteChanged(event, newRoute) {
             $scope.route = newRoute;
-            loadLatestAssessments();
+            loadCurrentAssessment();
         }
 
         /**
          * Reload data when CRUD operations have been performed
          */
-        NotifyService.subscribe($scope, Events.AssessmentCreated, onAssessmentCRUD);
-        NotifyService.subscribe($scope, Events.AssessmentDeleted, onAssessmentCRUD);
+        NotifyService.subscribe($scope, Events.LocationAssessmentCreated, onAssessmentCRUD);
+        NotifyService.subscribe($scope, Events.LocationAssessmentDeleted, onAssessmentCRUD);
         function onAssessmentCRUD() {
-            loadLatestAssessments(vm.chosenAssessment.location);
+            loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentLocationCreated, onAssessmentLocationCreated);
-        function onAssessmentLocationCreated(event, newLocation) {
-            loadLatestAssessments(newLocation);
+        NotifyService.subscribe($scope, Events.RouteLocationCreated, onRouteLocationCreated);
+        function onRouteLocationCreated() {
+            loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentLocationDeleted, onAssessmentLocationDeleted);
-        function onAssessmentLocationDeleted() {
-            loadLatestAssessments();
+        NotifyService.subscribe($scope, Events.RouteLocationDeleted, onRouteLocationDeleted);
+        function onRouteLocationDeleted() {
+            loadCurrentAssessment();
         }
 
-
-        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
-        function onAssessmentLocationChosen(event, chosen) {
-            vm.chosenAssessment = chosen;
+        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        function onRouteLocationChosen(event, chosen) {
+            vm.chosenRouteLocation = chosen;
         }
+
+        NotifyService.subscribe($scope, Events.NewAssessmentStarted, function (event, currentAssessment) {
+            NotifyService.notify(Events.RouteLocationChosen, currentAssessment.locationsToAssess[0]);
+        });
 
         //initial load of vessel and route
         var stop = $interval(loadVessel, 300000);

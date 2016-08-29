@@ -41,7 +41,8 @@
                                         Change
                                     </button>
                                     <div class="btn-group-vertical button-dropdown">
-                                        <button class="btn btn-default btn-xs" ng-click="routeView.choose()" ng-repeat="routeView in sidebar.routeViews">
+                                        <button class="btn btn-default btn-xs" ng-click="routeView.choose()"
+                                                ng-repeat="routeView in sidebar.routeViews">
                                             {{routeView.name}}
                                         </button>
                                     </div>
@@ -54,68 +55,94 @@
         </div>
 
         <accordion close-others="true">
-            <accordion-group is-open="sidebar.latestAssessmentsActive">
+            <accordion-group is-open="sidebar.assessActive">
                 <accordion-heading>
-                    LATEST ASSESSMENTS
+                    ASSESS
                     <span class="pull-right glyphicon"
-                          ng-class="{'glyphicon-menu-down': !sidebar.latestAssessmentsActive, 'glyphicon-menu-up': sidebar.latestAssessmentsActive}"></span>
+                          ng-class="{'glyphicon-menu-down': !sidebar.assessActive, 'glyphicon-menu-up': sidebar.assessActive}"></span>
                 </accordion-heading>
 
-                <div class="table-responsive">
+                <div class="table-responsive" ng-controller="AssessController as assess">
                     <table class="table table-condensed">
                         <thead>
                         <tr>
                             <th>Location</th>
-                            <th>Index</th>
-                            <th>Last Assessed</th>
+                            <th>
+                                <div class="col-xs-12">Index</div>
+                            </th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-click="sidebar.meta.chooseAssessment(assessment)"
-                            ng-class="{'active': sidebar.meta.currentAssessment.locationId == assessment.locationId}"
-                            ng-repeat="assessment in sidebar.meta.assessmentViews">
+                        <tr ng-click="assessment.choose()"
+                            ng-class="{'active': assess.currentLocationAssessment.locationId == assessment.locationId}"
+                            ng-repeat="assessment in assess.assessmentViews">
                             <td>{{assessment.locationName}}</td>
                             <td>
-                                <index-color index="assessment.index"></index-color>
+                                <div class="col-xs-4">
+                                    <index-color index="assessment.index"></index-color>
+                                </div>
+                                <div class="col-xs-4 col-xs-offset-4">
+                                    <button class="btn btn-primary btn-xs" ng-click="assessment.newAssessment()">
+                                        edit
+                                    </button>
+                                    <button type="button" class="close" x-ng-click="assessment.deleteLocation()">
+                                        x
+                                    </button>
+                                </div>
                             </td>
-                            <td>{{assessment.lastAssessed | date: 'yyyy-MM-dd HH:mm'}}</td>
                         </tr>
                         </tbody>
                     </table>
-                </div>
+                    <div class="col-xs-12">
+                        <div class="pull-right">
+                            <button class="btn btn-primary btn-xs" ng-click="assess.startNew()">
+                                Start new Assessment
+                            </button>
+                            <button class="btn btn-primary btn-xs" ng-click="assess.save()">
+                                Save
+                            </button>
+                            <button class="btn btn-primary btn-xs" ng-click="assess.discard()">
+                                Discard
+                            </button>
+                        </div>
 
-            </accordion-group>
-            <accordion-group is-open="sidebar.monitorAndReportActive">
-                <accordion-heading>
-                    DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.locationName}}</strong> <span
-                        class="pull-right glyphicon"
-                        ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
-                </accordion-heading>
-
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>Factor</th>
-                            <th>Input</th>
-                            <th>Index</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="score in sidebar.meta.currentAssessment.factorAssessments">
-                            <td>{{score.factorName}}</td>
-                            <td>{{score.name}}</td>
-                            <td>{{score.index}}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <div class="pull-right">
-                        <button class="btn btn-primary btn-xs" ng-click="sidebar.meta.newAssessment()">New assessment
-                        </button>
                     </div>
                 </div>
 
             </accordion-group>
+            <!--
+                        <accordion-group is-open="sidebar.monitorAndReportActive">
+                            <accordion-heading>
+                                DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.locationName}}</strong> <span
+                                    class="pull-right glyphicon"
+                                    ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
+                            </accordion-heading>
+
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th>Factor</th>
+                                        <th>Input</th>
+                                        <th>Index</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr ng-repeat="score in sidebar.meta.currentAssessment.factorAssessments">
+                                        <td>{{score.factorName}}</td>
+                                        <td>{{score.name}}</td>
+                                        <td>{{score.index}}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs" ng-click="sidebar.meta.newAssessment()">New assessment
+                                    </button>
+                                </div>
+                            </div>
+
+                        </accordion-group>
+            -->
             <accordion-group is-open="sidebar.safetyMeasuresActive">
                 <accordion-heading>
                     SAFETY MEASURES <span class="pull-right glyphicon"

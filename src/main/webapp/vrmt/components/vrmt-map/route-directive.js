@@ -98,7 +98,7 @@
 
                     if (hitThis && !hitOther) {
                         var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
-                        NotifyService.notify(Events.AddAssessmentLocation, {
+                        NotifyService.notify(Events.AddRouteLocation, {
                             route: {
                                 lon: coord[0],
                                 lat: coord[1]

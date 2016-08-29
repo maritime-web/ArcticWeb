@@ -63,7 +63,7 @@ describe('RiskFactorAssessorService', function () {
                 {latitude: -22, longitude: 75, eta: new Date(2016, 4, 1, 13)}
                 ]
         };
-        assessmentLocation = new RiskAssessmentLocation({
+        assessmentLocation = new RouteLocation({
             routeId: "1q1q1q1q",
             id: "1",
             name: "location",

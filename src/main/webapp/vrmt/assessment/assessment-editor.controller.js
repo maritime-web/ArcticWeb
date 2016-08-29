@@ -19,7 +19,7 @@
         vm.sum = sum;
         vm.factorAssessments = [];
 
-        var chosenAssessment = null;
+        var chosenRoutelocation = null;
 
         function dismiss() {
             vm.hide = true;
@@ -27,15 +27,15 @@
         }
 
         function save() {
-            var locationId = chosenAssessment.location.id;
+            var locationId = chosenRoutelocation.id;
 
             var scores = vm.factorAssessments.map(function (fa) {
                 return fa.toScore();
             });
-            RiskAssessmentService.createRiskAssessment($scope.route.id, locationId, scores)
+            RiskAssessmentService.createLocationAssessment($scope.route.id, locationId, scores)
                 .then(
                     function (result) {
-                        NotifyService.notify(Events.AssessmentCreated, result);
+                        NotifyService.notify(Events.LocationAssessmentCreated, result);
                     },
                     function (reason) {
                         //TODO display error reason
@@ -46,7 +46,7 @@
         }
 
         function chooseOption(viewModel) {
-            RiskFactorAssessorService.chooseOption(chosenAssessment.location, viewModel.riskFactor).then(function (chosenOption) {
+            RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor).then(function (chosenOption) {
                 viewModel.model = chosenOption;
             });
         }
@@ -71,7 +71,7 @@
         }
 
         function chosenLocation() {
-            return chosenAssessment ? chosenAssessment.location.id + '. ' + chosenAssessment.location.name : null;
+            return chosenRoutelocation ? chosenRoutelocation.id + '. ' + chosenRoutelocation.name : null;
         }
 
         function sum() {
@@ -111,9 +111,9 @@
 
         NotifyService.subscribe($scope, Events.OpenAssessmentEditor, vm.show);
 
-        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
-        function onAssessmentLocationChosen(event, chosen) {
-            chosenAssessment = chosen;
+        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        function onRouteLocationChosen(event, chosen) {
+            chosenRoutelocation = chosen;
         }
     }
 })();

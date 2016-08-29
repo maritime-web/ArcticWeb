@@ -1,18 +1,60 @@
-function RiskAssessmentLocation(parameters) {
+function Assessment(parameters) {
+    this.id = parameters.id;
+    this.routeId = parameters.routeId;
+    this.started = parameters.started ? moment(parameters.started): undefined;
+    this.finished = parameters.finished ? moment(parameters.finished) : undefined;
+    if (!parameters.locationsToAssess) {
+        throw "There must be at least one route location";
+    }
+    this.locationsToAssess = parameters.locationsToAssess;
+    if (parameters.locationAssessments) {
+        this.locationAssessments = new Map(parameters.locationAssessments);
+    } else {
+        var locationAssessments = new Map();
+        this.locationsToAssess.forEach(function (loc) {
+            locationAssessments.set(loc.id, null);
+        });
+        this.locationAssessments = locationAssessments;
+    }
+
+    this.getMaxScore = function () {
+        return Array.from(this.locationAssessments.values()).reduce(function (prev, cur) {
+            return Math.max(prev, cur.index);
+        }, 0);
+    };
+
+    this.getLocationAssessment = function (routeLocationId) {
+        return this.locationAssessments.get(routeLocationId);
+    };
+
+    this.updateLocationAssessment = function (routeLocationId, scores) {
+        var routeLocation = this.locationsToAssess.find(function (candidate) {
+            return routeLocationId == candidate.id;
+        });
+        if (!routeLocation) {
+            throw "Could not find route location with id: '" + routeLocationId + "' in assessment identified by '" + this.id + "'";
+        }
+        var locationAssessment = new LocationAssessment({time: moment(), routeLocation: routeLocation, scores: scores || []});
+        this.locationAssessments.set(routeLocationId, locationAssessment);
+    };
+
+}
+
+function RouteLocation(parameters) {
     this.routeId = parameters.routeId;
     this.id = parameters.id;
     this.name = parameters.name;
     this.lat = parameters.lat;
     this.lon = parameters.lon;
+    this.eta = parameters.eta;
     this.getLatLon = function () {
         return [this.lat, this.lon];
     }
 }
 
-function RiskAssessment(parameters) {
-    this.id = parameters.id;
+function LocationAssessment(parameters) {
     this.time = parameters.time;
-    this.location = parameters.assessmentLocation;
+    this.location = new RouteLocation(parameters.routeLocation);
     this.scores = parameters.scores;
     this.index = parameters.scores.reduce(function (prev, cur) {
         return prev + cur.index;
@@ -69,7 +111,7 @@ function Route(route) {
         var res = [];
 
         for (var i = 0; i < delegate.wps.length - 1; i++) {
-            res.push(createLeg(delegate.wps[i], delegate.wps[i+1]));
+            res.push(createLeg(delegate.wps[i], delegate.wps[i + 1]));
         }
 
         function createLeg(wp1, wp2) {
@@ -88,7 +130,7 @@ function Route(route) {
 
     this.getTimeAtPosition = function (latLon) {
         var givenPosition = turf.point(latLon);
-        var positionOnRoute =  getClosestPointOnRoute(givenPosition);
+        var positionOnRoute = getClosestPointOnRoute(givenPosition);
         var hours = getHoursToReachPosition(positionOnRoute);
 
         var departure = moment(delegate.etaDep);
@@ -132,6 +174,6 @@ function Route(route) {
         var pStart = turf.point([delegate.wps[0].latitude, delegate.wps[0].longitude]);
         var slice = turf.lineSlice(pStart, pointOnLine, routeAsLinestring);
 
-        return  turf.lineDistance(slice, "miles");
+        return turf.lineDistance(slice, "miles");
     }
 }

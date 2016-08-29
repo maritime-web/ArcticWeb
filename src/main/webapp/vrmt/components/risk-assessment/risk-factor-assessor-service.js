@@ -12,7 +12,7 @@
 
         function chooseOption(assessmentLocation, riskFactor) {
             var deferred = $q.defer();
-            deferred.resolve(mapper[riskFactor.id](new RiskAssessmentLocation(assessmentLocation), riskFactor));
+            deferred.resolve(mapper[riskFactor.id](new RouteLocation(assessmentLocation), riskFactor));
             return deferred.promise;
         }
 

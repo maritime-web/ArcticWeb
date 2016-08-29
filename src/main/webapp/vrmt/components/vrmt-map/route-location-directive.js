@@ -2,11 +2,11 @@
     'use strict';
 
     angular.module('vrmt.map')
-        .directive('assessmentLocations', assessmentLocations);
+        .directive('routeLocations', routeLocations);
 
-    assessmentLocations.$inject = ['NotifyService', 'Events'];
+    routeLocations.$inject = ['NotifyService', 'Events'];
 
-    function assessmentLocations(NotifyService, Events) {
+    function routeLocations(NotifyService, Events) {
         var directive = {
             restrict: 'E',
             require: '^olMap',
@@ -21,6 +21,7 @@
              * Layer creation functionality
              */
             var locationLayer = createLocationLayer();
+            var currentAssessment = null;
 
             function createLocationLayer() {
                 return new ol.layer.Vector({
@@ -29,37 +30,36 @@
                 });
             }
 
-            function addOrReplaceLocation(latestAssessment) {
-                var location = latestAssessment.location;
+            function addOrReplaceLocation(location) {
                 var coord = ol.proj.transform([location.lon, location.lat], 'EPSG:4326', 'EPSG:3857');
                 var locationFeature = new ol.Feature({
                     geometry: new ol.geom.Point(coord)
                 });
                 locationFeature.setId(location.id);
-                locationFeature.set("assessmentLocation", latestAssessment, true);
+                locationFeature.set("routeLocation", location, true);
                 locationLayer.getSource().addFeature(locationFeature);
             }
 
             function createLocationStyleFunction() {
                 return function (feature, resolution) {
-                    var latestAssessment = feature.get("assessmentLocation");
-                    var style = createStyle(latestAssessment, 'black', 1);
+                    var routeLocation = feature.get("routeLocation");
+                    var style = createStyle(routeLocation, 'black', 1);
                     return [style];
                 };
             }
 
             function createSelectedLocationStyleFunction() {
                 return function (feature, resolution) {
-                    var latestAssessment = feature.get("assessmentLocation");
-                    var style = createStyle(latestAssessment, 'blue', 2);
+                    var routeLocation = feature.get("routeLocation");
+                    var style = createStyle(routeLocation, 'blue', 2);
                     return [style];
                 };
             }
 
-            function createStyle(latestAssessment, strokeColor, strokeWidth) {
-                var text = '' + latestAssessment.location.id;
+            function createStyle(routeLocation, strokeColor, strokeWidth) {
+                var text = '' + routeLocation.id;
                 var fillColor = 'black';
-                var index = latestAssessment.index;
+                var index = currentAssessment ? currentAssessment.getLocationAssessment(routeLocation.id).index : 0;
                 if (index > 0) fillColor = 'green';
                 if (index > 1000) fillColor = 'yellow';
                 if (index > 2000) fillColor = 'red';
@@ -93,20 +93,29 @@
             /**
              * Model listeners
              */
-            NotifyService.subscribe(scope, Events.LatestRiskAssessmentsLoaded, onLatestRiskAssessmentsLoaded);
-            function onLatestRiskAssessmentsLoaded(event, assessments) {
+            NotifyService.subscribe(scope, Events.RouteLocationsLoaded, function (event, routeLocations) {
+                changeRouteLocations(routeLocations);
+            });
+            NotifyService.subscribe(scope, Events.AssessmentUpdated, function (event, assessment) {
+                changeRouteLocations(assessment.locationsToAssess);
+            });
+            NotifyService.subscribe(scope, Events.NewAssessmentStarted, function (event, assessment) {
+                changeRouteLocations(assessment.locationsToAssess);
+            });
+
+            function changeRouteLocations(routeLocations) {
                 select.getFeatures().clear();
                 locationLayer.getSource().clear();
-                assessments.forEach(function (assessment) {
-                    addOrReplaceLocation(assessment);
+                routeLocations.forEach(function (routeLocation) {
+                    addOrReplaceLocation(routeLocation);
                 });
             }
 
-            NotifyService.subscribe(scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
+            NotifyService.subscribe(scope, Events.RouteLocationChosen, onAssessmentLocationChosen);
             function onAssessmentLocationChosen(event, chosen) {
                 select.getFeatures().clear();
 
-                var featureToSelect = locationLayer.getSource().getFeatureById(chosen.location.id);
+                var featureToSelect = locationLayer.getSource().getFeatureById(chosen.id);
 
                 select.getFeatures().push(featureToSelect);
                 panToFeature(featureToSelect);
@@ -132,7 +141,7 @@
             select.on('select', function (e) {
                 if (e.selected.length == 1) {
                     var selectedFeature = e.selected[0];
-                    NotifyService.notify(Events.AssessmentLocationChosen, selectedFeature.get("assessmentLocation"));
+                    NotifyService.notify(Events.RouteLocationChosen, selectedFeature.get("routeLocation"));
                 }
 
                 scope.$apply();
@@ -164,7 +173,7 @@
                     });
 
                     if (hitThis) {
-                        NotifyService.notify(Events.AssessmentLocationClicked, {
+                        NotifyService.notify(Events.RouteLocationClicked, {
                             x: e.originalEvent.clientX,
                             y: e.originalEvent.clientY
                         });

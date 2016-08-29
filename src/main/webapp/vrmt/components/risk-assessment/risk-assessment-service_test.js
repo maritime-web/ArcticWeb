@@ -7,13 +7,7 @@ describe('RiskAssessmentService', function () {
     var dataService;
 
     //Test data
-    var routeId;
-    var scores;
-    var location;
-    var assessmentOne;
-    var assessmentTwo;
-    var locationWithNoAssessments;
-    var locationWithTwoAssessments;
+    var routeId, scores, location, locationAssessment, assessmentOne, assessmentTwo, emptyData, withCurrentAssessment;
 
     //angular stuf
     var $q, $rootScope;
@@ -59,16 +53,13 @@ describe('RiskAssessmentService', function () {
             "routeId": "44ce72c0-3d44-411f-a19f-c412b10cda22",
             "id": 1,
             "name": "Nuuk",
+            "eta": moment(),
             "lat": 64.16990200118559,
             "lon": -51.72088623046876
         };
-        assessmentOne = {
-            "id": 1,
-            "time": "2016-06-28T13:19:37.235Z",
-            "location": location,
-            "scores": scores,
-            "index": 300
-        };
+        locationAssessment = new LocationAssessment({time: moment(), routeLocation: location, scores: []});
+        assessmentOne = new Assessment({id: 1, routeId: location.routeId, started: moment(), finished: moment(), locationsToAssess: [location], locationAssessments: [[location.id, locationAssessment]]});
+
         assessmentTwo = {
             "id": 2,
             "time": "2016-06-27T13:19:37.235Z",
@@ -92,17 +83,18 @@ describe('RiskAssessmentService', function () {
             ],
             "index": 120
         };
-        locationWithNoAssessments = [{
-            "location": location,
-            "assessments": []
-        }];
-        locationWithTwoAssessments = [{
-            "location": location,
-            "assessments": [
-                assessmentOne,
-                assessmentTwo
-            ]
-        }];
+        emptyData = {
+            routeLocationSequence: 1,
+            routeLocations: [],
+            currentAssessment: null,
+            assessments: []
+        };
+        withCurrentAssessment = {
+            routeLocationSequence: 1,
+            routeLocations: [location],
+            currentAssessment: assessmentOne,
+            assessments: []
+        };
     }
 
     beforeEach(initializeTestData);
@@ -114,6 +106,7 @@ describe('RiskAssessmentService', function () {
         dataService = RiskAssessmentDataService;
     }));
 
+/*
     describe('getLatestRiskAssessmentsForRoute', function () {
 
         it('should call RiskAssessmentDataService with routeId', function () {
@@ -136,20 +129,20 @@ describe('RiskAssessmentService', function () {
         });
 
         it('should return an assessment with no scores for unassessed locations', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(locationWithNoAssessments));
+            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(emptyData));
 
             cut.getLatestRiskAssessmentsForRoute(routeId).then(storeLatestAssessments);
 
             $rootScope.$apply();
 
             expect(latestAssessments.length).toEqual(1);
-            expect(latestAssessments[0] instanceof RiskAssessment).toBe(true);
+            expect(latestAssessments[0] instanceof LocationAssessment).toBe(true);
             expect(latestAssessments[0].scores).toEqual([]);
             expect(latestAssessments[0].location).toEqual(location);
         });
 
         it('should return the assessment with the most recent timestamp for each location', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(locationWithTwoAssessments));
+            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
 
             cut.getLatestRiskAssessmentsForRoute(routeId).then(storeLatestAssessments);
 
@@ -158,20 +151,21 @@ describe('RiskAssessmentService', function () {
             expect(latestAssessments[0]).toBe(assessmentOne);
         });
     });
+*/
 
-    describe('createRiskAssessment', function () {
-        it('should call RiskAssessmentDataService.storeAssessmentData with a new RiskAssessment', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(locationWithNoAssessments));
+    describe('createLocationAssessment', function () {
+        it('should call RiskAssessmentDataService.storeAssessmentData with an updated current assessment', function () {
+            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
             spyOn(dataService, "storeAssessmentData").and.callFake(getFunctionResolving());
 
-            cut.createRiskAssessment(location.routeId, location.id, scores);
+            cut.createLocationAssessment(location.routeId, location.id, scores);
 
             $rootScope.$apply();
 
             expect(dataService.storeAssessmentData).toHaveBeenCalledWith(location.routeId, jasmine.anything());
 
-            var locationDataToStore = dataService.storeAssessmentData.calls.argsFor(0)[1];
-            expect(locationDataToStore[0].assessments.length).toEqual(1);
+            var dataToStore = dataService.storeAssessmentData.calls.argsFor(0)[1];
+            expect(dataToStore.currentAssessment.getLocationAssessment(location.id).scores).toEqual(scores);
         });
 
         it('should fail if no data found', function () {
@@ -179,7 +173,7 @@ describe('RiskAssessmentService', function () {
             var expectedErrorReason = "Error retrieving data";
             dataService.getAssessmentData = getFunctionRejectingWith(expectedErrorReason);
 
-            cut.createRiskAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.routeId, location.id, scores)
                 .catch(function (reason) {
                     capturedErrorReason = reason;
                 });
@@ -193,9 +187,9 @@ describe('RiskAssessmentService', function () {
             var capturedErrorReason = undefined;
             var expectedErrorReason = "Error storing data";
             dataService.storeAssessmentData = getFunctionRejectingWith(expectedErrorReason);
-            dataService.getAssessmentData = getFunctionResolving(locationWithNoAssessments);
+            dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createRiskAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.routeId, location.id, scores)
                 .catch(function (reason) {
                     capturedErrorReason = reason;
                 });
@@ -208,9 +202,9 @@ describe('RiskAssessmentService', function () {
         it('should return the new assessment', function () {
             var theNewAssessment = undefined;
             dataService.storeAssessmentData = getFunctionResolving();
-            dataService.getAssessmentData = getFunctionResolving(locationWithNoAssessments);
+            dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createRiskAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.routeId, location.id, scores)
                 .then(function (data) {
                     theNewAssessment = data;
                 });
@@ -225,9 +219,9 @@ describe('RiskAssessmentService', function () {
             var expectedName = "Special area 1A";
             scores[0].name = expectedName;
             dataService.storeAssessmentData = getFunctionResolving();
-            dataService.getAssessmentData = getFunctionResolving(locationWithNoAssessments);
+            dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createRiskAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.routeId, location.id, scores)
                 .then(function (data) {
                     theNewAssessment = data;
                 });

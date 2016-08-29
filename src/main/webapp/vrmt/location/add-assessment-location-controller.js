@@ -7,11 +7,11 @@
         .controller("ModalInstanceCtrl", ModalInstanceCtrl);
 
 
-    AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentLocationService', 'NotifyService', 'Events'];
+    AssessmentLocationController.$inject = ['$scope', '$modal', 'RouteLocationService', 'NotifyService', 'Events'];
 
-    function AssessmentLocationController($scope, $modal, RiskAssessmentLocationService, NotifyService, Events) {
+    function AssessmentLocationController($scope, $modal, RouteLocationService, NotifyService, Events) {
 
-        NotifyService.subscribe($scope, Events.AddAssessmentLocation, onAddAssessmentLocation);
+        NotifyService.subscribe($scope, Events.AddRouteLocation, onAddAssessmentLocation);
         function onAddAssessmentLocation(event, newAssessmentLocationEvent) {
             var modalInstance = $modal.open({
                 templateUrl: "addAssessmentLocation",
@@ -40,10 +40,9 @@
                     }
                 }
 
-                locParam.routeId = $scope.route.id;
-                RiskAssessmentLocationService.createAssessmentLocation(locParam)
+                RouteLocationService.createRouteLocation($scope.route, locParam)
                     .then(function (location) {
-                        NotifyService.notify(Events.AssessmentLocationCreated, location);
+                        NotifyService.notify(Events.RouteLocationCreated, location);
                     });
             }, function (dismissReason) {
                 console.log("assessment Location dismissed with reason '" + dismissReason + "'");

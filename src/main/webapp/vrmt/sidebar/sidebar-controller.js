@@ -1,4 +1,5 @@
 (function () {
+    'use strict';
 
     angular
         .module('vrmt.app')
@@ -8,11 +9,11 @@
 
     function SidebarController($scope, RouteService, ScheduleService, NotifyService, Events) {
         var vm = this;
+        vm.assessActive = false;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
         vm.decisionMakingActive = false;
         vm.logOfMeasuresAndReportsActive = false;
-        vm.latestAssessmentsActive = false;
         vm.hidden = false;
         vm.toggleVisibility = toggleVisibility;
         vm.configure = configure;
@@ -24,14 +25,7 @@
         vm.meta = {
             vesselName: $scope.mmsi,
             routeView: {id: null, name: null},
-            assessmentViews: [],
-            currentAssessment: null,
-            chooseAssessment: function (assessmentView) {
-                NotifyService.notify(Events.AssessmentLocationChosen, assessmentView.assessment);
-            },
-            newAssessment: function () {
-                NotifyService.notify(Events.OpenAssessmentEditor);
-            }
+
         };
 
         function RouteView(params) {
@@ -77,37 +71,6 @@
             }, function (error) {
                 console.log(error);
             });
-        }
-
-        function AssessmentView(assessment) {
-            this.assessment = assessment;
-            this.location = assessment.location;
-            this.locationId = assessment.location.id;
-            this.locationName = assessment.location.id + '. ' + assessment.location.name;
-            this.index = assessment.index || '-';
-            this.lastAssessed = assessment.time || '-';
-            this.factorAssessments = assessment.scores || [];
-        }
-
-        NotifyService.subscribe($scope, Events.LatestRiskAssessmentsLoaded, onLatestRiskAssessmentsLoaded);
-        function onLatestRiskAssessmentsLoaded(event, assessments) {
-            vm.meta.assessmentViews = [];
-            vm.meta.currentAssessment = null;
-            assessments.forEach(function (assessment) {
-                var assessmentView = new AssessmentView(assessment);
-                vm.meta.assessmentViews.push(assessmentView);
-            });
-        }
-
-        NotifyService.subscribe($scope, Events.AssessmentLocationChosen, onAssessmentLocationChosen);
-        function onAssessmentLocationChosen(event, chosen) {
-            vm.meta.currentAssessment = getViewForAssessment(chosen);
-        }
-
-        function getViewForAssessment(assessment) {
-            return vm.meta.assessmentViews.find(function (view) {
-                return view.locationId === assessment.location.id;
-            })
         }
 
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);

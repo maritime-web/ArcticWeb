@@ -22,7 +22,12 @@
                     if (assessmentData) {
                         assessmentData = angular.fromJson(assessmentData);
                     } else {
-                        assessmentData = [];
+                        assessmentData = {
+                            routeLocationSequence: 1,
+                            routeLocations: [],
+                            currentAssessment: null,
+                            assessments: []
+                        };
                     }
                     deferred.resolve(assessmentData);
                 } catch (e) {
@@ -34,10 +39,15 @@
         }
 
         function storeAssessmentData(routeId, assessmentData) {
+            ensureSupportForMapSerialization();
             var deferred = $q.defer();
 
             $timeout(function () {
                try {
+                   if (!routeId) {
+                       deferred.reject("No route id specified!");
+                   }
+
                    $window.localStorage.setItem(routeId, angular.toJson(assessmentData));
                    deferred.resolve();
                } catch (e) {
@@ -47,6 +57,15 @@
 
             return deferred.promise;
         }
+
+        function ensureSupportForMapSerialization() {
+            if (!Map.prototype.toJSON) {
+                Map.prototype.toJSON = function () {
+                    return Array.from(this);
+                }
+            }
+        }
+
     }
 
 })();
