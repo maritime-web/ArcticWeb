@@ -1198,7 +1198,7 @@
             })
 
 
-            $scope.generateSearchPattern = function () {
+            $scope.generateSearchPattern = function (pos) {
                 if(!$scope.sp){
                     return;
                 }
@@ -1219,10 +1219,10 @@
                         $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineReturn ){
-                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sar);
+                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sar, pos);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn ){
-                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sar);
+                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sar, pos);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     }
                 }catch(error){
@@ -1287,6 +1287,18 @@
                 SarLayerSingleton.getInstance().removeTemporarySearchPattern();
             })
         }]);
+
+    module.controller("Trackline", ['$scope', function ($scope) {
+        SarLayerSingleton.getInstance().activateTrackLinePositioning(function(pos){
+            $scope.generateSearchPattern(pos);
+        });
+
+        $scope.$on("$destroy", function () {
+            SarLayerSingleton.getInstance().deactivateTrackLinePositioning();
+        })
+    }]);
+
+
 
     module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', '$log', function ($scope, SarService, LivePouch, $log) {
         $scope.alertMessages = null;

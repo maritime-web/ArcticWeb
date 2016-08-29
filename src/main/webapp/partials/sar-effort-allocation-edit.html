@@ -349,7 +349,7 @@
                         same end of the route.
                     </p>
 
-                    <p x-ng-if="sp.type === SearchPattern.TrackLine">
+                    <p x-ng-if="sp.type === SearchPattern.TrackLineReturn">
                         Track line search, non-return is used when the vessel (or person) is reported missing and
                         the only track is the presumed route. It gives a relative fast and thorough coverage of the
                         missing objects presumed route and its adjacent areas. The search begins in one end and ends
@@ -438,6 +438,8 @@
                         </div>
                     </div>
                 </div>
+
+                <span x-ng-controller="Trackline"></span>
 
                 <div class="col-xs-12">
                     <span class="pull-right">
