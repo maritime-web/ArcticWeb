@@ -88,18 +88,15 @@
                 });
             }
 
-
-
             /**
              * Model listeners
              */
             NotifyService.subscribe(scope, Events.RouteLocationsLoaded, function (event, routeLocations) {
+                currentAssessment = null;
                 changeRouteLocations(routeLocations);
             });
             NotifyService.subscribe(scope, Events.AssessmentUpdated, function (event, assessment) {
-                changeRouteLocations(assessment.locationsToAssess);
-            });
-            NotifyService.subscribe(scope, Events.NewAssessmentStarted, function (event, assessment) {
+                currentAssessment = assessment;
                 changeRouteLocations(assessment.locationsToAssess);
             });
 

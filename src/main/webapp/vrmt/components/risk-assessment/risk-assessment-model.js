@@ -55,7 +55,7 @@ function RouteLocation(parameters) {
 function LocationAssessment(parameters) {
     this.time = parameters.time;
     this.location = new RouteLocation(parameters.routeLocation);
-    this.scores = parameters.scores;
+    this.scores = parameters.scores || [];
     this.index = parameters.scores.reduce(function (prev, cur) {
         return prev + cur.index;
     }, 0);

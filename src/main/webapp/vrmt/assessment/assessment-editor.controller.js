@@ -20,6 +20,7 @@
         vm.factorAssessments = [];
 
         var chosenRoutelocation = null;
+        var currentAssessment = null;
 
         function dismiss() {
             vm.hide = true;
@@ -45,9 +46,28 @@
             vm.clear();
         }
 
-        function chooseOption(viewModel) {
-            RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor).then(function (chosenOption) {
-                viewModel.model = chosenOption;
+        function show() {
+            if (!currentAssessment) return;
+
+            var locationAssessment = currentAssessment.getLocationAssessment(chosenRoutelocation.id);
+
+            var scoreMap = new Map();
+            locationAssessment.scores.forEach(function (score) {
+                scoreMap.set(score.riskFactorId, score);
+            });
+
+            RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
+                vm.factorAssessments = riskFactors.map(toViewModel);
+/*
+                vm.factorAssessments.forEach(function (rfvm) {
+                    var score = scoreMap.get(rfvm.riskFactor.id);
+                    if (score && score.index > 0) {
+
+                    }
+                });
+*/
+                vm.factorAssessments.forEach(chooseOption);
+                vm.hide = false;
             });
         }
 
@@ -55,14 +75,11 @@
             return new FactorAssessmentViewModel(riskFactor);
         }
 
-        function show() {
-            RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
-                vm.factorAssessments = riskFactors.map(toViewModel);
-                vm.factorAssessments.forEach(chooseOption);
-                vm.hide = false;
+        function chooseOption(viewModel) {
+            RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor).then(function (chosenOption) {
+                viewModel.model = chosenOption;
             });
         }
-
 
         function clear() {
             vm.factorAssessments.forEach(function (f) {
@@ -110,6 +127,15 @@
         };
 
         NotifyService.subscribe($scope, Events.OpenAssessmentEditor, vm.show);
+
+        NotifyService.subscribe($scope, Events.AssessmentCompleted, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, Events.AssessmentDiscarded, handleNoCurrentAssessment);
+        function handleNoCurrentAssessment() {
+            currentAssessment = null;
+        }
+        NotifyService.subscribe($scope, Events.AssessmentUpdated, function (event, assessment) {
+            currentAssessment = assessment;
+        });
 
         NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
         function onRouteLocationChosen(event, chosen) {

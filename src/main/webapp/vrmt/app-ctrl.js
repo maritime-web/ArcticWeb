@@ -45,11 +45,15 @@
         function loadCurrentAssessment() {
             RiskAssessmentService.getCurrentAssessment($scope.route.id)
                 .then(function (currentAssessment) {
-                    if (!vm.currentLocationAssessment) {
-                        vm.currentLocationAssessment = currentAssessment.locationsToAssess[0];
+                    if (!vm.chosenRouteLocation) {
+                        vm.chosenRouteLocation = currentAssessment.locationsToAssess[0];
+                    } else {
+                        vm.chosenRouteLocation = currentAssessment.locationsToAssess.find(function (loc) {
+                            return vm.chosenRouteLocation.id == loc.id;
+                        });
                     }
                     NotifyService.notify(Events.AssessmentUpdated, currentAssessment);
-                    NotifyService.notify(Events.RouteLocationChosen, vm.currentLocationAssessment);
+                    NotifyService.notify(Events.RouteLocationChosen, vm.chosenRouteLocation);
                 })
                 .catch(function (reason) {
                     loadRouteLocations();
@@ -75,6 +79,17 @@
             loadCurrentAssessment();
         }
 
+        NotifyService.subscribe($scope, Events.NewAssessmentStarted, function () {
+            loadCurrentAssessment();
+        });
+        NotifyService.subscribe($scope, Events.AssessmentDiscarded, function () {
+            loadCurrentAssessment();
+        });
+        NotifyService.subscribe($scope, Events.AssessmentCompleted, function () {
+            loadCurrentAssessment();
+        });
+
+
         /**
          * Reload data when CRUD operations have been performed
          */
@@ -98,10 +113,6 @@
         function onRouteLocationChosen(event, chosen) {
             vm.chosenRouteLocation = chosen;
         }
-
-        NotifyService.subscribe($scope, Events.NewAssessmentStarted, function (event, currentAssessment) {
-            NotifyService.notify(Events.RouteLocationChosen, currentAssessment.locationsToAssess[0]);
-        });
 
         //initial load of vessel and route
         var stop = $interval(loadVessel, 300000);

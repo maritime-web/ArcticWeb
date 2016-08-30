@@ -34,10 +34,9 @@
             14: defaultOption
         };
 
-        var defaultScoreOption = {name: '-', index: 0};
 
         function defaultOption() {
-            return defaultScoreOption;
+            return {name: '-', index: 0};
         }
 
         /**
@@ -52,7 +51,7 @@
             var res = riskFactor.scoreOptions.find(function (scoreOption) {
                 return monthToNumber(scoreOption.name) == monthNumber;
             });
-            return res || defaultScoreOption;
+            return res || defaultOption();
 
             function getArrivalMonthAtLocation(location) {
                 return route.getTimeAtPosition(location.getLatLon()).month();

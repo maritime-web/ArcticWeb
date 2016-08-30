@@ -14,6 +14,7 @@
         vm.startNew = startNew;
         vm.save = save;
         vm.discard = discard;
+        vm.assessing = false;
         var currentRoute = null;
 
 
@@ -77,15 +78,17 @@
 
         NotifyService.subscribe($scope, Events.AssessmentCompleted, handleNoCurrentAssessment);
         NotifyService.subscribe($scope, Events.AssessmentDiscarded, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, Events.RouteLocationsLoaded, handleNoCurrentAssessment);
         function handleNoCurrentAssessment() {
+            vm.assessing = false;
             vm.assessmentViews = [];
             vm.currentLocationAssessment = null;
-
         }
 
         NotifyService.subscribe($scope, Events.NewAssessmentStarted, onCurrentAssessmentLoaded);
         NotifyService.subscribe($scope, Events.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded(event, currentAssessment) {
+            vm.assessing = true;
             vm.assessmentViews = [];
             vm.currentLocationAssessment = null;
             var routeLocations = currentAssessment.locationsToAssess;

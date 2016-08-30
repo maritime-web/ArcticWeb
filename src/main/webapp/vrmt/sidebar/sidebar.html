@@ -95,13 +95,13 @@
                     </table>
                     <div class="col-xs-12">
                         <div class="pull-right">
-                            <button class="btn btn-primary btn-xs" ng-click="assess.startNew()">
+                            <button class="btn btn-primary btn-xs" data-ng-disabled="assess.assessing" ng-click="assess.startNew()">
                                 Start new Assessment
                             </button>
-                            <button class="btn btn-primary btn-xs" ng-click="assess.save()">
+                            <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing" ng-click="assess.save()">
                                 Save
                             </button>
-                            <button class="btn btn-primary btn-xs" ng-click="assess.discard()">
+                            <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing" ng-click="assess.discard()">
                                 Discard
                             </button>
                         </div>
