@@ -8,9 +8,9 @@
          */
         .directive('olMap', olMap);
 
-    olMap.$inject = ['$q', 'MapService'];
+    olMap.$inject = ['$q', 'MapService', '$timeout'];
 
-    function olMap($q, MapService) {
+    function olMap($q, MapService, $timeout) {
         return {
             restrict: 'EA',
             replace: true,
@@ -35,6 +35,7 @@
             },
 
             link: function (scope, element, attrs) {
+                var isDefined = angular.isDefined;
                 // Disable rotation on mobile devices
                 var controls = ol.control.defaults({rotate: false});
                 var interactions = ol.interaction.defaults({
@@ -66,6 +67,39 @@
                     controls: controls,
                     interactions: interactions
                 });
+
+
+                // Update the map size if the element size changes.
+                // In theory, this should not be necessary, but it seems to fix a problem
+                // where maps are sometimes distorted
+                var updateSizeTimer;
+
+
+                // Clean-up
+                element.on('$destroy', function () {
+                    if (isDefined(updateSizeTimer)) {
+                        $timeout.cancel(updateSizeTimer);
+                        updateSizeTimer = null;
+                    }
+                });
+                scope.updateSize = function () {
+                    updateSizeTimer = null;
+                    map.updateSize();
+                };
+
+                var updateSizeEventHandler = function () {
+                    if (isDefined(updateSizeTimer)) {
+                        $timeout.cancel(updateSizeTimer);
+                    }
+                    updateSizeTimer = $timeout(scope.updateSize, 100);
+                };
+
+                scope.$watch(function () {
+                    return element[0].clientWidth;
+                }, updateSizeEventHandler);
+                scope.$watch(function () {
+                    return element[0].clientHeight;
+                }, updateSizeEventHandler);
 
                 // Resolve the map object to the promises
                 scope.setMap(map);

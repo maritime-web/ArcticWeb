@@ -17,6 +17,23 @@ function Assessment(parameters) {
         this.locationAssessments = locationAssessments;
     }
 
+    this.deleteLocation = function (locationId) {
+        if (this.locationsToAssess.length <= 1) {
+            throw "It's illegal to delete the last route location from an assessment";
+        }
+
+        var indexToDelete = this.locationsToAssess.findIndex(function (loc) {
+            return loc.id == locationId;
+        });
+
+        if (indexToDelete < 0) {
+            throw "Can not delete location with id '"+locationId+"' because it is not included in this assessment.";
+        }
+
+        this.locationsToAssess.splice(indexToDelete, 1);
+        this.locationAssessments.delete(locationId);
+    };
+
     this.getMaxScore = function () {
         return Array.from(this.locationAssessments.values()).reduce(function (prev, cur) {
             return Math.max(prev, cur.index);

@@ -110,39 +110,6 @@
                 </div>
 
             </accordion-group>
-            <!--
-                        <accordion-group is-open="sidebar.monitorAndReportActive">
-                            <accordion-heading>
-                                DETAILS FOR LOCATION: <strong>{{sidebar.meta.currentAssessment.locationName}}</strong> <span
-                                    class="pull-right glyphicon"
-                                    ng-class="{'glyphicon-menu-down': !sidebar.monitorAndReportActive, 'glyphicon-menu-up': sidebar.monitorAndReportActive}"></span>
-                            </accordion-heading>
-
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                    <tr>
-                                        <th>Factor</th>
-                                        <th>Input</th>
-                                        <th>Index</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr ng-repeat="score in sidebar.meta.currentAssessment.factorAssessments">
-                                        <td>{{score.factorName}}</td>
-                                        <td>{{score.name}}</td>
-                                        <td>{{score.index}}</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <div class="pull-right">
-                                    <button class="btn btn-primary btn-xs" ng-click="sidebar.meta.newAssessment()">New assessment
-                                    </button>
-                                </div>
-                            </div>
-
-                        </accordion-group>
-            -->
             <accordion-group is-open="sidebar.safetyMeasuresActive">
                 <accordion-heading>
                     SAFETY MEASURES <span class="pull-right glyphicon"

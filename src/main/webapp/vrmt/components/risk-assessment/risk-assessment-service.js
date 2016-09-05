@@ -14,6 +14,7 @@
         this.endAssessment = endAssessment;
         this.discardAssessment = discardAssessment;
         this.createLocationAssessment = createLocationAssessment;
+        this.deleteLocation = deleteLocation;
 
         /**
          * Returns the assessment currently being created
@@ -167,6 +168,27 @@
                             return RiskAssessmentDataService.storeAssessmentData(routeId, data)
                                 .then(function () {
                                     return $q.when(data.currentAssessment.getLocationAssessment(locationId));
+                                });
+                        } else {
+                            return $q.reject("No active assessment.");
+                        }
+                    } catch (e) {
+                        return $q.reject(e);
+                    }
+                });
+        }
+        
+        function deleteLocation(routeId, locationId) {
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (data) {
+                    try {
+                        if (data.currentAssessment) {
+                            data.currentAssessment = new Assessment(data.currentAssessment);
+                            data.currentAssessment.deleteLocation(locationId);
+
+                            return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                                .then(function () {
+                                    return $q.when(data.currentAssessment);
                                 });
                         } else {
                             return $q.reject("No active assessment.");

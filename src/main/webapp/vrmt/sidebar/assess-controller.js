@@ -63,11 +63,9 @@
 
             this.deleteLocation = function () {
                 var locationToDelete = this.location;
-                RouteLocationService.deleteRouteLocation(locationToDelete)
-                    .then(function () {
-                        NotifyService.notify(Events.RouteLocationDeleted, locationToDelete);
-                    }, function (errorReason) {
-                        console.log(errorReason);
+                RiskAssessmentService.deleteLocation(locationToDelete.routeId, locationToDelete.id)
+                    .then(function (updatedAssessment) {
+                        NotifyService.notify(Events.AssessmentUpdated, updatedAssessment);
                     });
             };
 

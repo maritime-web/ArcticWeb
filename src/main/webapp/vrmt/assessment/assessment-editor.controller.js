@@ -58,14 +58,20 @@
 
             RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
                 vm.factorAssessments = riskFactors.map(toViewModel);
-/*
+
                 vm.factorAssessments.forEach(function (rfvm) {
                     var score = scoreMap.get(rfvm.riskFactor.id);
                     if (score && score.index > 0) {
-
+                        if (rfvm.hasChoices) {
+                            var previousScore = rfvm.scoreOptions.find(function (so) {
+                                return so.name == score.name;
+                            });
+                            rfvm.model = previousScore ? previousScore : rfvm.model;
+                        } else {
+                            rfvm.model.index = score.index;
+                        }
                     }
                 });
-*/
                 vm.factorAssessments.forEach(chooseOption);
                 vm.hide = false;
             });
@@ -77,7 +83,9 @@
 
         function chooseOption(viewModel) {
             RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor).then(function (chosenOption) {
-                viewModel.model = chosenOption;
+                if (chosenOption.index > 0) {
+                    viewModel.model = chosenOption;
+                }
             });
         }
 
