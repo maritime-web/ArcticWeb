@@ -5,11 +5,13 @@
         .module('vrmt.app')
         .controller("AssessController", AssessController);
 
-    AssessController.$inject = ['$scope', 'RouteLocationService', 'RiskAssessmentService', 'NotifyService', 'Events'];
+    AssessController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'Events'];
 
-    function AssessController($scope, RouteLocationService, RiskAssessmentService, NotifyService, Events) {
+    function AssessController($scope, RiskAssessmentService, NotifyService, Events) {
         var vm = this;
+        vm.active = false;
         vm.currentLocationAssessment = null;
+        vm.assessmentStartedAt = null;
         vm.assessmentViews = [];
         vm.startNew = startNew;
         vm.save = save;
@@ -89,6 +91,7 @@
             vm.assessing = true;
             vm.assessmentViews = [];
             vm.currentLocationAssessment = null;
+            vm.assessmentStartedAt = currentAssessment.started.format("YYYY-MM-DD HH:mm");
             var routeLocations = currentAssessment.locationsToAssess;
             routeLocations.sort(byEta);
             routeLocations.forEach(function (routeLocation) {

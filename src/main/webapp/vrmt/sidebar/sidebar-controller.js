@@ -9,7 +9,6 @@
 
     function SidebarController($scope, RouteService, ScheduleService, NotifyService, Events) {
         var vm = this;
-        vm.assessActive = false;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
         vm.decisionMakingActive = false;
@@ -24,8 +23,7 @@
         vm.routeViews = [];
         vm.meta = {
             vesselName: $scope.mmsi,
-            routeView: {id: null, name: null},
-
+            routeView: {id: null, name: null}
         };
 
         function RouteView(params) {
