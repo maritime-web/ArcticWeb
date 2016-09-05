@@ -8,7 +8,6 @@
                         <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-12">
                         <span class="pull-right">
@@ -17,7 +16,6 @@
                         </span>
                     </div>
                 </div>
-
                 <table class="table table-condensed">
                     <thead>
                     <tr>
@@ -30,7 +28,7 @@
                     <tr x-ng-repeat="sar in sars">
                         <td>{{sar.name}}</td>
                         <td><span class="label"
-                                  x-ng-class="SARStatusLabel[sar.status]">{{SARStatusTxt[sar.status]}}</span></td>
+                                  x-ng-class="SARStatusLabel[sar.status]">{{sar.status | SarStatus}}</span></td>
                         <td><a href=# x-ng-click="view($event, sar)">view</a></td>
                     </tr>
                     </tbody>
@@ -49,7 +47,7 @@
                 <div x-ng-if="sar">
                     <div class="row">
                         <div class="col-md-5">Type:</div>
-                        <div class="col-md-7 nopadding">{{SARTypeTxt[sar.input.type]}}</div>
+                        <div class="col-md-7 nopadding">{{sar.input.type | Operation}}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-5">Coordinator:</div>
@@ -57,7 +55,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-5">Status:</div>
-                        <div class="col-md-7 nopadding"><span class="label" x-ng-class="SARStatusLabel[sar.status]">{{SARStatusTxt[sar.status]}}</span>
+                        <div class="col-md-7 nopadding"><span class="label" x-ng-class="SARStatusLabel[sar.status]">{{sar.status | SarStatus}}</span>
                         </div>
                     </div>
                     <div class="row sarButtons"
@@ -73,8 +71,11 @@
                             </span>
                         </div>
                     </div>
-                    <h6>Search Object</h6>
-                    {{tmp.searchObject.text}}<br/>
+
+                    <div x-ng-if="tmp.searchObject">
+                        <h6>Search Object</h6>
+                        {{tmp.searchObject.text}}<br/>
+                    </div>
 
                     <h6>Date and Time</h6>
                     <div class="row" x-ng-if="sar.input.objectPosition.ts">
@@ -207,10 +208,12 @@
                         <table class="table table-condensed ctrl">
                             <tr>
                                 <td>Name</td>
+                                <td>Pattern</td>
                                 <td>Status</td>
                             </tr>
                             <tr x-ng-repeat="pattern in patterns track by $index">
                                 <td>{{pattern.name}}</td>
+                                <td>{{pattern.type | SearchPattern}}</td>
                                 <td><span class="label" x-ng-class="AllocationStatusLabel[pattern.status]">{{AllocationStatusTxt[pattern.status]}}</span>
                                 </td>
                             </tr>
