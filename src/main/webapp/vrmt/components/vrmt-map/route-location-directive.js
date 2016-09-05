@@ -57,7 +57,7 @@
             }
 
             function createStyle(routeLocation, strokeColor, strokeWidth) {
-                var text = '' + routeLocation.id;
+                var text = '' + routeLocation.name;
                 var fillColor = 'black';
                 var index = currentAssessment ? currentAssessment.getLocationAssessment(routeLocation.id).index : 0;
                 if (index > 0) fillColor = 'green';
