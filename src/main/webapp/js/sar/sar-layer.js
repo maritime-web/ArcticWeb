@@ -443,7 +443,7 @@ function SarLayer() {
         for (var index in sarDocuments) {
             if (embryo.sar.Type.SearchArea === sarDocuments[index]['@type']) {
                 this.drawSar(sarDocuments[index]);
-            } else if (embryo.sar.Type.EffortAllocation === sarDocuments[index]['@type']) {
+            } else if (embryo.sar.Type.EffortAllocation === sarDocuments[index]['@type'] && sarDocuments[index].area) {
                 this.drawEffortAllocationZone(sarDocuments[index]);
             } else if (embryo.sar.Type.SearchPattern === sarDocuments[index]['@type']) {
                 this.drawSearchPattern(sarDocuments[index]);

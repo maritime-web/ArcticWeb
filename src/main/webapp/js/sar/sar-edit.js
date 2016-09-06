@@ -3,7 +3,7 @@
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.views', ['embryo.lteq.directive', 'embryo.gteq.directive', 'embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.datepicker', 'embryo.position']);
+    var module = angular.module('embryo.sar.views', ['embryo.lteq.directive', 'embryo.gteq.directive', 'embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.datepicker', 'embryo.position', 'embryo.sar.userPouch']);
 
     function SarTypeData(group, text, img) {
         this.group = group;
@@ -49,7 +49,7 @@
                 $scope.sarOperation = {}
 
 
-                if ($scope.sar.type != embryo.sar.Operation.DatumLine && $scope.sar.type != embryo.sar.Operation.BackTrack) {
+                if ($scope.sar.type != embryo.sar.Operation.DatumLine && $scope.sar.type != embryo.sar.Operation.BackTrack && $scope.sar.type != embryo.sar.Operation.TrackLine) {
                     if (!$scope.sar.lastKnownPosition) {
                         $scope.sar.lastKnownPosition = {};
                     }
@@ -712,15 +712,25 @@
     AllocationStatusLabel[embryo.sar.effort.Status.DraftPattern] = "label-danger";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftModifiedOnMap] = "label-danger";
 
+    var patternTexts = {}
+    patternTexts[embryo.sar.effort.SearchPattern.CreepingLine] = "Creeping line search";
+    patternTexts[embryo.sar.effort.SearchPattern.ParallelSweep] = "Parallel sweep search";
+    patternTexts[embryo.sar.effort.SearchPattern.SectorSearch] = "Sector search";
+    patternTexts[embryo.sar.effort.SearchPattern.ExpandingSquare] = "Expanding square search";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineNonReturn] = "Track line search, non-return";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineReturn] = "Track line search, return";
+
+
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory", "TrackLineReturn", "TrackLineNonReturn",
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory, TrackLineReturn, TrackLineNonReturn) {
+    module.controller("SarEffortAllocationController", ['$scope', 'Operation', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory", "TrackLineReturn", "TrackLineNonReturn",
+        function ($scope, Operation, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory, TrackLineReturn, TrackLineNonReturn) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
+            $scope.Operation = Operation
 
             $scope.AllocationStatus = embryo.sar.effort.Status;
 
@@ -743,6 +753,8 @@
                 embryo.sar.effort.SruTypes.FixedWingAircraft600,
             ]
 
+            $scope.patternTexts = patternTexts;
+
             //$scope.visibilityValues = [1, 3, 5, 10, 15, 20];
 
 
@@ -764,7 +776,8 @@
                     if (!result[pattern.effId] || pattern.status != embryo.sar.effort.Status.Active) {
                         result[pattern.effId] = {
                             id: pattern._id,
-                            status: pattern.status
+                            status: pattern.status,
+                            type : pattern.type
                         };
                     }
                 }
@@ -774,6 +787,7 @@
             function loadSRUs() {
                 //TODO request both search pattern and zones
                 // build 2 structures
+                // one array of zones/srus
                 // one array of zones/srus
                 // one object/array of search patterns
                 // use the latter for determining the button to display and implementing the next action
@@ -808,8 +822,12 @@
                     $scope.alertMessages = null;
                     $scope.message = null;
                     $scope.page = context && context.page ? context.page : 'SRU';
+
                     if (context && context.sarId) {
                         $scope.sarId = context.sarId
+                        LivePouch.get($scope.sarId).then(function (sar) {
+                            $scope.sar = sar;
+                        })
                         $scope.toSrus();
                     } else if (context && context.allocationId) {
                         loadAllocation(context.allocationId)
@@ -919,14 +937,18 @@
                     $scope.effort.wind = latest.wind;
                 }
 
-                if ($scope.effort.status === embryo.sar.effort.Status.Active) {
+                if ($scope.effort.status === embryo.sar.effort.Status.Active && $scope.sar.input.type !== Operation.TrackLine) {
                     $scope.message = "Sub area is edited by creating a copy of the existing shared sub area. \n";
                     $scope.message += "Write new values below, Calculate sub area, drag and shape sub area on the map and Share it. ";
                     $scope.message += "Your will hereby also replace the existing shared sub area. ";
                 }
             }
 
-            $scope.toSubAreaCalculation = function (effort) {
+            $scope.toSubAreaCalculation = function (effort, $event) {
+                console.log($event)
+                if($event){
+                    $event.preventDefault();
+                }
                 $scope.effort = clone(effort);
                 $scope.initEffortAllocation();
                 $scope.page = "effort";
@@ -979,6 +1001,7 @@
                     var allocation = null;
                     try {
                         allocation = SarService.calculateTrackSpacing($scope.effort);
+                        allocation.status = embryo.sar.effort.Status.Active
                     } catch (error) {
                         $log.error(error)
                         $scope.alertMessages = ["internal error", error];
@@ -1035,6 +1058,7 @@
                         }
 
                         //delete allocations and search patterns
+
                         return LivePouch.bulkDocs(efforts)
                     }).then(function () {
                         persist(effort);
@@ -1069,11 +1093,14 @@
                 ]
                 $scope.sp.turn = $scope.sides[0].key
 
-                if(zone.status == AllocationStatus.DraftSRU){
+                if($scope.sar.input.type === Operation.TrackLine) {
                     $scope.patterns = [
-                        pattern(SearchPattern.SectorSearch, "Sector search"),
                         pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
                         pattern(SearchPattern.TrackLineNonReturn, "Track line search, non-return"),
+                    ];
+                } else if(zone.status == AllocationStatus.DraftSRU){
+                    $scope.patterns = [
+                        pattern(SearchPattern.SectorSearch, "Sector search"),
                     ]
                 }else {
                     $scope.patterns = [
@@ -1141,7 +1168,10 @@
                 })
             }
 
-            $scope.editSearchPattern = function (zone, spId) {
+            $scope.editSearchPattern = function (zone, spId, $event) {
+                if($event){
+                    $event.preventDefault();
+                }
                 $scope.sp = {};
                 LivePouch.get(spId).then(function (pattern) {
                     $scope.page = "searchPattern";
@@ -1292,6 +1322,21 @@
         SarLayerSingleton.getInstance().activateTrackLinePositioning(function(pos){
             $scope.generateSearchPattern(pos);
         });
+
+        $scope.directions = [
+            {
+                key : embryo.sar.effort.TrackLineDirection.AsRoute,
+                label : "Same as route (default)"
+            },{
+                key : embryo.sar.effort.TrackLineDirection.OppositeRoute,
+                label : "Opposite route"
+            }
+        ];
+
+        if(!$scope.zone.direction){
+            $scope.zone.direction = $scope.directions[0].key
+        }
+
 
         $scope.$on("$destroy", function () {
             SarLayerSingleton.getInstance().deactivateTrackLinePositioning();
