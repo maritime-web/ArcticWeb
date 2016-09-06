@@ -18,34 +18,31 @@
                     </h4>
                 </div>
                 <div class="panel-body">
-                    <div class="form-horizontal">
-
-                        <div class="form-group">
-                            <div class="col-xs-4" style="padding-top: 5px;">
-                                <img src="img/vessel_purple.png">
-                                <span style="padding-left: 10px;">{{sidebar.meta.vesselName}}</span>
-                            </div>
-                            <div class="col-xs-8">
-                                <button ng-click="sidebar.configure()" class="btn btn-primary btn-xs">
-                                    Configure
-                                </button>
-                            </div>
+                    <div class="text-with-button">
+                        <div class="col-xs-8">
+                            <img src="img/vessel_purple.png">
+                            <span style="padding-left: 10px;">{{sidebar.meta.vesselName}}</span>
                         </div>
-                        <div class="form-group">
-                            <div class="col-xs-4" style="padding-top: 5px;">
-                                Route: <strong>{{sidebar.meta.routeView.name}}</strong>
-                            </div>
-                            <div class="col-xs-3">
-                                <div mw-select-renderer>
-                                    <button class="btn btn-primary btn-xs" ng-click="sidebar.routeDropdownClicked()">
-                                        Change
+                        <div class="col-xs-4">
+                            <button ng-click="sidebar.configure()" class="btn btn-primary btn-xs">
+                                Configure
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-with-button">
+                        <div class="col-xs-8">
+                            Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with est. departure on {{sidebar.meta.routeView.etaDep}}
+                        </div>
+                        <div class="col-xs-4">
+                            <div mw-select-renderer>
+                                <button class="btn btn-primary btn-xs" ng-click="sidebar.routeDropdownClicked()">
+                                    Change
+                                </button>
+                                <div class="btn-group-vertical button-dropdown">
+                                    <button class="btn btn-default btn-xs" ng-click="routeView.choose()"
+                                            ng-repeat="routeView in sidebar.routeViews">
+                                        {{routeView.name}}
                                     </button>
-                                    <div class="btn-group-vertical button-dropdown">
-                                        <button class="btn btn-default btn-xs" ng-click="routeView.choose()"
-                                                ng-repeat="routeView in sidebar.routeViews">
-                                            {{routeView.name}}
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -58,7 +55,8 @@
             <div class="panel" style="border: none" ng-controller="AssessController as assess">
                 <accordion-group is-open="assess.active">
                     <accordion-heading>
-                        ASSESS <strong style="font-size: x-small" data-ng-show="assess.assessing">Since: {{assess.assessmentStartedAt}}</strong>
+                        ASSESS <strong style="font-size: x-small" data-ng-show="assess.assessing">Since:
+                        {{assess.assessmentStartedAt}}</strong>
                         <span class="pull-right glyphicon"
                               ng-class="{'glyphicon-menu-down': !assess.active, 'glyphicon-menu-up': assess.active}"></span>
                     </accordion-heading>
@@ -117,7 +115,7 @@
             </div>
             <accordion-group is-open="sidebar.safetyMeasuresActive">
                 <accordion-heading>
-                    SAFETY MEASURES <span class="pull-right glyphicon"
+                    SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
                                           ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
                 </accordion-heading>
                 <div class="container-fluid sidebar-grid">
@@ -128,7 +126,7 @@
                         <div class="col-xs-6">CHANGE OF ROUTE</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">DETAILS</button>
+                                <button class="btn btn-primary btn-xs">DETAILS</button>
                             </div>
                         </div>
                     </div>
@@ -136,23 +134,15 @@
                         <div class="col-xs-6">CHANGE OF LANDINGSITE</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">DETAILS</button>
+                                <button class="btn btn-primary btn-xs">DETAILS</button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </accordion-group>
-            <accordion-group is-open="sidebar.decisionMakingActive">
-                <accordion-heading>
-                    DECISION MAKING <span class="pull-right glyphicon"
-                                          ng-class="{'glyphicon-menu-down': !sidebar.decisionMakingActive, 'glyphicon-menu-up': sidebar.decisionMakingActive}"></span>
-                </accordion-heading>
-                <div class="container-fluid sidebar-grid">
                     <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">Assessment OF RISK IN ROUTE CHANGE</div>
+                        <div class="col-xs-6">ASSESSMENT OF RISK IN ROUTE CHANGE</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">Assessment</button>
+                                <button class="btn btn-primary btn-xs">Assessment</button>
                             </div>
                         </div>
                     </div>
@@ -160,7 +150,7 @@
                         <div class="col-xs-6">ASSESSMENT OF RISK IN ENTERING HARBOUR</div>
                         <div class="col-xs-6">
                             <div class="pull-right">
-                                <button class="btn-primary">Assessment</button>
+                                <button class="btn btn-primary btn-xs">Assessment</button>
                             </div>
                         </div>
                     </div>

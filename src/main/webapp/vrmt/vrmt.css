@@ -127,6 +127,16 @@ h4.text-center  {
     padding-top: 7px;
 }
 
+/** vertical aligning text with button**/
+.text-with-button  {
+    display: flex;
+    padding-bottom: 5px;
+}
+.text-with-button > div:first-child {
+    line-height: 1.5;
+    padding-top: 4px;
+}
+
 /** Timeline **/
 .timeline {
     background-color: #fff;
@@ -274,20 +284,20 @@ beta ribbon banner in pure css
 body:after {
     content: "alpha";
     position: absolute;
-    width: 80px;
-    height: 25px;
+    width: 60px;
+    height: 17px;
     background: red;
    /* opacity: 0.90;
     fill-opacity: 0.90;*/
     top: 7px;
-    left: -20px;
+    left: -14px;
     text-align: center;
-    font-size: 13px;
+    font-size: 11px;
     font-family: sans-serif;
     text-transform: uppercase;
     font-weight: bold;
     color: #fff;
-    line-height: 27px;
+    line-height: 18px;
     -ms-transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
     transform: rotate(-45deg);

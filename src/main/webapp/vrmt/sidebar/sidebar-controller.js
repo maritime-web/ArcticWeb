@@ -27,8 +27,12 @@
         };
 
         function RouteView(params) {
-            this.name = params.route.name;
-            this.routeId = params.route.id;
+            var originalRoute = params.route ? params.route : params;
+            this.name = originalRoute.name;
+            this.from = originalRoute.dep;
+            this.to = originalRoute.des;
+            this.etaDep = originalRoute.etaDep ? moment(originalRoute.etaDep).format("YYYY-MM-DD") : null;
+            this.routeId = originalRoute.id;
         }
 
         RouteView.prototype.choose = function () {
@@ -73,7 +77,7 @@
 
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
-            vm.meta.routeView = {id: newRoute.id, name: newRoute.name};
+            vm.meta.routeView = new RouteView(newRoute);
         }
 
         NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
