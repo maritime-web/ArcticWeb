@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route.model', 'embryo.sar.TimeElapsed']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route.model', 'embryo.sar.TimeElapsed', 'embryo.sar.SearchCircle']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -1197,7 +1197,7 @@
 
         TrackLineReturn.prototype = new SearchPatternCalculator();
 
-        TrackLineReturn.prototype.createWaypoints = function (zone, routePoints, fromStartPos) {
+        TrackLineReturn.prototype.createWaypoints = function (zone, sp, routePoints) {
             var distanceToTravel = zone.time * zone.speed;
 
             var routeLengthToTravel = (distanceToTravel - zone.S)/2
@@ -1214,45 +1214,62 @@
                 waypoints : wps
             });
 
+            var routePointsToTravel = []
+            var startPos = sp.dragPoint ? Position.create(sp.dragPoint) : null;
+
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var wp1 = Position.create(route.waypoints[i]);
+                var wp2 = Position.create(route.waypoints[i+1]);
+
+                var bearing = wp1.bearingTo(wp2, embryo.geo.Heading.RL);
+                var distance =  wp1.distanceTo(wp2, embryo.geo.Heading.RL);
+
+                if(startPos) {
+                    var distanceToWp1 = startPos.distanceTo(wp1, embryo.geo.Heading.RL);
+                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL)
+                    if (Math.abs(distanceToWp1 + distanceToWp2 - distance) < 0.1) {
+                        // on route leg
+
+                        wp1 = startPos;
+                        distance = distanceToWp2;
+                        startPos = null;
+                    }
+                }
+
+                if(!startPos){
+                    if (distance >= routeLengthToTravel) {
+                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                    }
+
+                    if(routePointsToTravel.length === 0 && !startPos){
+                        routePointsToTravel.push(wp1);
+                    }
+                    routePointsToTravel.push(wp2);
+
+                    routeLengthToTravel -= distance;
+                }
+            }
+
+            if(sp.direction === embryo.sar.effort.TrackLineDirection.OppositeRoute){
+                routePointsToTravel.reverse();
+            }
+
             // TODO if great circle we need to include all points between waypoints
             var turnPointsOut = []
             var turnPointsReturn = []
 
-            function addTrackLineReturnPositions(routePoint1, routePoint2){
-                var distance =  routePoint1.distanceTo(routePoint2, embryo.geo.Heading.RL);
-                var bearing = routePoint1.bearingTo(routePoint2, embryo.geo.Heading.RL);
+            var outBearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90
+            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90
 
-                turnPointsOut.push(routePoint1.transformPosition(bearing + 90, zone.S/2))
-                turnPointsReturn.push(routePoint1.transformPosition(bearing - 90, zone.S/2))
+            for(var i = 0; i < routePointsToTravel.length - 1; i++){
+                var p1 = routePointsToTravel[i]
+                var p2 = routePointsToTravel[i + 1]
 
-                if (distance >= routeLengthToTravel) {
-                    routePoint2 = routePoint1.transformPosition(bearing, routeLengthToTravel);
-                }
-
-                turnPointsOut.push(routePoint2.transformPosition(bearing + 90, zone.S/2))
-                turnPointsReturn.push(routePoint2.transformPosition(bearing - 90, zone.S/2))
-                routeLengthToTravel -= distance;
-            }
-
-            var startPos = fromStartPos ? Position.create(fromStartPos) : null;
-
-            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
-                var p1 = Position.create(route.waypoints[i]);
-                var p2 = Position.create(route.waypoints[i+1]);
-
-
-                if(startPos){
-                    var routeLegDistance = p1.distanceTo(p2, embryo.geo.Heading.RL)
-                    var distanceToP1 = startPos.distanceTo(p1, embryo.geo.Heading.RL);
-                    var distanceToP2 = startPos.distanceTo(p2, embryo.geo.Heading.RL)
-                    if(Math.abs(distanceToP1 + distanceToP2 - routeLegDistance) < 0.1){
-                        // onroute
-                        addTrackLineReturnPositions(startPos, p2);
-                        startPos = null;
-                    }
-                } else {
-                    addTrackLineReturnPositions(p1, p2)
-                }
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
+                turnPointsOut.push(p1.transformPosition(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p1.transformPosition(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p2.transformPosition(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p2.transformPosition(bearing + returnBearing, zone.S/2))
             }
 
             var turnPoints = turnPointsOut.concat(turnPointsReturn.reverse());
@@ -1265,17 +1282,18 @@
         }
 
 
-        TrackLineReturn.prototype.calculate = function (zone, sar, startFromPos) {
-            var wayPoints = this.createWaypoints(zone, sar.input.planedRoute.points, startFromPos);
+        TrackLineReturn.prototype.calculate = function (zone, sp, sar) {
+            var wayPoints = this.createWaypoints(zone, sp, sar.input.planedRoute.points);
             var searchPattern = {
                 _id: "sarSp-" + Date.now(),
                 sarId: zone.sarId,
                 effId: zone._id,
                 type: embryo.sar.effort.SearchPattern.TrackLineReturn,
                 name: zone.name,
-                dragPoint: startFromPos ? startFromPos : Position.create(sar.input.planedRoute.points[0]),
+                dragPoint: sp.dragPoint ? sp.dragPoint : Position.create(sar.input.planedRoute.points[0]),
                 wps: wayPoints,
-                cspOnToRoute : sar.input.planedRoute.points[0]
+                direction : sp.direction,
+                turn : sp.turn
             }
             searchPattern['@type'] = embryo.sar.Type.SearchPattern;
 
@@ -1291,7 +1309,7 @@
 
         TrackLineNonReturn.prototype = new SearchPatternCalculator();
 
-        TrackLineNonReturn.prototype.createWaypoints = function (zone, routePoints, fromStartPos) {
+        TrackLineNonReturn.prototype.createWaypoints = function (zone, sp, routePoints, fromStartPos) {
             var distanceToTravel = zone.time * zone.speed;
             var routeLengthToTravel = (distanceToTravel - 3 * zone.S)/3
 
@@ -1307,47 +1325,67 @@
                 waypoints : wps
             });
 
+            var routePointsToTravel = []
+            var startPos = sp.dragPoint ? Position.create(sp.dragPoint) : null;
+
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var wp1 = Position.create(route.waypoints[i]);
+                var wp2 = Position.create(route.waypoints[i+1]);
+
+                var bearing = wp1.bearingTo(wp2, embryo.geo.Heading.RL);
+                var distance =  wp1.distanceTo(wp2, embryo.geo.Heading.RL);
+
+                if(startPos) {
+                    var distanceToWp1 = startPos.distanceTo(wp1, embryo.geo.Heading.RL);
+                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL)
+                    if (Math.abs(distanceToWp1 + distanceToWp2 - distance) < 0.1) {
+                        // on route leg
+
+                        wp1 = startPos;
+                        distance = distanceToWp2;
+                        startPos = null;
+                    }
+                }
+
+                if(!startPos){
+                    if (distance >= routeLengthToTravel) {
+                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                    }
+
+                    if(routePointsToTravel.length === 0 && !startPos){
+                        routePointsToTravel.push(wp1);
+                    }
+                    routePointsToTravel.push(wp2);
+
+                    routeLengthToTravel -= distance;
+                }
+            }
+
+            if(sp.direction === embryo.sar.effort.TrackLineDirection.OppositeRoute){
+                routePointsToTravel.reverse();
+            }
+
             // TODO if great circle we need to include all points between waypoints
             var leg1Out = [];
             var leg2Return = [];
             var leg3Out =[];
 
-            function addTrackLineReturnPositions(routePoint1, routePoint2){
-                var distance =  routePoint1.distanceTo(routePoint2, embryo.geo.Heading.RL);
-                var bearing = routePoint1.bearingTo(routePoint2, embryo.geo.Heading.RL);
+            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90
+            var out3Bearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90
 
-                leg1Out.push(routePoint1);
-                leg2Return.push(routePoint1.transformPosition(bearing - 90, zone.S))
-                leg3Out.push(routePoint1.transformPosition(bearing + 90, zone.S))
+            for(var i = 0; i < routePointsToTravel.length - 1; i++){
+                var p1 = routePointsToTravel[i];
+                var p2 = routePointsToTravel[i+1];
 
-                if (distance >= routeLengthToTravel) {
-                    routePoint2 = routePoint1.transformPosition(bearing, routeLengthToTravel);
-                }
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
 
-                leg1Out.push(routePoint2);
-                leg2Return.push(routePoint2.transformPosition(bearing - 90, zone.S))
-                leg3OutPos.push(routePoint2.transformPosition(bearing + 90, zone.S))
-                routeLengthToTravel -= distance;
-            }
+                leg1Out.push(p1);
+                leg2Return.push(p1.transformPosition(bearing + returnBearing, zone.S))
+                leg3Out.push(p1.transformPosition(bearing + out3Bearing, zone.S))
 
-            var startPos = fromStartPos ? Position.create(fromStartPos) : null;
-
-            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
-                var p1 = Position.create(route.waypoints[i]);
-                var p2 = Position.create(route.waypoints[i+1]);
-
-                if(startPos){
-                    var routeLegDistance = p1.distanceTo(p2, embryo.geo.Heading.RL)
-                    var distanceToP1 = startPos.distanceTo(p1, embryo.geo.Heading.RL);
-                    var distanceToP2 = startPos.distanceTo(p2, embryo.geo.Heading.RL)
-                    if(Math.abs(distanceToP1 + distanceToP2 - routeLegDistance) < 0.1){
-                        // onroute
-                        addTrackLineReturnPositions(startPos, p2);
-                        startPos = null;
-                    }
-                } else {
-                    addTrackLineReturnPositions(p1, p2)
-                }
+                leg1Out.push(p2);
+                leg2Return.push(p2.transformPosition(bearing + returnBearing, zone.S))
+                leg3Out.push(p2.transformPosition(bearing + out3Bearing, zone.S))
             }
 
             var turnPoints = leg1Out.concat(leg2Return.reverse()).concat(leg3Out);
@@ -1360,8 +1398,8 @@
         }
 
 
-        TrackLineNonReturn.prototype.calculate = function (zone, sar, startFromPos) {
-            var wayPoints = this.createWaypoints(zone, sar.input.planedRoute.points, startFromPos);
+        TrackLineNonReturn.prototype.calculate = function (zone, sp, sar) {
+            var wayPoints = this.createWaypoints(zone, sp, sar.input.planedRoute.points);
 
             var searchPattern = {
                 _id: "sarSp-" + Date.now(),
@@ -1369,8 +1407,10 @@
                 effId: zone._id,
                 type: embryo.sar.effort.SearchPattern.TrackLineNonReturn,
                 name: zone.name,
-                dragPoint: startFromPos ? startFromPos : wayPoints[0],
+                dragPoint: sp.dragPoint ? sp.dragPoint : wayPoints[0],
                 wps: wayPoints,
+                direction : sp.direction,
+                turn : sp.turn
             }
             searchPattern['@type'] = embryo.sar.Type.SearchPattern;
 

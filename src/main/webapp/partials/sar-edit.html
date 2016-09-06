@@ -911,7 +911,7 @@
                 <div class="col-xs-12">
                     <span class="pull-right">
                         <button type="button" class="btn btn-sm" x-ng-click="page.name = 'route'" x-ng-if="!tmp.viewOnly">Back</button>
-                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="manageEffortAllocations()" x-ng-controller="TracklineResultController">Assign SRUs with search pattern</button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="startTracklineOperation()" x-ng-controller="TracklineResultController">Finish</button>
                         <button type="button" class="btn btn-sm" x-ng-click="close($event)"x-ng-if="!tmp.viewOnly">Cancel</button>
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="close($event)" x-ng-if="tmp.viewOnly">Close</button>
                     </span>

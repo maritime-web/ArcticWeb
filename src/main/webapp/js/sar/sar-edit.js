@@ -496,15 +496,51 @@
                 });
             });
         }
-
-
     }]);
 
-    module.controller("TracklineResultController", ['$scope', 'ViewService', function ($scope, ViewService) {
+    module.controller("TracklineResultController", ['$scope', 'ViewService', '$log', 'LivePouch', function ($scope, ViewService, $log, LivePouch) {
         $scope.effortAllocationProvider = ViewService.viewProviders()['effort'];
+
+        $scope.startTracklineOperation = function(){
+            try {
+                $scope.alertMessages = [];
+                // retain PouchDB fields like _id and _rev
+                $scope.sarOperation.input = $scope.sar;
+
+                var sarOperation = clone($scope.sarOperation)
+                sarOperation.status = embryo.SARStatus.STARTED;
+
+                LivePouch.put(sarOperation).then(function (putResponse) {
+
+                }).then(function(sarOperation){
+                    $scope.provider.close();
+                }).catch(function(error){
+                    $log.error("Error saving sar operation - " + startNewSar)
+                    $log.error(error)
+                    $log.error(typeof error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                });
+
+            } catch (error) {
+                $log.error(error)
+                if (typeof error === 'object' && error.message) {
+                    $scope.alertMessages.push("Internal error: " + error.message);
+                } else if (typeof error === 'string') {
+                    $scope.alertMessages.push("Internal error: " + error);
+                }
+            }
+
+        }
+
         $scope.manageEffortAllocations = function () {
             $scope.effortAllocationProvider.show({sarId: $scope.sarOperation._id});
         }
+
+
     }]);
 
     module.controller("BackTrackPositionSelectionController", ['$scope', 'Position', function ($scope, Position) {
@@ -1228,7 +1264,7 @@
             })
 
 
-            $scope.generateSearchPattern = function (pos) {
+            $scope.generateSearchPattern = function () {
                 if(!$scope.sp){
                     return;
                 }
@@ -1248,11 +1284,11 @@
                         spCopy.sar = $scope.sar;
                         $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineReturn ){
-                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sar, pos);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineReturn  && $scope.sp.direction && $scope.sp.turn){
+                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sp, $scope.sar);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
-                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn ){
-                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sar, pos);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn && $scope.sp.direction && $scope.sp.turn){
+                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sp, $scope.sar);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     }
                 }catch(error){
@@ -1320,7 +1356,8 @@
 
     module.controller("Trackline", ['$scope', function ($scope) {
         SarLayerSingleton.getInstance().activateTrackLinePositioning(function(pos){
-            $scope.generateSearchPattern(pos);
+            $scope.sp.dragPoint = pos;
+            $scope.generateSearchPattern();
         });
 
         $scope.directions = [

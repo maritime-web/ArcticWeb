@@ -451,7 +451,7 @@
                         <div class="form-group">
                             <label class="control-label col-xs-3">Start direction:</label>
                             <div class="col-xs-5">
-                                <select ng-model="sp.direction" name="type" class="input-sm form-control"
+                                <select ng-model="sp.direction" name="type" class="input-sm form-control" required
                                         x-ng-change="generateSearchPattern()" x-ng-options="direction.key as direction.label for direction in directions">
                                 </select>
                             </div>
@@ -459,7 +459,7 @@
                         <div class="form-group">
                             <label class="control-label col-xs-3">Turn to:</label>
                             <div class="col-xs-5">
-                                <select ng-model="sp.turn" name="type" class="input-sm form-control"
+                                <select ng-model="sp.turn" name="type" class="input-sm form-control" required
                                         x-ng-change="generateSearchPattern()" x-ng-options="side.key as side.label for side in sides">
                                 </select>
                             </div>
