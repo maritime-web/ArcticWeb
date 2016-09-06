@@ -45,6 +45,7 @@ module.exports = function(config) {
 				'src/main/webapp/js/layer/metoc-layer.js',
                 'src/main/webapp/js/service/*.js',
                 'src/main/webapp/js/control/additional-information.js',
+				'src/main/webapp/components/**/*-constant.js',
 			    'src/main/webapp/components/**/*-model.js',
 			    'src/main/webapp/components/**/*-directive.js',
 				'src/main/webapp/components/**/*-service.js',

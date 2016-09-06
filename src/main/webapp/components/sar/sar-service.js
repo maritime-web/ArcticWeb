@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.userPouch', 'embryo.sar.livePouch', 'embryo.route.model']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route.model', 'embryo.sar.TimeElapsed']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -23,26 +23,6 @@
         }
         return parseInt(value, 10);
     }
-
-    module.factory('TimeElapsed', function () {
-        function TimeElapsed(data) {
-            angular.extend(this, data);
-        }
-        TimeElapsed.validate = function (startPositionTs, commenceSearchStart) {
-            assertValue(startPositionTs, "startPositionTs");
-            assertValue(commenceSearchStart, "commenceSearchStart");
-        }
-        TimeElapsed.build = function(startPositionTs, commenceSearchStart){
-            TimeElapsed.validate(startPositionTs, commenceSearchStart);
-            var difference = (commenceSearchStart - startPositionTs) / 60 / 60 / 1000;
-            var data = {};
-            data.timeElapsed = difference;
-            data.hoursElapsed = Math.floor(difference);
-            data.minutesElapsed = Math.round((difference - data.hoursElapsed) * 60);
-            return new TimeElapsed(data);
-        }
-        return TimeElapsed;
-    });
 
     module.factory('DriftVector', [function () {
         function DriftVector(data) {
@@ -258,47 +238,6 @@
         }
 
         return BackTrackSurfaceDrifts;
-    }]);
-
-    module.factory('SearchCircle', ["Position", "Circle", function (Position, Circle) {
-        function SearchCircle(data) {
-            angular.extend(this, data);
-        }
-
-        SearchCircle.prototype.toPolygonOfPositions = function(numberOfVertices){
-            return Circle.create(Position.create(this.datum), this.radius).toPolygon(numberOfVertices)
-        }
-
-        SearchCircle.prototype.toGeoCircle = function(){
-            return Circle.create(Position.create(this.datum), this.radius);
-        }
-
-        SearchCircle.validate = function(xError, yError, safetyFactor, rdvDistance, datum) {
-            assertValue(xError, "xError");
-            assertValue(yError, "yError");
-            assertValue(safetyFactor, "safetyFactor");
-            assertValue(datum, "datum");
-            assertValue(rdvDistance, "rdvDistance");
-        }
-        SearchCircle.calculateRadius = function(xError, yError, rdvDistance, safetyFactor) {
-            return ((xError + yError) + 0.3 * rdvDistance) * safetyFactor;
-        }
-        SearchCircle.build = function(xError, yError, safetyFactor, rdvDistance, datum){
-            SearchCircle.validate(xError, yError, safetyFactor, rdvDistance, datum);
-            var radius = SearchCircle.calculateRadius(xError, yError, rdvDistance, safetyFactor);
-            return new SearchCircle({
-                radius : radius,
-                datum : datum.toDegreesAndDecimalMinutes()
-            });
-        }
-        SearchCircle.create = function(radius, datum){
-            return new SearchCircle({
-                radius : radius,
-                datum : datum.toDegreesAndDecimalMinutes()
-            });
-        }
-
-        return SearchCircle;
     }]);
 
     module.factory('SearchArea', [function () {
@@ -1354,7 +1293,6 @@
 
         TrackLineNonReturn.prototype.createWaypoints = function (zone, routePoints, fromStartPos) {
             var distanceToTravel = zone.time * zone.speed;
-
             var routeLengthToTravel = (distanceToTravel - 3 * zone.S)/3
 
             var wps = []
@@ -1379,20 +1317,18 @@
                 var bearing = routePoint1.bearingTo(routePoint2, embryo.geo.Heading.RL);
 
                 leg1Out.push(routePoint1);
-                leg2Return.push(routePoint1.transformPosition(bearing + 90, zone.S))
-                leg3Out.push(routePoint1.transformPosition(bearing - 90, zone.S))
+                leg2Return.push(routePoint1.transformPosition(bearing - 90, zone.S))
+                leg3Out.push(routePoint1.transformPosition(bearing + 90, zone.S))
 
                 if (distance >= routeLengthToTravel) {
                     routePoint2 = routePoint1.transformPosition(bearing, routeLengthToTravel);
                 }
 
-
                 leg1Out.push(routePoint2);
-                leg2Return.push(routePoint2.transformPosition(bearing + 90, zone.S))
-                leg3Out.push(routePoint2.transformPosition(bearing - 90, zone.S))
+                leg2Return.push(routePoint2.transformPosition(bearing - 90, zone.S))
+                leg3OutPos.push(routePoint2.transformPosition(bearing + 90, zone.S))
                 routeLengthToTravel -= distance;
             }
-
 
             var startPos = fromStartPos ? Position.create(fromStartPos) : null;
 
@@ -1705,42 +1641,5 @@
 
         return service;
     }]);
-
-    module.factory('LivePouch', ['PouchDBFactory', function (PouchDBFactory) {
-        var dbName = 'embryo-live';
-        var liveDb = PouchDBFactory.createLocalPouch(dbName);
-        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
-
-        var sync = liveDb.sync(remoteDb, {
-            live: true,
-            retry: true
-        })
-
-        return liveDb;
-    }]);
-
-    module.factory('UserPouch', ['PouchDBFactory','$log', function (PouchDBFactory, $log) {
-        // make sure this works in development environment as well as other environments
-        var dbName = 'embryo-user';
-        var userDb = PouchDBFactory.createLocalPouch(dbName);
-        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
-
-         var handler = userDb.replicate.from(remoteDb, {
-            retry: true
-         })
-
-         // TODO setup scheduled replication
-         handler.on("complete", function (){
-            $log.info("Done replicating users");
-         })
-         handler.on("error", function (error){
-            $log.info(error);
-         })
-
-
-        return userDb;
-    }]);
-
-
 
 })();
