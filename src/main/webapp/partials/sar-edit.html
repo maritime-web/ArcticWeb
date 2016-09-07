@@ -501,7 +501,7 @@
                         <button type="button" class="btn btn-sm" x-ng-click="page.name=page.back">Back</button> &nbsp;
                         <button type="button" class="btn btn-sm" x-ng-click="page.name=page.next">Skip</button> &nbsp;
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="saveSarOperation(page.next)"
-                                x-ng-disabled="routeForm.$invalid">Save route
+                                x-ng-disabled="routeForm.$invalid || sar.planedRoute.points.length < 2 ">Save route
                         </button>
                     </span>
                 </div>
