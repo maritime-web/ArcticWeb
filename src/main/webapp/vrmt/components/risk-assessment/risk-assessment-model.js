@@ -64,9 +64,9 @@ function RouteLocation(parameters) {
     this.lat = parameters.lat;
     this.lon = parameters.lon;
     this.eta = parameters.eta;
-    this.getLatLon = function () {
-        return [this.lat, this.lon];
-    }
+    this.asPosition = function () {
+        return new embryo.geo.Position(this.lon, this.lat);
+    };
 }
 
 function LocationAssessment(parameters) {
@@ -113,6 +113,8 @@ function RiskFactor(parameters) {
 
 function Route(route) {
     var delegate = route;
+    Object.assign(this, route);
+    var metersToNm = embryo.geo.Converter.metersToNm;
 
     var routeAsLinestring = toLineString();
     var legs = toLegs();
@@ -134,41 +136,50 @@ function Route(route) {
         function createLeg(wp1, wp2) {
             var leg = {};
             leg.speed = wp1.speed;
-            leg.p1 = [wp1.latitude, wp1.longitude];
-            leg.p2 = [wp2.latitude, wp2.longitude];
-            leg.lineString = turf.linestring([leg.p1, leg.p2]);
-            leg.length = turf.lineDistance(leg.lineString, "miles");
+            leg.heading = wp1.heading;
+            leg.from = new embryo.geo.Position(wp1.longitude, wp1.latitude);
+            leg.lineString = turf.linestring([[wp1.latitude, wp1.longitude], [wp2.latitude, wp2.longitude]]);
             leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
+
+            leg.contains = function (position) {
+                var turfPoint = turf.point([position.lat, position.lon]);
+                var p = turf.pointOnLine(this.lineString, turfPoint);
+                var positionOnLine = new embryo.geo.Position(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                return positionOnLine.geodesicDistanceTo(position) < 0.1;
+            };
+
+            leg.hoursTo = function (position) {
+                var distance = this.from.distanceTo(position, this.heading);
+                return distance / this.speed;
+            };
+
             return leg;
         }
 
         return res;
     }
 
-    this.getTimeAtPosition = function (latLon) {
-        var givenPosition = turf.point(latLon);
-        var positionOnRoute = getClosestPointOnRoute(givenPosition);
-        var hours = getHoursToReachPosition(positionOnRoute);
-
+    this.getTimeAtPosition = function (aPosition) {
+        var hours = getHoursToReachPosition(aPosition);
         var departure = moment(delegate.etaDep);
-        return departure.hour(hours);
+
+        return departure.add(hours, "h");
     };
 
-    function getHoursToReachPosition(positionOnRoute) {
-        var distance = getDistanceFromOrigin(positionOnRoute);
-        var length = 0;
-        var hours = 0;
-        for (var i = 0; length < distance && i < legs.length; i++) {
-            var leg = legs[i];
-            length += leg.length;
-            if (length > distance) {
-                var p1 = turf.point(leg.p1);
-                var p2 = positionOnRoute;
-                var ls = leg.lineString;
-                var slice = turf.lineSlice(p1, p2, ls);
+    function getHoursToReachPosition(aPosition) {
+        var positionOnRoute = getClosestPointOnRoute(aPosition);
+        var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
+        if (distanceBetween > 10) {
+            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
+            throw new Error(errorMsg);
+        }
 
-                var dist = turf.lineDistance(slice, "miles");
-                hours += dist / leg.speed;
+        var hours = 0;
+        for (var i = 0; i < legs.length; i++) {
+            var leg = legs[i];
+            if (leg.contains(positionOnRoute)) {
+                hours += leg.hoursTo(positionOnRoute);
+                break;
             } else {
                 hours += leg.hours;
             }
@@ -176,21 +187,40 @@ function Route(route) {
 
         return hours;
     }
-
+    
     function getClosestPointOnRoute(givenPosition) {
+        var turfPoint = turf.point([givenPosition.lat, givenPosition.lon]);
+        var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
+        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[1], turfPointOnLine.geometry.coordinates[0]);
+    }
+
+    this.equals = function (otherRoute) {
+        var thisRoute = this;
+        var sameDeparture = function () {
+          return thisRoute.etaDep == otherRoute.etaDep;
+        };
+        var sameWayPointCount = function () {
+            return thisRoute.wps.length == otherRoute.wps.length;
+        };
+        var sameWayPoints = function () {
+            var res = true;
+            for (var i = 0; i < thisRoute.wps; i++) {
+                var thisWp = thisRoute.wps[i];
+                var otherWp = otherRoute.wps[i];
+                if (thisWp.lat != otherWp.lat || thisWp.lon != otherWp.lon || thisWp.eta != otherWp.eta) {
+                    res = false;
+                    break;
+                }
+            }
+            return res;
+        };
+        return sameDeparture() && sameWayPointCount() && sameWayPoints();
+    };
+
+    this.isOnRoute = function (routeLocation) {
+        var givenPosition = turf.point([routeLocation.lat, routeLocation.lon]);
         var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
-        var distanceBetween = turf.distance(closestPoint, givenPosition, "miles");
-        if (distanceBetween > 10) {
-            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
-            throw errorMsg;
-        }
-        return turf.pointOnLine(routeAsLinestring, givenPosition);
-    }
-
-    function getDistanceFromOrigin(pointOnLine) {
-        var pStart = turf.point([delegate.wps[0].latitude, delegate.wps[0].longitude]);
-        var slice = turf.lineSlice(pStart, pointOnLine, routeAsLinestring);
-
-        return turf.lineDistance(slice, "miles");
-    }
+        var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
+        return distanceBetween < 10;
+    };
 }

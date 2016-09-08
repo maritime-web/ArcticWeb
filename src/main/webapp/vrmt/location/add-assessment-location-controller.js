@@ -7,9 +7,9 @@
         .controller("ModalInstanceCtrl", ModalInstanceCtrl);
 
 
-    AssessmentLocationController.$inject = ['$scope', '$modal', 'RouteLocationService', 'NotifyService', 'Events'];
+    AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentService', 'NotifyService', 'Events'];
 
-    function AssessmentLocationController($scope, $modal, RouteLocationService, NotifyService, Events) {
+    function AssessmentLocationController($scope, $modal, RiskAssessmentService, NotifyService, Events) {
 
         NotifyService.subscribe($scope, Events.AddRouteLocation, onAddAssessmentLocation);
         function onAddAssessmentLocation(event, newAssessmentLocationEvent) {
@@ -40,7 +40,7 @@
                     }
                 }
 
-                RouteLocationService.createRouteLocation($scope.route, locParam)
+                RiskAssessmentService.createRouteLocation($scope.route, locParam)
                     .then(function (location) {
                         NotifyService.notify(Events.RouteLocationCreated, location);
                     });

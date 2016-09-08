@@ -81,23 +81,6 @@ describe('Risk Assessment Classes', function() {
         })
     });
 
-/*
-    describe('LocationAssessment', function() {
-        var params = {
-            routeLocation: "",
-            scores: []
-        };
-
-        it('should should assign param.assessmentLocation to location ', function() {
-            params.routeLocation = "a location";
-
-            var cut = new LocationAssessment(params);
-
-            expect(cut.location).toEqual(params.routeLocation);
-        });
-    });
-*/
-
     describe('Route', function() {
         describe('getTimeAtPosition', function() {
             it('should throw exception if given point is more than 10 miles from the rute', function() {
@@ -113,8 +96,21 @@ describe('Risk Assessment Classes', function() {
                 var cut = new Route(route);
 
                 expect(function() {
-                    return cut.getTimeAtPosition([-25, 72]);
+                    return cut.getTimeAtPosition(new embryo.geo.Position(72, -25));
                 }).toThrow();
+            });
+
+            it('should calculate time at a given position', function() {
+                var routeData = routeThuleQaarnaaq;
+                //shorten the route to two waypoints
+                routeData.wps = routeData.wps.slice(0, 2);//
+
+                var lastWayPoint = routeData.wps[routeData.wps.length - 1];
+                var destinationPosition = new embryo.geo.Position(lastWayPoint.longitude, lastWayPoint.latitude);
+
+                var cut = new Route(routeData);
+
+                expect(cut.getTimeAtPosition(destinationPosition).hours()).toEqual(moment(lastWayPoint.eta).hours());
             });
 
             it('should test arc', function() {
@@ -128,6 +124,35 @@ describe('Risk Assessment Classes', function() {
                 //     console.log(coords[i]);
                 //     console.log(coords[i+1]);
                 // }
+            });
+
+            it('should verify that Object.assign can be used for decorators', function() {
+                function A(parameters) {
+                    Object.assign(this, parameters);
+                    this.func = function () {
+                        return "I'm a decorator function";
+                    }
+                }
+
+                var aParams = {
+                    a: "A",
+                    b: {hello: 'hello', world: 'world', count: 2},
+                    damn: function () {
+                        return "damn";
+                    }
+                };
+
+                var a = new A(aParams);
+
+                expect(a.a).toEqual("A");
+                expect(a.func()).toEqual("I'm a decorator function");
+            });
+
+            it('should verify that moment adds hours correctly', function() {
+                var aDate = moment("2016-04-01 13:00:00+02:00");
+                aDate.add(2.5, "h");
+                expect(aDate.hours()).toEqual(15);
+                expect(aDate.minutes()).toEqual(30);
             });
 
         });

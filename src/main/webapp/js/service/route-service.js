@@ -13,10 +13,6 @@
             var selectedRoutes = [];
 
             return {
-                getActive: function (mmsi, success, error) {
-                    var url = embryo.baseUrl + 'rest/route/active/' + mmsi;
-                    $http.get(url).success(success);
-                },
                 getActiveMeta: function (mmsi, success, error) {
                     var url = embryo.baseUrl + 'rest/route/active/meta/' + mmsi;
                     $http.get(url).success(success);

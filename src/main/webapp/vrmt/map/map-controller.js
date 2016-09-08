@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("MapController", MapController);
 
-    MapController.$inject = ['$scope', 'RouteLocationService', 'NotifyService', 'Events'];
+    MapController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'Events'];
 
-    function MapController($scope, RouteLocationService, NotifyService, Events) {
+    function MapController($scope, RiskAssessmentService, NotifyService, Events) {
         var vm = this;
 
         vm.hide = true;
@@ -50,7 +50,7 @@
             choose: function () {
                 vm.close();
                 var locationToDelete = vm.chosenRouteLocation;
-                RouteLocationService.deleteRouteLocation(locationToDelete)
+                RiskAssessmentService.deleteRouteLocation(locationToDelete)
                     .then(function () {
                         NotifyService.notify(Events.RouteLocationDeleted, locationToDelete);
                     }, function (errorReason) {

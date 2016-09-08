@@ -19,7 +19,7 @@
         var a = 6378137;
         var b = 6356752.3142;
         var f = 1 / 298.257223563; // WGS-84 ellipsoid
-        var L = toRadians(longitude2 - longitude1);
+        var L = embryo.Math.toRadians(longitude2 - longitude1);
         var U1 = Math.atan((1 - f) * Math.tan(embryo.Math.toRadians(latitude1)));
         var U2 = Math.atan((1 - f) * Math.tan(embryo.Math.toRadians(latitude2)));
         var sinU1 = Math.sin(U1), cosU1 = Math.cos(U1);

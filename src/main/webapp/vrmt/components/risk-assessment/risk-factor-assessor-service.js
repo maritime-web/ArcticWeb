@@ -42,19 +42,19 @@
         /**
          * Determine the month of year when the vessel arrives at the given location and return the
          * matching risk factor option or a default option if none matches.
-         * @param assessmentLocation
+         * @param routeLocation
          * @param riskFactor
          * @returns {{name: string, index: number}}
          */
-        function chooseTypeOfSeason(assessmentLocation, riskFactor) {
-            var monthNumber = getArrivalMonthAtLocation(assessmentLocation);
+        function chooseTypeOfSeason(routeLocation, riskFactor) {
+            var monthNumber = getArrivalMonthAtLocation();
             var res = riskFactor.scoreOptions.find(function (scoreOption) {
                 return monthToNumber(scoreOption.name) == monthNumber;
             });
             return res || defaultOption();
 
-            function getArrivalMonthAtLocation(location) {
-                return route.getTimeAtPosition(location.getLatLon()).month();
+            function getArrivalMonthAtLocation() {
+                return moment(routeLocation.eta).month();
             }
 
             function monthToNumber(monthString) {

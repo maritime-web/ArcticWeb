@@ -15,6 +15,10 @@
         this.discardAssessment = discardAssessment;
         this.createLocationAssessment = createLocationAssessment;
         this.deleteLocation = deleteLocation;
+        this.updateCurrentRoute = updateCurrentRoute;
+        this.createRouteLocation = createRouteLocation;
+        this.deleteRouteLocation = deleteRouteLocation;
+        this.getRouteLocations = getRouteLocations;
 
         /**
          * Returns the assessment currently being created
@@ -111,45 +115,6 @@
         }
 
         /**
-         * Finds the latest assessments for the given route. If an assessment location doesn't have an associated
-         * assessment yet an empty will be provided.
-         *
-         * @param routeId
-         * @returns {deferred.promise|{then, catch, finally}}
-         */
-        function getLatestRiskAssessmentsForRoute(routeId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
-                .then(getLatestRiskAssessmentsForRoute_);
-
-            function getLatestRiskAssessmentsForRoute_(assessmentData) {
-                return assessmentData
-                    .map(toRiskAssessment)
-                    .filter(function (assessment) {
-                        return assessment && assessment != null;
-                    });
-
-                function toRiskAssessment(entry) {
-                    var hasAssessments = entry.assessments.length > 0;
-                    return hasAssessments ? getMostRecent(entry.assessments) : new LocationAssessment({
-                        routeLocation: entry.location,
-                        scores: [],
-                        id: 1
-                    });
-                }
-
-                function getMostRecent(assessments) {
-                    return assessments.sort(compare)[0];
-
-                    function compare(assessmentOne, assessmentTwo) {
-                        var timeOne = assessmentOne.time;
-                        var timeTwo = assessmentTwo.time;
-                        return -timeOne.localeCompare(timeTwo);
-                    }
-                }
-            }
-        }
-
-        /**
          * Creates a new Risk assessment for the given route and location.
          *
          * @param routeId
@@ -198,5 +163,85 @@
                     }
                 });
         }
+
+        function updateCurrentRoute(route) {
+            return RiskAssessmentDataService.getAssessmentData(route.id)
+                .then(function (data) {
+                    if (data.currentRoute) {
+                        console.log("currentRoute found");
+                        var currentRoute = new Route(data.currentRoute);
+                        var newRouteVersion = new Route(route);
+                        var isChanged = !currentRoute.equals(newRouteVersion);
+
+                        if (isChanged) {
+                            console.log("Route has changed!!!");
+                            data.currentAssessment = null;
+                            data.routeLocations = data.routeLocations.filter(function (loc) {
+                                return newRouteVersion.isOnRoute(loc);
+                            });
+
+                            data.routeLocations.forEach(function (loc) {
+                                loc.eta = newRouteVersion.getTimeAtPosition(loc.asPosition());
+                                console.log(loc.eta.format());
+                            })
+                        }
+                    }
+
+                    data.currentRoute = route;
+
+                    return saveAssessmentData(route.id, data);
+                });
+        }
+
+        function createRouteLocation(route, locationAttributes) {
+            var routeId = route.id;
+
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (data) {
+                    try {
+                        var routeLocation = new RouteLocation(locationAttributes);
+                        routeLocation.id = data.routeLocationSequence++;
+                        routeLocation.routeId = routeId;
+                        routeLocation.eta = new Route(route).getTimeAtPosition(routeLocation.asPosition());
+                        data.routeLocations.push(routeLocation);
+                        return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                            .then(function () {
+                                return $q.when(routeLocation);
+                            });
+                    } catch (e) {
+                        return $q.reject(e);
+                    }
+                });
+        }
+
+        function deleteRouteLocation(routeLocationToDelete) {
+            var routeId = routeLocationToDelete.routeId;
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (data) {
+                    try {
+                        var routeLocations = data.routeLocations;
+                        var index = routeLocations.findIndex(function (entry) {
+                            return entry.id === routeLocationToDelete.id;
+                        });
+
+                        var deletedRouteLocationArray = routeLocations.splice(index, 1);
+
+                        RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                            .then(function () {
+                                return $q.when(deletedRouteLocationArray);
+                            });
+                    } catch (e) {
+                        return $q.reject(e);
+                    }
+                });
+        }
+
+        function getRouteLocations(routeId) {
+            return RiskAssessmentDataService.getAssessmentData(routeId)
+                .then(function (data) {
+                    return data.routeLocations;
+                })
+        }
+
     }
 })();

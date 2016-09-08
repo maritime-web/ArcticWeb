@@ -5,7 +5,7 @@ describe('RiskFactorAssessorService', function () {
     var cut;
 
     //Test data
-    var route, assessmentLocation, riskFactor;
+    var route, routeLocation, riskFactor;
 
     //angular stuf
     var $rootScope;
@@ -24,7 +24,7 @@ describe('RiskFactorAssessorService', function () {
             riskFactor.id = 1;
             var result = null;
 
-            cut.chooseOption(assessmentLocation, riskFactor).then(function (res) {
+            cut.chooseOption(routeLocation, riskFactor).then(function (res) {
                 result = res;
             });
 
@@ -37,9 +37,10 @@ describe('RiskFactorAssessorService', function () {
         it("should return option with name May and index 300 for risk factor 2. Time of the season", function () {
             riskFactor.id = 2;
             riskFactor.scoreOptions.push({name: 'May', index: 300});
+            routeLocation.eta = moment().year(2016).month(4).date(5);
             var result = null;
 
-            cut.chooseOption(assessmentLocation, riskFactor).then(function (res) {
+            cut.chooseOption(routeLocation, riskFactor).then(function (res) {
                 result = res;
             });
 
@@ -63,7 +64,7 @@ describe('RiskFactorAssessorService', function () {
                 {latitude: -22, longitude: 75, eta: new Date(2016, 4, 1, 13)}
                 ]
         };
-        assessmentLocation = new RouteLocation({
+        routeLocation = new RouteLocation({
             routeId: "1q1q1q1q",
             id: "1",
             name: "location",

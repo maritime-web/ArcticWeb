@@ -25,9 +25,9 @@
         })
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'RouteLocationService', 'NotifyService', 'Events', '$timeout'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, RouteLocationService, NotifyService, Events, $timeout) {
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout) {
         var vm = this;
         $scope.mmsi = embryo.authentication.shipMmsi;
         vm.route = {};
@@ -39,7 +39,15 @@
         function loadVessel() {
             VesselService.details($scope.mmsi, function (v) {
                 NotifyService.notify(Events.VesselLoaded, v);
+                console.log(v);
+                loadRoute(v.additionalInformation.routeId);
             });
+        }
+
+        function loadRoute(routeId) {
+            RouteService.getRoute(routeId, function (r) {
+                NotifyService.notify(Events.RouteChanged, r);
+            })
         }
 
         function loadCurrentAssessment() {
@@ -61,7 +69,7 @@
         }
 
         function loadRouteLocations() {
-            RouteLocationService.getRouteLocations($scope.route.id)
+            RiskAssessmentService.getRouteLocations($scope.route.id)
                 .then(function (routeLocations) {
                     NotifyService.notify(Events.RouteLocationsLoaded, routeLocations);
                     if (routeLocations.length > 0) {
@@ -76,7 +84,10 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChanged);
         function onRouteChanged(event, newRoute) {
             $scope.route = newRoute;
-            loadCurrentAssessment();
+            RiskAssessmentService.updateCurrentRoute(newRoute)
+                .then(function () {
+                    loadCurrentAssessment();
+                });
         }
 
         NotifyService.subscribe($scope, Events.NewAssessmentStarted, function () {
@@ -121,9 +132,6 @@
         $timeout(function () {
             $scope.$apply(function () {
                 loadVessel();
-                RouteService.getActive($scope.mmsi, function (r) {
-                    NotifyService.notify(Events.RouteChanged, r);
-                });
             });
         });
 

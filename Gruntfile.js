@@ -31,6 +31,9 @@ var libFiles = [
 var testUtilityFiles = [
     {src: ['src/test/**/utilities/*.js']}
 ];
+var testDataFiles = [
+    {src: ['src/test/**/testData/*.js']}
+];
 var polyfills = [
     {src: ['src/**/js/ext/cdn.cloudflare/core-js/*.js']}
 ];
@@ -390,7 +393,7 @@ module.exports = function (grunt) {
                 singleRun: false,
                 autoWatch: true,
                 keepalive: true,
-                files: libFiles.concat(testUtilityFiles).concat(polyfills).concat(vrmtFiles)
+                files: libFiles.concat(testUtilityFiles).concat(polyfills).concat(vrmtFiles).concat(testDataFiles)
             }
         }
     });

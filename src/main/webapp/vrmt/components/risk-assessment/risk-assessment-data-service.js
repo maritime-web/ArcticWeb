@@ -28,6 +28,16 @@
                             currentAssessment: null,
                             assessments: []
                         };
+                        var data = {
+                            routeLocationSequence: 1,
+                            routeLocations: [],
+                            currentRoute: null,
+                            currentAssessment: null,
+                            assessmentReports: [
+                                {route: null, assessments: []},
+                                {route: null, assessments: []}
+                            ]
+                        };
                     }
                     deferred.resolve(assessmentData);
                 } catch (e) {

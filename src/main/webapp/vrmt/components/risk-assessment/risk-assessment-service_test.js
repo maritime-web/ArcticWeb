@@ -106,53 +106,6 @@ describe('RiskAssessmentService', function () {
         dataService = RiskAssessmentDataService;
     }));
 
-/*
-    describe('getLatestRiskAssessmentsForRoute', function () {
-
-        it('should call RiskAssessmentDataService with routeId', function () {
-            var routeId = "44ce72c0-3d44-411f-a19f-c412b10cda22";
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving([]));
-
-            cut.getLatestRiskAssessmentsForRoute(routeId);
-
-            expect(dataService.getAssessmentData).toHaveBeenCalledWith(routeId);
-        });
-
-        it('should return empty array when no locations exist for the given route', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving([]));
-
-            cut.getLatestRiskAssessmentsForRoute(routeId).then(storeLatestAssessments);
-
-            $rootScope.$apply();
-
-            expect(latestAssessments).toEqual([]);
-        });
-
-        it('should return an assessment with no scores for unassessed locations', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(emptyData));
-
-            cut.getLatestRiskAssessmentsForRoute(routeId).then(storeLatestAssessments);
-
-            $rootScope.$apply();
-
-            expect(latestAssessments.length).toEqual(1);
-            expect(latestAssessments[0] instanceof LocationAssessment).toBe(true);
-            expect(latestAssessments[0].scores).toEqual([]);
-            expect(latestAssessments[0].location).toEqual(location);
-        });
-
-        it('should return the assessment with the most recent timestamp for each location', function () {
-            spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
-
-            cut.getLatestRiskAssessmentsForRoute(routeId).then(storeLatestAssessments);
-
-            $rootScope.$apply();
-
-            expect(latestAssessments[0]).toBe(assessmentOne);
-        });
-    });
-*/
-
     describe('createLocationAssessment', function () {
         it('should call RiskAssessmentDataService.storeAssessmentData with an updated current assessment', function () {
             spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
@@ -232,4 +185,44 @@ describe('RiskAssessmentService', function () {
         });
 
     });
+
+    describe('createRouteLocation', function () {
+        it('should return the new location', function () {
+            var theNewlocation = undefined;
+            dataService.storeAssessmentData = getFunctionResolving();
+            dataService.getAssessmentData = getFunctionResolving({
+                routeLocationSequence: 1,
+                routeLocations: [],
+                currentAssessment: null,
+                assessments: []
+            });
+
+            var route = createTestRoute();
+            cut.createRouteLocation(route, {name: "a", lat: -21, lon: 73})
+                .then(function (data) {
+                    theNewlocation = data;
+                })
+                .catch(function (e) {
+                    throw e;
+                });
+
+            $rootScope.$apply();
+
+            expect(theNewlocation).toBeDefined();
+        });
+
+    });
+
+    function createTestRoute() {
+        return {
+            id: "nice route id",
+            etaDep: new Date(2016, 3, 30),
+            wps: [
+                {latitude: -20, longitude: 70, speed: 4, eta: new Date(2016, 3, 30)},
+                {latitude: -21, longitude: 73, speed: 4, eta: new Date(2016, 3, 31, 23, 51)},
+                {latitude: -22, longitude: 75, eta: new Date(2016, 4, 1, 13)}
+            ]
+        };
+    }
+
 });
