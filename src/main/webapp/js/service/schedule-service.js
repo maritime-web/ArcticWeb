@@ -3,9 +3,9 @@
 
     var scheduleUrl = embryo.baseUrl + 'rest/schedule/';
 
-    var scheduleServiceModule = angular.module('embryo.scheduleService', [ 'embryo.storageServices' ]);
+    var scheduleServiceModule = angular.module('embryo.scheduleService', [ 'embryo.storageServices', 'embryo.routeService' ]);
 
-    scheduleServiceModule.factory('ScheduleService', function($http, SessionStorageService) {
+    scheduleServiceModule.factory('ScheduleService', function($http, SessionStorageService, RouteService) {
         var currentSchedule = 'schedule_current';
         var activeVoyage = 'voyage_active';
 
@@ -91,8 +91,16 @@
                 });
             },
             save : function(schedule, callback, error) {
+                var routeIds = schedule.voyages
+                    .filter(function (voyage) { return voyage.route ? true : false;})
+                    .map(function (voyage) { return voyage.route.id; });
+                for (var index in schedule.voyages) {
+                    delete schedule.voyages[index].route;
+                }
+
                 $http.put(scheduleUrl + 'save', schedule).success(function() {
                     SessionStorageService.removeItem(currentSchedule);
+                    RouteService.clearFromCache(routeIds);
                     callback();
                 }).error(function(data, status, headers, config) {
                     error(embryo.ErrorService.extractError(data, status, config));

@@ -101,6 +101,11 @@
                 },
                 getSelectedRoutes: function () {
                     return selectedRoutes;
+                },
+                clearFromCache: function(routeIds) {
+                    routeIds.forEach(function (routeId) {
+                        SessionStorageService.removeItem(routeKey(routeId));
+                    });
                 }
             };
         });

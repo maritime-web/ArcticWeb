@@ -208,10 +208,6 @@
                         toDelete : $scope.idsOfVoyages2Delete
                     };
 
-                    for (index in scheduleRequest.voyages) {
-                        delete scheduleRequest.voyages[index].route;
-                    }
-
                     $scope.resetMessages();
                     ScheduleService.save(scheduleRequest, function() {
                         $scope.message = "Schedule saved successfully";

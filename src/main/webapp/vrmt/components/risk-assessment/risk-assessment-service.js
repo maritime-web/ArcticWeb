@@ -181,7 +181,7 @@
                             });
 
                             data.routeLocations.forEach(function (loc) {
-                                loc.eta = newRouteVersion.getTimeAtPosition(loc.asPosition());
+                                loc.eta = newRouteVersion.getTimeAtPosition(new RouteLocation(loc).asPosition());
                                 console.log(loc.eta.format());
                             })
                         }
