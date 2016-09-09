@@ -18,6 +18,9 @@
         function link(scope, element, attrs, ctrl) {
             NotifyService.subscribe(scope, Events.RouteChanged, addOrReplaceRoute);
             var routeLayer;
+            var pointerInteraction;
+            var snapInteraction;
+
 
             var source = new ol.source.Vector();
 
@@ -68,26 +71,22 @@
 
                 // Clean up when the scope is destroyed
                 scope.$on('$destroy', function () {
-                    if (angular.isDefined(routeLayer)) {
-                        map.removeLayer(routeLayer);
-                    }
-                    if (onMoveKey) {
-                        map.unByKey(onMoveKey);
-                    }
-                    if (onclickKey) {
-                        map.unByKey(onclickKey);
-                    }
+                    onDestroy(map);
                 });
 
-                var onMoveKey = map.on('pointermove', function (e) {
-                    var pixel = map.getEventPixel(e.originalEvent);
-                    var hit = map.hasFeatureAtPixel(pixel);
+                addPointerInteraction(map);
 
-                    map.getTarget().style.cursor = hit ? 'pointer' : '';
-                });
+                //snap after other interactions in order for its map browser event handlers
+                // to be fired first. It's handlers are responsible of doing the snapping.
+                addSnapInteraction(map);
+                routeLayer.setVisible(true);
+                map.addLayer(routeLayer);
+            });
 
-                var onclickKey = map.on('singleclick', function (e) {
-                    var pixel = map.getEventPixel(e.originalEvent);
+            function addPointerInteraction(map) {
+                pointerInteraction = new ol.interaction.Pointer({handleEvent: function (e) {
+
+                    var pixel =  e.pixel;
                     var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
                         return layerCandidate === routeLayer;
                     });
@@ -96,8 +95,8 @@
                         return layerCandidate !== routeLayer;
                     });
 
-                    if (hitThis && !hitOther) {
-                        var coord = ol.proj.toLonLat(map.getEventCoordinate(e.originalEvent));
+                    if (hitThis && !hitOther && e.type == "singleclick") {
+                        var coord = ol.proj.toLonLat(e.coordinate);
                         NotifyService.notify(Events.AddRouteLocation, {
                             route: {
                                 lon: coord[0],
@@ -105,14 +104,31 @@
                             }
                         });
                     }
+
+                    map.getTarget().style.cursor = hitThis ? 'pointer' : '';
+
                     scope.$apply();
+                    return true;
+                }});
+                map.addInteraction(pointerInteraction);
+            }
 
-                });
+            function addSnapInteraction(map) {
+                snapInteraction = new ol.interaction.Snap({source: source});
+                map.addInteraction(snapInteraction);
+            }
 
-                routeLayer.setVisible(true);
-
-                map.addLayer(routeLayer);
-            })
+            function onDestroy(map) {
+                if (angular.isDefined(routeLayer)) {
+                    map.removeLayer(routeLayer);
+                }
+                if (angular.isDefined(snapInteraction)) {
+                    map.removeInteraction(snapInteraction);
+                }
+                if (angular.isDefined(pointerInteraction)) {
+                    map.removeInteraction(pointerInteraction);
+                }
+            }
         }
     }
 })();
