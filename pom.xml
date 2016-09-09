@@ -29,7 +29,6 @@
 		<embryo-user.jar>user-${project.parent.version}.jar</embryo-user.jar>
 		<embryo-reporting.jar>reporting-${project.parent.version}.jar</embryo-reporting.jar>
 		<embryo-tiles.jar>map-tiles-${project.parent.version}.jar</embryo-tiles.jar>
-
 	</properties>
 
 	<dependencyManagement>

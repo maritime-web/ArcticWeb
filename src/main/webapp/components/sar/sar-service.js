@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.pouchdb.services']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route.model', 'embryo.sar.TimeElapsed', 'embryo.sar.SearchCircle']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {
@@ -23,26 +23,6 @@
         }
         return parseInt(value, 10);
     }
-
-    module.factory('TimeElapsed', function () {
-        function TimeElapsed(data) {
-            angular.extend(this, data);
-        }
-        TimeElapsed.validate = function (startPositionTs, commenceSearchStart) {
-            assertValue(startPositionTs, "startPositionTs");
-            assertValue(commenceSearchStart, "commenceSearchStart");
-        }
-        TimeElapsed.build = function(startPositionTs, commenceSearchStart){
-            TimeElapsed.validate(startPositionTs, commenceSearchStart);
-            var difference = (commenceSearchStart - startPositionTs) / 60 / 60 / 1000;
-            var data = {};
-            data.timeElapsed = difference;
-            data.hoursElapsed = Math.floor(difference);
-            data.minutesElapsed = Math.round((difference - data.hoursElapsed) * 60);
-            return new TimeElapsed(data);
-        }
-        return TimeElapsed;
-    });
 
     module.factory('DriftVector', [function () {
         function DriftVector(data) {
@@ -258,47 +238,6 @@
         }
 
         return BackTrackSurfaceDrifts;
-    }]);
-
-    module.factory('SearchCircle', ["Position", "Circle", function (Position, Circle) {
-        function SearchCircle(data) {
-            angular.extend(this, data);
-        }
-
-        SearchCircle.prototype.toPolygonOfPositions = function(numberOfVertices){
-            return Circle.create(Position.create(this.datum), this.radius).toPolygon(numberOfVertices)
-        }
-
-        SearchCircle.prototype.toGeoCircle = function(){
-            return Circle.create(Position.create(this.datum), this.radius);
-        }
-
-        SearchCircle.validate = function(xError, yError, safetyFactor, rdvDistance, datum) {
-            assertValue(xError, "xError");
-            assertValue(yError, "yError");
-            assertValue(safetyFactor, "safetyFactor");
-            assertValue(datum, "datum");
-            assertValue(rdvDistance, "rdvDistance");
-        }
-        SearchCircle.calculateRadius = function(xError, yError, rdvDistance, safetyFactor) {
-            return ((xError + yError) + 0.3 * rdvDistance) * safetyFactor;
-        }
-        SearchCircle.build = function(xError, yError, safetyFactor, rdvDistance, datum){
-            SearchCircle.validate(xError, yError, safetyFactor, rdvDistance, datum);
-            var radius = SearchCircle.calculateRadius(xError, yError, rdvDistance, safetyFactor);
-            return new SearchCircle({
-                radius : radius,
-                datum : datum.toDegreesAndDecimalMinutes()
-            });
-        }
-        SearchCircle.create = function(radius, datum){
-            return new SearchCircle({
-                radius : radius,
-                datum : datum.toDegreesAndDecimalMinutes()
-            });
-        }
-
-        return SearchCircle;
     }]);
 
     module.factory('SearchArea', [function () {
@@ -676,6 +615,7 @@
         return BackTrackOutput;
     }]);
 
+
     // USED IN sar-edit.js and sar-controller.js
     module.factory('SarOperationFactory', ['RapidResponseOutput', "DatumPointOutput", "DatumLineOutput", "BackTrackOutput",
         function (RapidResponseOutput, DatumPointOutput, DatumLineOutput, BackTrackOutput) {
@@ -760,7 +700,12 @@
         var val1 = (-5.0 / 8.0) * Math.log(1 - POD / 100);
         return Math.pow(val1, -5.0 / 7.0);
     }
-    EffortAllocationCalculator.prototype.calculateTrackSpacing = function (wc, C) {
+    EffortAllocationCalculator.prototype.calculateTrackSpacing = function (input) {
+        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
+        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
+        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
+        var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
+        var C = this.calculateCoverageFactor(input.pod)
         return wc * C;
     }
     EffortAllocationCalculator.prototype.calculateSearchEndurance = function (onSceneTime) {
@@ -812,12 +757,7 @@
     };
 
     EffortAllocationCalculator.prototype.calculate = function (input, sar) {
-        var wu = this.SarTableFactory.getSweepWidthTable(input.type).lookup(input.target, input.visibility);
-        var fw = this.lookupWeatherCorrectionFactor(input.wind, input.waterElevation, input.target);
-        var fv = this.lookupVelocityCorrection(input.type, input.target, input.speed);
-        var wc = this.calculateCorrectedSweepWidth(wu, fw, fv, input.fatigue);
-        var C = this.calculateCoverageFactor(input.pod)
-        var S = this.calculateTrackSpacing(wc, C);
+        var S = this.calculateTrackSpacing(input);
         var T = this.calculateSearchEndurance(input.time);
         var zoneAreaSize = this.calculateZoneAreaSize(input.speed, S, T);
         var datum = this.getDatum(sar);
@@ -1143,11 +1083,9 @@
         var distAB = posA.rhumbLineDistanceTo(posB);
         var distBC = posB.rhumbLineDistanceTo(posC);
 
-
         if(embryo.Math.round10(distAB, 2) != embryo.Math.round10(distBC, 2)){
 
         }
-
 
         var bearingAB = posA.rhumbLineBearingTo(posB);
         var bearingBC = posB.rhumbLineBearingTo(posC);
@@ -1253,6 +1191,235 @@
     }
 
 
+    module.factory('TrackLineReturn',['Position', 'Route', function (Position, Route) {
+
+        function TrackLineReturn(){};
+
+        TrackLineReturn.prototype = new SearchPatternCalculator();
+
+        TrackLineReturn.prototype.createWaypoints = function (zone, sp, routePoints) {
+            var distanceToTravel = zone.time * zone.speed;
+
+            var routeLengthToTravel = (distanceToTravel - zone.S)/2
+
+            var wps = []
+            for(var i in routePoints){
+                wps.push({
+                    longitude : routePoints[i].lon,
+                    latitude : routePoints[i].lat
+                })
+            }
+
+            var route = Route.build({
+                waypoints : wps
+            });
+
+            var routePointsToTravel = []
+            var startPos = sp.dragPoint ? Position.create(sp.dragPoint) : null;
+
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var wp1 = Position.create(route.waypoints[i]);
+                var wp2 = Position.create(route.waypoints[i+1]);
+
+                var bearing = wp1.bearingTo(wp2, embryo.geo.Heading.RL);
+                var distance =  wp1.distanceTo(wp2, embryo.geo.Heading.RL);
+
+                if(startPos) {
+                    var distanceToWp1 = startPos.distanceTo(wp1, embryo.geo.Heading.RL);
+                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL)
+                    if (Math.abs(distanceToWp1 + distanceToWp2 - distance) < 0.1) {
+                        // on route leg
+
+                        wp1 = startPos;
+                        distance = distanceToWp2;
+                        startPos = null;
+                    }
+                }
+
+                if(!startPos){
+                    if (distance >= routeLengthToTravel) {
+                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                    }
+
+                    if(routePointsToTravel.length === 0 && !startPos){
+                        routePointsToTravel.push(wp1);
+                    }
+                    routePointsToTravel.push(wp2);
+
+                    routeLengthToTravel -= distance;
+                }
+            }
+
+            if(sp.direction === embryo.sar.effort.TrackLineDirection.OppositeRoute){
+                routePointsToTravel.reverse();
+            }
+
+            // TODO if great circle we need to include all points between waypoints
+            var turnPointsOut = []
+            var turnPointsReturn = []
+
+            var outBearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90
+            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90
+
+            for(var i = 0; i < routePointsToTravel.length - 1; i++){
+                var p1 = routePointsToTravel[i]
+                var p2 = routePointsToTravel[i + 1]
+
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
+                turnPointsOut.push(p1.transformPosition(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p1.transformPosition(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p2.transformPosition(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p2.transformPosition(bearing + returnBearing, zone.S/2))
+            }
+
+            var turnPoints = turnPointsOut.concat(turnPointsReturn.reverse());
+
+            var wayPoints = [];
+            for(var i in turnPoints){
+                wayPoints.push(this.createWaypoint(i, turnPoints[i], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
+            }
+            return wayPoints;
+        }
+
+
+        TrackLineReturn.prototype.calculate = function (zone, sp, sar) {
+            var wayPoints = this.createWaypoints(zone, sp, sar.input.planedRoute.points);
+            var searchPattern = {
+                _id: "sarSp-" + Date.now(),
+                sarId: zone.sarId,
+                effId: zone._id,
+                type: embryo.sar.effort.SearchPattern.TrackLineReturn,
+                name: zone.name,
+                dragPoint: sp.dragPoint ? sp.dragPoint : Position.create(sar.input.planedRoute.points[0]),
+                wps: wayPoints,
+                direction : sp.direction,
+                turn : sp.turn
+            }
+            searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+            return searchPattern;
+        }
+
+        return new TrackLineReturn();
+    }]);
+
+    module.factory('TrackLineNonReturn',['Position', 'Route', function (Position, Route) {
+
+        function TrackLineNonReturn(){};
+
+        TrackLineNonReturn.prototype = new SearchPatternCalculator();
+
+        TrackLineNonReturn.prototype.createWaypoints = function (zone, sp, routePoints, fromStartPos) {
+            var distanceToTravel = zone.time * zone.speed;
+            var routeLengthToTravel = (distanceToTravel - 3 * zone.S)/3
+
+            var wps = []
+            for(var i in routePoints){
+                wps.push({
+                    longitude : routePoints[i].lon,
+                    latitude : routePoints[i].lat
+                })
+            }
+
+            var route = Route.build({
+                waypoints : wps
+            });
+
+            var routePointsToTravel = []
+            var startPos = sp.dragPoint ? Position.create(sp.dragPoint) : null;
+
+            for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
+                var wp1 = Position.create(route.waypoints[i]);
+                var wp2 = Position.create(route.waypoints[i+1]);
+
+                var bearing = wp1.bearingTo(wp2, embryo.geo.Heading.RL);
+                var distance =  wp1.distanceTo(wp2, embryo.geo.Heading.RL);
+
+                if(startPos) {
+                    var distanceToWp1 = startPos.distanceTo(wp1, embryo.geo.Heading.RL);
+                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL)
+                    if (Math.abs(distanceToWp1 + distanceToWp2 - distance) < 0.1) {
+                        // on route leg
+
+                        wp1 = startPos;
+                        distance = distanceToWp2;
+                        startPos = null;
+                    }
+                }
+
+                if(!startPos){
+                    if (distance >= routeLengthToTravel) {
+                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                    }
+
+                    if(routePointsToTravel.length === 0 && !startPos){
+                        routePointsToTravel.push(wp1);
+                    }
+                    routePointsToTravel.push(wp2);
+
+                    routeLengthToTravel -= distance;
+                }
+            }
+
+            if(sp.direction === embryo.sar.effort.TrackLineDirection.OppositeRoute){
+                routePointsToTravel.reverse();
+            }
+
+            // TODO if great circle we need to include all points between waypoints
+            var leg1Out = [];
+            var leg2Return = [];
+            var leg3Out =[];
+
+            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90
+            var out3Bearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90
+
+            for(var i = 0; i < routePointsToTravel.length - 1; i++){
+                var p1 = routePointsToTravel[i];
+                var p2 = routePointsToTravel[i+1];
+
+                var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
+
+                leg1Out.push(p1);
+                leg2Return.push(p1.transformPosition(bearing + returnBearing, zone.S))
+                leg3Out.push(p1.transformPosition(bearing + out3Bearing, zone.S))
+
+                leg1Out.push(p2);
+                leg2Return.push(p2.transformPosition(bearing + returnBearing, zone.S))
+                leg3Out.push(p2.transformPosition(bearing + out3Bearing, zone.S))
+            }
+
+            var turnPoints = leg1Out.concat(leg2Return.reverse()).concat(leg3Out);
+
+            var wayPoints = [];
+            for(var i in turnPoints){
+                wayPoints.push(this.createWaypoint(i, turnPoints[i], zone.speed, embryo.geo.Heading.RL, zone.S));
+            }
+            return wayPoints;
+        }
+
+
+        TrackLineNonReturn.prototype.calculate = function (zone, sp, sar) {
+            var wayPoints = this.createWaypoints(zone, sp, sar.input.planedRoute.points);
+
+            var searchPattern = {
+                _id: "sarSp-" + Date.now(),
+                sarId: zone.sarId,
+                effId: zone._id,
+                type: embryo.sar.effort.SearchPattern.TrackLineNonReturn,
+                name: zone.name,
+                dragPoint: sp.dragPoint ? sp.dragPoint : wayPoints[0],
+                wps: wayPoints,
+                direction : sp.direction,
+                turn : sp.turn
+            }
+            searchPattern['@type'] = embryo.sar.Type.SearchPattern;
+
+            return searchPattern;
+        }
+
+        return new TrackLineNonReturn();
+    }]);
+
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
     }
@@ -1339,6 +1506,14 @@
                 area.D = result.area.D.toDegreesAndDecimalMinutes();
                 result.area = area;
                 return result;
+            },
+            calculateTrackSpacing: function (input) {
+                var S = new EffortAllocationCalculator(SarTableFactory).calculateTrackSpacing(input);
+                var allocation = clone(input);
+                allocation.S = S;
+                // FIXME can not rely on local computer time
+                allocation.modified = Date.now();
+                return allocation;
             },
             findSarIndex: function (sars, id) {
                 for (var index in sars) {
@@ -1506,42 +1681,5 @@
 
         return service;
     }]);
-
-    module.factory('LivePouch', ['PouchDBFactory', function (PouchDBFactory) {
-        var dbName = 'embryo-live';
-        var liveDb = PouchDBFactory.createLocalPouch(dbName);
-        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
-
-        var sync = liveDb.sync(remoteDb, {
-            live: true,
-            retry: true
-        })
-
-        return liveDb;
-    }]);
-
-    module.factory('UserPouch', ['PouchDBFactory','$log', function (PouchDBFactory, $log) {
-        // make sure this works in development environment as well as other environments
-        var dbName = 'embryo-user';
-        var userDb = PouchDBFactory.createLocalPouch(dbName);
-        var remoteDb = PouchDBFactory.createRemotePouch(dbName);
-
-         var handler = userDb.replicate.from(remoteDb, {
-            retry: true
-         })
-
-         // TODO setup scheduled replication
-         handler.on("complete", function (){
-            $log.info("Done replicating users");
-         })
-         handler.on("error", function (error){
-            $log.info(error);
-         })
-
-
-        return userDb;
-    }]);
-
-
 
 })();

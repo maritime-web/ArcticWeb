@@ -1,5 +1,8 @@
 describe('embryo.sar.service', function () {
     beforeEach(function () {
+        module('embryo.sar.type')
+        module('embryo.sar.livePouch')
+        module('embryo.sar.model');
         module('embryo.sar.service');
     });
 
@@ -18,43 +21,7 @@ describe('embryo.sar.service', function () {
         expect(err.message.indexOf(fieldName) >= 0).toBe(true);
     }
 
-    describe('TimeElapsed', function () {
-        it('TimeElapsed.build with times one hour apart', inject(function (TimeElapsed) {
-            var now = Date.now();
-            var timeElapsed = TimeElapsed.build(now - 60 * 60 * 1000, now);
-
-            expect(timeElapsed).toBeDefined();
-            expect(timeElapsed.timeElapsed).toBe(1);
-            expect(timeElapsed.hoursElapsed).toBe(1);
-            expect(timeElapsed.minutesElapsed).toBe(0);
-        }))
-
-        it('TimeElapsed.build with times one hour 30 minutes apart', inject(function (TimeElapsed) {
-            var now = Date.now();
-            var timeElapsed = TimeElapsed.build(now - 60 * 60 * 1000 * 1.5, now);
-
-            expect(timeElapsed).toBeDefined();
-            expect(timeElapsed.timeElapsed).toBe(1.5);
-            expect(timeElapsed.hoursElapsed).toBe(1);
-            expect(timeElapsed.minutesElapsed).toBe(30);
-        }));
-        it('TimeElapsed.build with from ts but undefined commence search start', inject(function (TimeElapsed) {
-            var now = Date.now();
-
-            var error = execWithTryCatch(function(){
-                TimeElapsed.build(now - 60 * 60 * 1000 * 1.5, undefined);
-            })
-            assertErrorContent(error, "commenceSearchStart")
-        }));
-        it('TimeElapsed.build with undefined first ts, but valid commence search start', inject(function (TimeElapsed) {
-            var now = Date.now();
-            var error = execWithTryCatch(function(){
-                TimeElapsed.build(undefined, now);
-            })
-            assertErrorContent(error, "startPositionTs")
-        }));
-    });/*
-    describe('SurfaceDrift', function () {
+/* describe('SurfaceDrift', function () {
         it('SurfaceDrift.build with one row', inject(function (SurfaceDrift) {
             var now = Date.now();
 
@@ -122,20 +89,7 @@ describe('embryo.sar.service', function () {
             expect(drift.datumMinPositions[0].lat).toBe(drift.datumMin.lat);
         }))
     })*/
-    describe('SearchCircle', function () {
-        it('SearchCircle.build', inject(function (SearchCircle, Position) {
-            var datum = Position.create({
-                lon : "015 12.124W",
-                lat : "12 12.123N"
-            });
-            var circle = SearchCircle.build(1, 0.1, 1, 10, datum);
-
-            expect(circle.datum).toBeDefined();
-            expect(circle.datum.lon).toBe("015 12.124W");
-            expect(circle.datum.lat).toBe("12 12.123N");
-            expect(circle.radius).toBe(4.1);
-        }))
-    })/*
+/*
     describe('DatumPointSearchAreaCalculator - integration test', function () {
         it('DatumPointSearchAreaCalculator.calculate', inject(function (DatumPointSearchAreaCalculator) {
             var min = {

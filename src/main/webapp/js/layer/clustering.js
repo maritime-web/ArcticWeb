@@ -49,10 +49,7 @@ function Grid(size) {
         var toLat = from.lat + this.cellSizeInDegrees;
 
         return { from: from, to: new Position(toLon, toLat)};
-
     }
-
-
 }
 
 function Position(lon, lat) {

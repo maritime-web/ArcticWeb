@@ -1,104 +1,15 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.model', []);
+    var module = angular.module('embryo.sar.model', ['embryo.sar.type', 'embryo.sar.operation', 'embryo.sar.status', 'embryo.sar.sruType', 'embryo.sar.TargetTypes' , 'embryo.sar.EffortStatus', 'embryo.sar.SearchPattern', 'embryo.sar.Side', 'embryo.sar.TrackLineDirection']);
 
-    embryo.sar = {}
-    // A way to create an enumeration like construction in JavaScript
-    embryo.sar.Operation = Object.freeze({
-        "RapidResponse": "rr",
-        "DatumPoint": "dp",
-        "DatumLine": "dl",
-        "BackTrack": "bt"
-    })
+    if(!embryo.sar){
+        embryo.sar = {}
+    }
 
-    embryo.sar.Type = Object.freeze({
-        "SearchArea": "SearchArea",
-        "EffortAllocation": "Allocation",
-        "SearchPattern": "Pattern",
-        "Log": "SarLog"
-    })
-
-    embryo.SARStatus = Object.freeze({
-        STARTED: "S",
-        DRAFT: "D",
-        ENDED: "E"
-    });
-
-    embryo.sar.effort = {};
-    embryo.sar.effort.SruTypes = Object.freeze({
-        MerchantVessel: "MV",
-        Helicopter150 : "HC150",
-        Helicopter300 : "HC300",
-        Helicopter600 : "HC600",
-        FixedWingAircraft150 : "FWA150",
-        FixedWingAircraft300 : "FWA300",
-        FixedWingAircraft600 : "FWA600",
-        SmallerVessel: "SV",
-        Ship: "S"
-    });
-
-    embryo.sar.effort.TargetTypes = Object.freeze({
-        PersonInWater: "PIW",
-        Raft1Person: "R1",
-        Raft4Persons: "R4",
-        Raft6Persons: "R6",
-        Raft8Persons: "R8",
-        Raft10Persons: "R10",
-        Raft15Persons: "R15",
-        Raft20Persons: "R20",
-        Raft25Persons: "R25",
-        Motorboat15: "M15",
-        Motorboat20: "M20",
-        Motorboat33: "M33",
-        Motorboat53: "M53",
-        Motorboat78: "M78",
-        Sailboat15: "SB15",
-        Sailboat20: "SB20",
-        Sailboat25: "SB25",
-        Sailboat26: "SB26",
-        Sailboat30: "SB30",
-        Sailboat39: "SB39",
-        Sailboat40: "SB40",
-        Sailboat49: "SB49",
-        Sailboat50: "SB50",
-        Sailboat69: "SB69",
-        Sailboat70: "SB70",
-        Sailboat83: "SB83",
-        Ship120: "SH120",
-        Ship225: "SH225",
-        Ship330: "SH330",
-        Ship90to150: "SH90",
-        Ship150to300: "SH150",
-        Ship300: "SH300",
-        Boat17: "B17",
-        Boat23: "B23",
-        Boat40: "B40",
-        Boat79: "B79"
-    });
-
-    embryo.sar.effort.Status = Object.freeze({
-        DraftSRU: "DS",
-        DraftZone: "DZ",
-        DraftPattern: "DP",
-        DraftModifiedOnMap: "DM",
-        Active: "A"
-    });
-
-    embryo.sar.effort.SearchPattern = Object.freeze({
-        ParallelSweep: "PS",
-        CreepingLine: "CL",
-        TrackLineReturn: "TLR",
-        TrackLine: "TL",
-        ExpandingSquare: "ES",
-        SectorSearch: "SS"
-    });
-
-    embryo.sar.effort.Side = Object.freeze({
-        Starboard: "S",
-        Port: "P"
-    });
-
+    if(!embryo.sar.effort){
+        embryo.sar.effort = {};
+    }
 
     function SearchObject(id, x, y, divergence, text) {
         this.id = id;

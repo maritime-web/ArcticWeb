@@ -29,8 +29,8 @@ module.exports = function(config) {
                 'src/main/webapp/js/authentication.js', 
                 'src/main/webapp/js/control/control.js',
                 'src/main/webapp/js/service/geo-service.js',
-				'src/main/webapp/js/service/sar-model.js',
-                'src/main/webapp/js/service/sar-service.js',
+				'src/main/webapp/components/sar/sar-model.js',
+                'src/main/webapp/components/sar/sar-service.js',
                 'src/main/webapp/js/layer/embryo-layer.js',
                 'src/main/webapp/js/layer/metoc-layer.js',
                 'src/main/webapp/js/service/greenpos-service.js',
@@ -45,8 +45,14 @@ module.exports = function(config) {
 				'src/main/webapp/js/layer/metoc-layer.js',
                 'src/main/webapp/js/service/*.js',
                 'src/main/webapp/js/control/additional-information.js',
-				'src/test/jsUnit/*Test.js',
-                'src/test/jsUnit/*-test.js' ],
+				'src/main/webapp/components/**/*-constant.js',
+			    'src/main/webapp/components/**/*-model.js',
+			    'src/main/webapp/components/**/*-directive.js',
+				'src/main/webapp/components/**/*-service.js',
+				'src/main/webapp/components/**/*-test.js',
+			    'src/test/jsUnit/*Test.js',
+			    'src/test/jsUnit/*-test.js'],
+
 
 		// list of files to exclude
 		exclude : ['src/main/webapp/js/ext/jquery.fileupload*.js'],

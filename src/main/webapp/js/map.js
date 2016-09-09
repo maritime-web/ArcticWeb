@@ -465,7 +465,10 @@ $(function() {
         }, function(data) {
             layer.draw(data);
         }, function(error, status) {
-            embryo.logger.log("unhandled error", error);
+            if(console && console.error){
+                console.error("unhandled error loading static map")
+                console.error(error);
+            }
         });
     }
 

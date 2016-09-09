@@ -1,93 +1,23 @@
-$(function () {
+(function () {
 
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.views', ['embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.validation.compare', 'embryo.datepicker', 'embryo.position']);
+    var module = angular.module('embryo.sar.views', ['embryo.lteq.directive', 'embryo.gteq.directive', 'embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.datepicker', 'embryo.position', 'embryo.sar.userPouch']);
 
-    module.directive('lteq', function () {
-        return {
-            require: 'ngModel',
-            link: function (scope, element, attr, ngModelController) {
-                var path = attr.lteq.split('.');
-
-                function comparedTo() {
-                    var value = scope;
-                    for (var index in path) {
-                        var v = path[index];
-                        value = value[v];
-                    }
-                    return value
-                }
-
-                function valid(value1, value2) {
-                    return value1 <= value2;
-                }
-
-                //For DOM -> model validation
-                ngModelController.$parsers.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('lteq', valid(value, otherValue));
-                    return value;
-                });
-
-                //For model -> DOM validation
-                ngModelController.$formatters.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('lteq', valid(value, otherValue));
-                    return value;
-                });
-            }
-        };
-    });
-
-    module.directive('gteq', function () {
-        return {
-            require: '^ngModel',
-            link: function (scope, element, attr, ngModelController) {
-                var path = attr.gteq.split('.');
-
-                function comparedTo() {
-                    var value = scope;
-                    for (var index in path) {
-                        var v = path[index];
-                        value = value[v];
-                    }
-                    return value
-                }
-
-                function valid(value1, value2) {
-                    return value1 > value2;
-                }
-
-                //For DOM -> model validation
-                ngModelController.$parsers.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('gteq', valid(value, otherValue));
-                    return value;
-                });
-
-                //For model -> DOM validation
-                ngModelController.$formatters.unshift(function (value) {
-                    var otherValue = comparedTo();
-                    ngModelController.$setValidity('gteq', valid(value, otherValue));
-                    return value;
-                });
-            }
-        };
-    });
-
-    function SarTypeData(text, img) {
+    function SarTypeData(group, text, img) {
+        this.group = group;
         this.text = text;
         this.img = img;
     }
 
     //var sarTypes = embryo.sar.Operation;
     var sarTypeDatas = {}
-    sarTypeDatas[embryo.sar.Operation.RapidResponse] = new SarTypeData("Rapid response", "/img/sar/generic.png");
-    sarTypeDatas[embryo.sar.Operation.DatumPoint] = new SarTypeData("Datum point", "/img/sar/datumpoint.png");
-    sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Datum line", "/img/sar/datumline.png");
-    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Back track", "/img/sar/backtrack.png")
+    sarTypeDatas[embryo.sar.Operation.RapidResponse] = new SarTypeData("Drift", "Rapid response", "/img/sar/generic.png");
+    sarTypeDatas[embryo.sar.Operation.DatumPoint] = new SarTypeData("Drift","Datum point", "/img/sar/datumpoint.png");
+    sarTypeDatas[embryo.sar.Operation.DatumLine] = new SarTypeData("Drift", "Datum line", "/img/sar/datumline.png");
+    sarTypeDatas[embryo.sar.Operation.BackTrack] = new SarTypeData("Drift","Back track", "/img/sar/backtrack.png")
+    sarTypeDatas[embryo.sar.Operation.TrackLine] = new SarTypeData("Search","Track line search", "/img/sar/tracklinesss.png")
 
     module.controller("SAROperationEditController", ['$scope', 'ViewService', 'SarService', '$q', 'LivePouch', 'UserPouch', 'SarOperationFactory', '$timeout', '$log', 'Position',
         function ($scope, ViewService, SarService, $q, LivePouch, UserPouch, SarOperationFactory, $timeout, $log, Position) {
@@ -103,7 +33,7 @@ $(function () {
                 if($scope.backTrackInitializer){
                     $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine];
                 }else{
-                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
+                    $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack, embryo.sar.Operation.TrackLine];
                 }
 
                 $scope.sarOperation = {}
@@ -119,7 +49,7 @@ $(function () {
                 $scope.sarOperation = {}
 
 
-                if ($scope.sar.type != embryo.sar.Operation.DatumLine && $scope.sar.type != embryo.sar.Operation.BackTrack) {
+                if ($scope.sar.type != embryo.sar.Operation.DatumLine && $scope.sar.type != embryo.sar.Operation.BackTrack && $scope.sar.type != embryo.sar.Operation.TrackLine) {
                     if (!$scope.sar.lastKnownPosition) {
                         $scope.sar.lastKnownPosition = {};
                     }
@@ -165,7 +95,7 @@ $(function () {
                     }
                 }
                 $scope.backTrackInitializer = null;
-                $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack];
+                $scope.sarTypeValues = [embryo.sar.Operation.RapidResponse, embryo.sar.Operation.DatumPoint, embryo.sar.Operation.DatumLine, embryo.sar.Operation.BackTrack, embryo.sar.Operation.TrackLine];
                 if (context.sarId) {
                     LivePouch.get(context.sarId).then(function (sarOperation) {
                         $scope.sarOperation = sarOperation;
@@ -238,7 +168,10 @@ $(function () {
         $scope.next = function () {
             if($scope.sar.type === embryo.sar.Operation.BackTrack){
                 $scope.page.name = 'drift';
-            }else{
+            } else if ($scope.sar.type === embryo.sar.Operation.TrackLine){
+                $scope.page.name = 'route';
+                $scope.createTrackline();
+            } else{
                 $scope.page.name = 'sarInputs';
             }
             if($scope.backTrackInitializer){
@@ -321,11 +254,58 @@ $(function () {
             }).then(function(sarOperation){
                 // SarOperation with updated _rev number
                 $scope.page.name = 'route';
+                $scope.page.back = 'drift';
+                $scope.page.next = 'lkp';
                 $scope.sarOperation = sarOperation;
-                if (!$scope.$$phase) {
-                    $scope.$apply(function () {
-                    });
+            });
+        }
+
+        $scope.createTrackline = function () {
+            var sarInput = $scope.sar;
+
+            UserPouch.allDocs({
+                include_docs: true
+            }).then(function (result) {
+                var users = SarService.extractDbDocs(result);
+
+                try {
+                    $scope.alertMessages = [];
+                    // retain PouchDB fields like _id and _rev
+
+                    if(!$scope.sarOperation._id){
+                        $scope.sarOperation = {
+                            _id : "sar-" + Date.now(),
+                            status : embryo.SARStatus.DRAFT,
+                            '@type' : embryo.sar.Type.SearchArea,
+                            output : {}
+                        }
+                        $scope.sarOperation.coordinator = SarService.findAndPrepareCurrentUserAsCoordinator(users);
+                    }
+                    $scope.sarOperation.input =  clone(sarInput);
+
+                    return LivePouch.put($scope.sarOperation)
+                } catch (error) {
+                    $log.error(error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
                 }
+            }).then(function (putResponse) {
+                if(!$scope.sar.planedRoute){
+                    $scope.sar.planedRoute = {}
+                }
+                if(!$scope.sar.planedRoute.points){
+                    $scope.sar.planedRoute.points = [{}];
+                }
+                return LivePouch.get(putResponse.id)
+            }).then(function(sarOperation){
+                // SarOperation with updated _rev number
+                $scope.page.name = 'route';
+                $scope.page.back = 'typeSelection';
+                $scope.page.next = 'tracklineResult';
+                $scope.sarOperation = sarOperation;
             });
         }
 
@@ -518,6 +498,51 @@ $(function () {
         }
     }]);
 
+    module.controller("TracklineResultController", ['$scope', 'ViewService', '$log', 'LivePouch', function ($scope, ViewService, $log, LivePouch) {
+        $scope.effortAllocationProvider = ViewService.viewProviders()['effort'];
+
+        $scope.startTracklineOperation = function(){
+            try {
+                $scope.alertMessages = [];
+                // retain PouchDB fields like _id and _rev
+                $scope.sarOperation.input = $scope.sar;
+
+                var sarOperation = clone($scope.sarOperation)
+                sarOperation.status = embryo.SARStatus.STARTED;
+
+                LivePouch.put(sarOperation).then(function (putResponse) {
+
+                }).then(function(sarOperation){
+                    $scope.provider.close();
+                }).catch(function(error){
+                    $log.error("Error saving sar operation - " + startNewSar)
+                    $log.error(error)
+                    $log.error(typeof error)
+                    if (typeof error === 'object' && error.message) {
+                        $scope.alertMessages.push("Internal error: " + error.message);
+                    } else if (typeof error === 'string') {
+                        $scope.alertMessages.push("Internal error: " + error);
+                    }
+                });
+
+            } catch (error) {
+                $log.error(error)
+                if (typeof error === 'object' && error.message) {
+                    $scope.alertMessages.push("Internal error: " + error.message);
+                } else if (typeof error === 'string') {
+                    $scope.alertMessages.push("Internal error: " + error);
+                }
+            }
+
+        }
+
+        $scope.manageEffortAllocations = function () {
+            $scope.effortAllocationProvider.show({sarId: $scope.sarOperation._id});
+        }
+
+
+    }]);
+
     module.controller("BackTrackPositionSelectionController", ['$scope', 'Position', function ($scope, Position) {
         if(!$scope.sar.selectedPositions){
             $scope.sar.selectedPositions = [];
@@ -598,6 +623,7 @@ $(function () {
             $scope.page.name = "sarInputs";
         }
     }]);
+
 
     module.controller("SARCoordinatorController", ['$scope', 'LivePouch', 'SarService', function ($scope, LivePouch, SarService) {
         $scope.coordinator = {
@@ -722,15 +748,25 @@ $(function () {
     AllocationStatusLabel[embryo.sar.effort.Status.DraftPattern] = "label-danger";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftModifiedOnMap] = "label-danger";
 
+    var patternTexts = {}
+    patternTexts[embryo.sar.effort.SearchPattern.CreepingLine] = "Creeping line search";
+    patternTexts[embryo.sar.effort.SearchPattern.ParallelSweep] = "Parallel sweep search";
+    patternTexts[embryo.sar.effort.SearchPattern.SectorSearch] = "Sector search";
+    patternTexts[embryo.sar.effort.SearchPattern.ExpandingSquare] = "Expanding square search";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineNonReturn] = "Track line search, non-return";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineReturn] = "Track line search, return";
+
+
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SarEffortAllocationController", ['$scope', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory",
-        function ($scope, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory) {
+    module.controller("SarEffortAllocationController", ['$scope', 'Operation', 'ViewService', 'SarService', 'LivePouch', 'SarOperationFactory', '$log', "SarTableFactory", "TrackLineReturn", "TrackLineNonReturn",
+        function ($scope, Operation, ViewService, SarService, LivePouch, SarOperationFactory, $log, SarTableFactory, TrackLineReturn, TrackLineNonReturn) {
             $scope.alertMessages = [];
             $scope.message = null;
             $scope.srus = [];
+            $scope.Operation = Operation
 
             $scope.AllocationStatus = embryo.sar.effort.Status;
 
@@ -753,6 +789,8 @@ $(function () {
                 embryo.sar.effort.SruTypes.FixedWingAircraft600,
             ]
 
+            $scope.patternTexts = patternTexts;
+
             //$scope.visibilityValues = [1, 3, 5, 10, 15, 20];
 
 
@@ -774,7 +812,8 @@ $(function () {
                     if (!result[pattern.effId] || pattern.status != embryo.sar.effort.Status.Active) {
                         result[pattern.effId] = {
                             id: pattern._id,
-                            status: pattern.status
+                            status: pattern.status,
+                            type : pattern.type
                         };
                     }
                 }
@@ -784,6 +823,7 @@ $(function () {
             function loadSRUs() {
                 //TODO request both search pattern and zones
                 // build 2 structures
+                // one array of zones/srus
                 // one array of zones/srus
                 // one object/array of search patterns
                 // use the latter for determining the button to display and implementing the next action
@@ -818,8 +858,12 @@ $(function () {
                     $scope.alertMessages = null;
                     $scope.message = null;
                     $scope.page = context && context.page ? context.page : 'SRU';
+
                     if (context && context.sarId) {
                         $scope.sarId = context.sarId
+                        LivePouch.get($scope.sarId).then(function (sar) {
+                            $scope.sar = sar;
+                        })
                         $scope.toSrus();
                     } else if (context && context.allocationId) {
                         loadAllocation(context.allocationId)
@@ -929,14 +973,18 @@ $(function () {
                     $scope.effort.wind = latest.wind;
                 }
 
-                if ($scope.effort.status === embryo.sar.effort.Status.Active) {
+                if ($scope.effort.status === embryo.sar.effort.Status.Active && $scope.sar.input.type !== Operation.TrackLine) {
                     $scope.message = "Sub area is edited by creating a copy of the existing shared sub area. \n";
                     $scope.message += "Write new values below, Calculate sub area, drag and shape sub area on the map and Share it. ";
                     $scope.message += "Your will hereby also replace the existing shared sub area. ";
                 }
             }
 
-            $scope.toSubAreaCalculation = function (effort) {
+            $scope.toSubAreaCalculation = function (effort, $event) {
+                console.log($event)
+                if($event){
+                    $event.preventDefault();
+                }
                 $scope.effort = clone(effort);
                 $scope.initEffortAllocation();
                 $scope.page = "effort";
@@ -968,6 +1016,37 @@ $(function () {
                         LivePouch.put(allocation).then(function () {
                             // TODO fix problem. View closing after first save
                             $scope.provider.close();
+                        }).catch(function (error) {
+                            $scope.alertMessages = ["internal error", error];
+                        });
+                    }
+                }).catch(function (error) {
+                    $scope.alertMessages = ["internal error", error];
+                    $log.error(error)
+                });
+            }
+
+            $scope.calculateTrackSpacing = function () {
+                if ($scope.effort.status === embryo.sar.effort.Status.Active) {
+                    delete $scope.effort._rev;
+                    delete $scope.effort.area;
+                    $scope.effort._id = "sarEf-" + Date.now();
+                }
+
+                LivePouch.get($scope.effort.sarId).then(function (sar) {
+                    var allocation = null;
+                    try {
+                        allocation = SarService.calculateTrackSpacing($scope.effort);
+                        allocation.status = embryo.sar.effort.Status.Active
+                    } catch (error) {
+                        $log.error(error)
+                        $scope.alertMessages = ["internal error", error];
+                    }
+
+                    if (allocation) {
+                        LivePouch.put(allocation).then(function () {
+                            // TODO fix problem. View closing after first save
+                            $scope.toSrus();
                         }).catch(function (error) {
                             $scope.alertMessages = ["internal error", error];
                         });
@@ -1015,6 +1094,7 @@ $(function () {
                         }
 
                         //delete allocations and search patterns
+
                         return LivePouch.bulkDocs(efforts)
                     }).then(function () {
                         persist(effort);
@@ -1049,11 +1129,14 @@ $(function () {
                 ]
                 $scope.sp.turn = $scope.sides[0].key
 
-                if(zone.status == AllocationStatus.DraftSRU){
+                if($scope.sar.input.type === Operation.TrackLine) {
+                    $scope.patterns = [
+                        pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
+                        pattern(SearchPattern.TrackLineNonReturn, "Track line search, non-return"),
+                    ];
+                } else if(zone.status == AllocationStatus.DraftSRU){
                     $scope.patterns = [
                         pattern(SearchPattern.SectorSearch, "Sector search"),
-                        //pattern(SearchPattern.TrackLineReturn, "Track line search, return"),
-                        //pattern(SearchPattern.TrackLine, "Track line search, non-return"),
                     ]
                 }else {
                     $scope.patterns = [
@@ -1091,7 +1174,7 @@ $(function () {
                 $scope.spImages[SearchPattern.ExpandingSquare] = "img/sar/expandingsquaresearch.png";
                 $scope.spImages[SearchPattern.SectorSearch] = "img/sar/searchSectorPattern.png ";
                 $scope.spImages[SearchPattern.TrackLineReturn] = "img/sar/tracklinesearchreturn.png";
-                $scope.spImages[SearchPattern.TrackLine] = "img/sar/tracklinesearchnonreturn.png";
+                $scope.spImages[SearchPattern.TrackLineNonReturn] = "img/sar/tracklinesearchnonreturn.png";
             }
 
             function findNewestSearchPattern(zone, init) {
@@ -1121,7 +1204,10 @@ $(function () {
                 })
             }
 
-            $scope.editSearchPattern = function (zone, spId) {
+            $scope.editSearchPattern = function (zone, spId, $event) {
+                if($event){
+                    $event.preventDefault();
+                }
                 $scope.sp = {};
                 LivePouch.get(spId).then(function (pattern) {
                     $scope.page = "searchPattern";
@@ -1198,6 +1284,12 @@ $(function () {
                         spCopy.sar = $scope.sar;
                         $scope.searchPattern = SarService.generateSearchPattern($scope.zone, spCopy);
                         SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineReturn  && $scope.sp.direction && $scope.sp.turn){
+                        $scope.searchPattern = TrackLineReturn.calculate($scope.zone, $scope.sp, $scope.sar);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
+                    } else if($scope.sp.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn && $scope.sp.direction && $scope.sp.turn){
+                        $scope.searchPattern = TrackLineNonReturn.calculate($scope.zone, $scope.sp, $scope.sar);
+                        SarLayerSingleton.getInstance().drawTemporarySearchPattern($scope.searchPattern);
                     }
                 }catch(error){
                     $log.error(error)
@@ -1262,6 +1354,34 @@ $(function () {
             })
         }]);
 
+    module.controller("Trackline", ['$scope', function ($scope) {
+        SarLayerSingleton.getInstance().activateTrackLinePositioning(function(pos){
+            $scope.sp.dragPoint = pos;
+            $scope.generateSearchPattern();
+        });
+
+        $scope.directions = [
+            {
+                key : embryo.sar.effort.TrackLineDirection.AsRoute,
+                label : "Same as route (default)"
+            },{
+                key : embryo.sar.effort.TrackLineDirection.OppositeRoute,
+                label : "Opposite route"
+            }
+        ];
+
+        if(!$scope.zone.direction){
+            $scope.zone.direction = $scope.directions[0].key
+        }
+
+
+        $scope.$on("$destroy", function () {
+            SarLayerSingleton.getInstance().deactivateTrackLinePositioning();
+        })
+    }]);
+
+
+
     module.controller("SarSruController", ['$scope', 'SarService', 'LivePouch', '$log', function ($scope, SarService, LivePouch, $log) {
         $scope.alertMessages = null;
         $scope.message = null;
@@ -1313,4 +1433,4 @@ $(function () {
         }
     }]);
 
-});
+})();

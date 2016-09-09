@@ -15,7 +15,8 @@
                         <th>Type</th>
                         <th>Search speed</th>
                         <th>Fatigue</th>
-                        <th>Sub area</th>
+                        <th x-ng-if="sar.input.type !== Operation.TrackLine">{{sar.type}}</th>
+                        <th x-ng-if="sar.input.type === Operation.TrackLine">Track spacing</th>
                         <th>Status</th>
                         <th>Search Pattern</th>
                         <th>Status</th>
@@ -26,7 +27,7 @@
                         <td>{{typeText[SRU.type]}}</td>
                         <td>{{SRU.speed}} knots</td>
                         <td>{{SRU.fatigue}}</td>
-                        <td>
+                        <td x-ng-if="sar.input.type !== Operation.TrackLine">
                             <button class="btn btn-sm" x-ng-if="SRU.status == AllocationStatus.DraftSRU"
                                     x-ng-click="toSubAreaCalculation(SRU)">Calculate
                             </button>
@@ -39,6 +40,12 @@
                                     x-ng-click="confirmActivation(SRU)">Share
                             </button>
                         </td>
+                        <td x-ng-if="sar.input.type === Operation.TrackLine">
+                            <button class="btn btn-sm" x-ng-if="SRU.status == AllocationStatus.DraftSRU"
+                                    x-ng-click="toSubAreaCalculation(SRU)">Calculate
+                            </button>
+                            <a x-ng-if="SRU.status == AllocationStatus.Active" href="#" x-ng-click="toSubAreaCalculation(SRU, $event)">{{SRU.S | number:2}} nm</a>
+                        </td>
                         <td><span class="label" x-ng-class="AllocationStatusLabel[SRU.status]">{{AllocationStatusTxt[SRU.status]}}</span>
                         </td>
                         <td>
@@ -48,11 +55,8 @@
                                 <span x-ng-if="!patterns[SRU._id]">New</span><span
                                     x-ng-if="patterns[SRU._id]">Replace</span>
                             </button>
-                            <button class="btn btn-sm"
-                                    x-ng-if="patterns[SRU._id] && patterns[SRU._id].status !== AllocationStatus.Active"
-                                    x-ng-click="editSearchPattern(SRU, patterns[SRU._id].id)">
-                                Edit
-                            </button>
+                            <a x-ng-if="patterns[SRU._id] && patterns[SRU._id].status !== AllocationStatus.Active" href="#"
+                               x-ng-click="editSearchPattern(SRU, patterns[SRU._id].id, $event)">{{patternTexts[patterns[SRU._id].type]}}</a>
                         </td>
                         <td><span class="label" x-ng-class="AllocationStatusLabel[patterns[SRU._id].status]">{{AllocationStatusTxt[patterns[SRU._id].status]}}</span>
                         </td>
@@ -260,7 +264,12 @@
                     <span class="pull-right">
                         <button type="button" class="btn btn-sm" x-ng-click="toSrus()">Back</button> &nbsp;
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="calculate()"
-                                x-ng-disabled="effortAllocationForm.$invalid">Calculate sub area
+                                x-ng-disabled="effortAllocationForm.$invalid"
+                                x-ng-if="sar.input.type !== Operation.TrackLine">Calculate sub area
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="calculateTrackSpacing()"
+                                x-ng-disabled="effortAllocationForm.$invalid"
+                                x-ng-if="sar.input.type === Operation.TrackLine">Calculate track spacing
                         </button>
                     </span>
                 </div>
@@ -346,7 +355,7 @@
                         same end of the route.
                     </p>
 
-                    <p x-ng-if="sp.type === SearchPattern.TrackLine">
+                    <p x-ng-if="sp.type === SearchPattern.TrackLineReturn">
                         Track line search, non-return is used when the vessel (or person) is reported missing and
                         the only track is the presumed route. It gives a relative fast and thorough coverage of the
                         missing objects presumed route and its adjacent areas. The search begins in one end and ends
@@ -432,6 +441,28 @@
                                     x-ng-change="generateSearchPattern()" x-ng-required="sp.type == SearchPattern.SectorSearch"
                                     x-ng-options="side.key as side.label for side in sides">
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-ng-if="sp.type === SearchPattern.TrackLineReturn || sp.type === SearchPattern.TrackLineNonReturn">
+                    <div x-ng-controller="Trackline">
+                        <h5>Search Options</h5>
+                        <div class="form-group">
+                            <label class="control-label col-xs-3">Start direction:</label>
+                            <div class="col-xs-5">
+                                <select ng-model="sp.direction" name="type" class="input-sm form-control" required
+                                        x-ng-change="generateSearchPattern()" x-ng-options="direction.key as direction.label for direction in directions">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label col-xs-3">Turn to:</label>
+                            <div class="col-xs-5">
+                                <select ng-model="sp.turn" name="type" class="input-sm form-control" required
+                                        x-ng-change="generateSearchPattern()" x-ng-options="side.key as side.label for side in sides">
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

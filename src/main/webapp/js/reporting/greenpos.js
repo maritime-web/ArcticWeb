@@ -61,7 +61,7 @@ var greenposScope;
         $scope.recipients = {
             coastalcontrol: 'Coastal Control',
             greenpos: 'Greenpos',
-            //soundrep : 'SoundRep'
+            soundrep : 'SoundRep'
         };
 
         $scope.reportTypes = [

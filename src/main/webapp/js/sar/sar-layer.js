@@ -32,7 +32,7 @@ function SarLayer() {
                 if (feature.attributes.type == 'dv' || feature.attributes.type == 'dsp') {
                     return "black";
                 }
-                if (feature.attributes.type == 'searchPattern') {
+                if (feature.attributes.type == 'searchPattern' || feature.attributes.type == 'dragPoint') {
                     return "red";
                 }
                 if (feature.attributes.type) {
@@ -168,23 +168,45 @@ function SarLayer() {
         this.snap = new OpenLayers.Control.Snapping({
             layer: this.layers.sarEdit,
             targets: [this.layers.sar],
-            greedy: false
+            greedy: true,
         });
-
         this.snap.setLayer(this.layers.sarEdit);
+
+
+        // configure the snapping agent
+        this.snapTrackline = new OpenLayers.Control.Snapping({
+            layer: this.layers.sarEdit,
+            targets: [this.layers.sar],
+            greedy: true,
+            defaults : {
+                tolerance : 800,
+                nodeTolerance : 5,
+                vertexTolerance : 5
+            }
+        });
+        this.snapTrackline.setLayer(this.layers.sarEdit);
+
+
+        this.modifyControl = new OpenLayers.Control.ModifyFeature(this.layers.sarEdit,
+            {
+                geometryTypes: "OpenLayers.Geometry.Point"
+            }
+        );
+        this.modifyControl.deactivate();
+        this.map.internalMap.addControls([this.modifyControl])
 
         this.drawControl = new OpenLayers.Control.DrawFeature(
             this.layers.sarEdit, OpenLayers.Handler.Polygon,
             {displayClass: "olControlDrawFeaturePoint", title: "Draw Features", handlerOptions: {holeModifier: "altKey"}}
         );
         this.map.internalMap.addControls([this.drawControl])
+        // update the editable layer for the draw control (very ugly)
         this.drawControl.layer = this.layers.sarEdit;
         this.drawControl.handler = new OpenLayers.Handler.Point(this.drawControl, this.drawControl.callbacks, this.drawControl.handlerOptions);
 
-        // update the editable layer for the draw control (very ugly)
 
         function fireModified(feature) {
-            if (that.modified) {
+            if (that.modified &&feature.attributes.type == "zone") {
                 var zoneUpdate = {
                     _id: feature.attributes.id,
                     area: {
@@ -210,11 +232,7 @@ function SarLayer() {
         this.layers.sarEdit.events.on({
             "featuremodified": function (event) {
                 fireModified(event.feature);
-            }/*,
-            "afterfeaturemodified": function (event) {
-             console.log(event)
-                fireModified(event.feature);
-             }*/
+            }
         });
 
         this.controls.modify = new embryo.Control.ModifyRectangleFeature(this.layers.sarEdit,
@@ -425,7 +443,7 @@ function SarLayer() {
         for (var index in sarDocuments) {
             if (embryo.sar.Type.SearchArea === sarDocuments[index]['@type']) {
                 this.drawSar(sarDocuments[index]);
-            } else if (embryo.sar.Type.EffortAllocation === sarDocuments[index]['@type']) {
+            } else if (embryo.sar.Type.EffortAllocation === sarDocuments[index]['@type'] && sarDocuments[index].area) {
                 this.drawEffortAllocationZone(sarDocuments[index]);
             } else if (embryo.sar.Type.SearchPattern === sarDocuments[index]['@type']) {
                 this.drawSearchPattern(sarDocuments[index]);
@@ -482,7 +500,7 @@ function SarLayer() {
             this.layers.sar.addFeatures(createSearchArea(sar, active));
         }
 
-        if(sar.input.type === embryo.sar.Operation.BackTrack){
+        if(sar.input.type === embryo.sar.Operation.BackTrack || sar.input.type === embryo.sar.Operation.TrackLine){
             var pos;
             if(sar.input.objectPosition){
                 pos = embryo.geo.Position.create(sar.input.objectPosition)
@@ -581,20 +599,38 @@ function SarLayer() {
     };
 
 
-    this.drawSearchPattern = function (pattern) {
+    this.drawSearchPattern = function (pattern, temporary) {
         var points = this.createRoutePoints(pattern)
 
         if(pattern.type === embryo.sar.effort.SearchPattern.SectorSearch){
             var attributes = {
                 type: 'circle',
                 sarId: pattern.sarId,
-                id : pattern._id
+                id : pattern._id,
+                temp : !!temporary
             }
             var radiusInKm = nmToMeters(pattern.radius) / 1000;
             var center = pattern.wps[1];
             var ring = embryo.adt.createRing(center.longitude, center.latitude, radiusInKm, 1, attributes)
 
             this.layers.sar.addFeatures(ring);
+        } else if(pattern.type === embryo.sar.effort.SearchPattern.TrackLineNonReturn || pattern.type === embryo.sar.effort.SearchPattern.TrackLineReturn){
+            if(temporary){
+                var point = null;
+                if(pattern.dragPoint.lon){
+                    point= embryo.map.createPoint(pattern.dragPoint.lon, pattern.dragPoint.lat)
+                } else {
+                    point = embryo.map.createPoint(pattern.dragPoint.longitude, pattern.dragPoint.latitude)
+                }
+
+                var features = [new OpenLayers.Feature.Vector(point, {
+                    type: "dragPoint",
+                    sarId: pattern.sarId,
+                    id : pattern._id + "drag",
+                    temp : !!temporary
+                })];
+                this.layers.sarEdit.addFeatures(features);
+            }
         }
 
         var csp = points[0];
@@ -603,7 +639,7 @@ function SarLayer() {
             label: 'CSP',
             id: pattern._id,
             sarId: pattern.sarId,
-            temp:true
+            temp : !!temporary
         })]);
 
 
@@ -612,7 +648,8 @@ function SarLayer() {
             renderers : [ 'SVGExtended', 'VMLExtended', 'CanvasExtended' ],
             type : "searchPattern",
             id: pattern._id,
-            sarId: pattern.sarId
+            sarId: pattern.sarId,
+            temp : !!temporary
         });
         this.layers.sarEdit.addFeatures([feature]);
         return feature;
@@ -626,8 +663,7 @@ function SarLayer() {
 
     this.drawTemporarySearchPattern = function(searchPattern){
         this.removeTemporarySearchPattern();
-        this.tempSearchPatternFeature = this.drawSearchPattern(searchPattern);
-        this.tempSearchPatternFeature.attributes.temp = true;
+        this.tempSearchPatternFeature = this.drawSearchPattern(searchPattern, true);
     }
 
     this.removeTemporarySearchPattern = function(){
@@ -636,7 +672,6 @@ function SarLayer() {
             return !!feature.attributes.temp;
         })
     }
-
 
     that.activatePositionSelection = function(positionAdded){
         that.snap.activate();
@@ -650,14 +685,7 @@ function SarLayer() {
             var pos = that.map.transformToPosition(event.feature.geometry)
             positionAdded(pos);
         };
-
         that.layers.sarEdit.events.register("featureadded", that, that.featureAddedListener);
-/*
-        this.drawControl.events.register("featureadded", that, function(event){
-            var pos = that.map.transformToPosition(event.feature.geometry)
-            positionAdded(pos);
-        })
-*/
     }
 
     that.deactivatePositionSelection = function(){
@@ -667,6 +695,35 @@ function SarLayer() {
         that.snap.deactivate();
         if(that.drawControl.active) {
             that.drawControl.deactivate();
+        }
+    }
+
+    that.activateTrackLinePositioning = function(trackLineMoved){
+        that.trackLineModified =
+        that.controls.modify.deactivate()
+        if(!that.modifyControl.active) {
+            that.modifyControl.activate();
+        }
+
+        that.snapTrackline.activate();
+
+        that.trackLineModifiedListener =  function(event){
+            var pos = that.map.transformToPosition(event.feature.geometry)
+            that.layers.sarEdit.destroyFeatures([event.feature])
+            that.layers.sarEdit.refresh();
+            trackLineMoved(pos);
+        };
+
+         that.layers.sarEdit.events.register("featuremodified", that, that.trackLineModifiedListener);
+    }
+
+    that.deactivateTrackLinePositioning = function(){
+        that.layers.sarEdit.events.unregister("featuremodified", that, that.trackLineModifiedListener);
+
+        that.controls.modify.activate()
+        that.snapTrackline.deactivate();
+        if(that.modifyControl.active) {
+            that.modifyControl.deactivate();
         }
     }
 
@@ -687,6 +744,4 @@ var SarLayerSingleton = {
 embryo.postLayerInitialization(function () {
     SarLayerSingleton.instance = new SarLayer();
     addLayerToMap("sar", SarLayerSingleton.instance, embryo.map);
-})
-
-
+});

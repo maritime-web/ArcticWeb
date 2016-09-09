@@ -3,24 +3,14 @@ $(function () {
 //    var msiLayer = new MsiLayer();
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
-    var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices', 'embryo.position']);
+    var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices', 'embryo.position',
+        'embryo.sar.operation.filter', 'embryo.sar.status.filter', 'embryo.sar.SearchPattern.filter']);
 
     module.controller("SARControl", ['$scope', function ($scope) {
         $scope.selected = {
             open: false
         }
     }]);
-
-    var SARTypeTxt = {};
-    SARTypeTxt[embryo.sar.Operation.RapidResponse] = "Rapid response";
-    SARTypeTxt[embryo.sar.Operation.DatumPoint] = "Datum point";
-    SARTypeTxt[embryo.sar.Operation.DatumLine] = "Datum line";
-    SARTypeTxt[embryo.sar.Operation.BackTrack] = "Back track";
-
-    var SARStatusTxt = {};
-    SARStatusTxt[embryo.SARStatus.STARTED] = "Active";
-    SARStatusTxt[embryo.SARStatus.ENDED] = "Ended";
-    SARStatusTxt[embryo.SARStatus.DRAFT] = "Draft";
 
     var SARStatusLabel = {};
     SARStatusLabel[embryo.SARStatus.STARTED] = "label-success";
@@ -32,12 +22,14 @@ $(function () {
     AllocationStatusTxt[embryo.sar.effort.Status.DraftSRU] = "No sub area";
     AllocationStatusTxt[embryo.sar.effort.Status.DraftZone] = "Not shared";
     AllocationStatusTxt[embryo.sar.effort.Status.DraftModifiedOnMap] = "Not shared";
+    AllocationStatusTxt[embryo.sar.effort.Status.DraftPattern] = "Not shared";
 
     var AllocationStatusLabel = {};
     AllocationStatusLabel[embryo.sar.effort.Status.Active] = "label-success";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftSRU] = "label-danger";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftZone] = "label-danger";
     AllocationStatusLabel[embryo.sar.effort.Status.DraftModifiedOnMap] = "label-danger";
+    AllocationStatusLabel[embryo.sar.effort.Status.DraftPattern] = "label-danger";
 
     function clone(object) {
         return JSON.parse(JSON.stringify(object));
@@ -139,7 +131,6 @@ $(function () {
 
             $scope.sars = [];
 
-            $scope.SARStatusTxt = SARStatusTxt;
             $scope.SARStatusLabel = SARStatusLabel;
 
             var subscription = ViewService.subscribe({
@@ -211,8 +202,6 @@ $(function () {
     module.controller("OperationControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch',
         function ($scope, SarService, ViewService, $log, LivePouch) {
 
-            $scope.SARTypeTxt = SARTypeTxt;
-            $scope.SARStatusTxt = SARStatusTxt;
             $scope.SARStatusLabel = SARStatusLabel;
             $scope.SARStatus = embryo.SARStatus;
             var changes = null;
@@ -305,16 +294,14 @@ $(function () {
     module.controller("EffortAllocationControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch',
         function ($scope, SarService, ViewService, $log, LivePouch) {
 
-            $scope.SARTypeTxt = SARTypeTxt;
-            $scope.SARStatusTxt = SARStatusTxt;
             $scope.SARStatusLabel = SARStatusLabel;
             $scope.SARStatus = embryo.SARStatus;
             $scope.AllocationStatus = embryo.sar.effort.Status;
 
             $scope.AllocationStatusTxt = AllocationStatusTxt;
             $scope.AllocationStatusLabel = AllocationStatusLabel;
-            var changes = null;
 
+            var changes = null;
 
             var subscription = ViewService.subscribe({
                 name: "EffortAllocationControl",
