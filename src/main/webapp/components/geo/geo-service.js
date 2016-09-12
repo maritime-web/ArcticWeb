@@ -1,6 +1,8 @@
 (function () {
     "use strict";
 
+    var EARTH_RADIUS_KM = 6371.0087714;
+
     var module = angular.module('embryo.geo.services', []);
 
     embryo.geo = {}
@@ -403,7 +405,7 @@
     /**
      * @param startBearing
      * @param distance
-     * @returns a new instance of Position moved according to the parameters startBearing and distance.
+     * @returns a new instance of Position moved according to the parameters startBearing and distanceInNm.
      */
     embryo.geo.Position.prototype.transformPosition = function (startBearing, distanceInNm) {
         var startLocation = this;
@@ -411,6 +413,33 @@
         var distanceInMeters = embryo.geo.Converter.nmToMeters(distanceInNm);
         var dest = sphere.calculateEndingGlobalCoordinates(startLocation, startBearing, distanceInMeters);
         return dest;
+    }
+
+    embryo.geo.Position.prototype.transformPositionRhumbline = function(bearing, distanceInNm) {
+        // Taken from http://cdn.rawgit.com/chrisveness/geodesy/v1.1.1/latlon-spherical.js
+        // Consider including latlon-spherical.js in application and let Position use LatLon object
+        // (Composition pattern)
+        var distanceInMeters = embryo.geo.Converter.nmToMeters(distanceInNm);
+        var d = distanceInMeters / (EARTH_RADIUS_KM*1e3);
+        var bearingRad = embryo.Math.toRadians(bearing);
+        var ø1 = embryo.Math.toRadians(this.lat);
+        var λ1 = embryo.Math.toRadians(this.lon);
+        var Δφ = d * Math.cos(bearingRad);
+        var ø2 = ø1 + Δφ;
+
+        if(Math.abs(ø2) > Math.PI/2){
+            ø2 = ø2 > 0 ?Math.PI - ø2 : -Math.PI-ø2;
+        }
+        var Δψ = Math.log(Math.tan(ø2/2+Math.PI/4)/Math.tan(ø1/2+Math.PI/4));
+        var q = Math.abs(Δψ) > 10e-12 ? Δφ / Δψ : Math.cos(ø1); // E-W course becomes ill-conditioned with 0/0
+
+        var Δλ = d*Math.sin(bearingRad)/q;
+        var λ2 = λ1 + Δλ;
+
+        var lat2 = embryo.Math.toDegrees(ø2);
+        var lon2 = embryo.Math.toDegrees(λ2);
+
+        return new embryo.geo.Position((lon2+540) % 360 - 180, lat2);
     }
 
     embryo.geo.Position.prototype.rhumbLineBearingTo = function (destination) {

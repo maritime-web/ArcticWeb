@@ -1238,7 +1238,7 @@
 
                 if(!startPos){
                     if (distance >= routeLengthToTravel) {
-                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                        wp2 = wp1.transformPositionRhumbline(bearing, routeLengthToTravel);
                     }
 
                     if(routePointsToTravel.length === 0 && !startPos){
@@ -1266,10 +1266,10 @@
                 var p2 = routePointsToTravel[i + 1]
 
                 var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
-                turnPointsOut.push(p1.transformPosition(bearing + outBearing, zone.S/2))
-                turnPointsReturn.push(p1.transformPosition(bearing + returnBearing, zone.S/2))
-                turnPointsOut.push(p2.transformPosition(bearing + outBearing, zone.S/2))
-                turnPointsReturn.push(p2.transformPosition(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p1.transformPositionRhumbline(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p1.transformPositionRhumbline(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p2.transformPositionRhumbline(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p2.transformPositionRhumbline(bearing + returnBearing, zone.S/2))
             }
 
             var turnPoints = turnPointsOut.concat(turnPointsReturn.reverse());
@@ -1349,7 +1349,7 @@
 
                 if(!startPos){
                     if (distance >= routeLengthToTravel) {
-                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                        wp2 = wp1.transformPositionRhumbline(bearing, routeLengthToTravel);
                     }
 
                     if(routePointsToTravel.length === 0 && !startPos){
@@ -1380,12 +1380,12 @@
                 var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
 
                 leg1Out.push(p1);
-                leg2Return.push(p1.transformPosition(bearing + returnBearing, zone.S))
-                leg3Out.push(p1.transformPosition(bearing + out3Bearing, zone.S))
+                leg2Return.push(p1.transformPositionRhumbline(bearing + returnBearing, zone.S))
+                leg3Out.push(p1.transformPositionRhumbline(bearing + out3Bearing, zone.S))
 
                 leg1Out.push(p2);
-                leg2Return.push(p2.transformPosition(bearing + returnBearing, zone.S))
-                leg3Out.push(p2.transformPosition(bearing + out3Bearing, zone.S))
+                leg2Return.push(p2.transformPositionRhumbline(bearing + returnBearing, zone.S))
+                leg3Out.push(p2.transformPositionRhumbline(bearing + out3Bearing, zone.S))
             }
 
             var turnPoints = leg1Out.concat(leg2Return.reverse()).concat(leg3Out);
