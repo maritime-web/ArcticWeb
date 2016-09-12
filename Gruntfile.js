@@ -38,9 +38,9 @@ var polyfills = [
     {src: ['src/**/js/ext/cdn.cloudflare/core-js/*.js']}
 ];
 var vrmtFiles = [
+    {src: ['src/**/js/embryo-for-test.js']},
     {src: ['src/**/vrmt/**/app.js']},
     {src: ['src/**/vrmt/**/*.js']},
-    {src: ['src/**/js/embryo-for-test.js']},
     {src: ['src/**/js/service/geo-service.js']},
     {src: ['src/**/js/authentication.js']}
 ];

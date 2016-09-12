@@ -63,7 +63,7 @@
         }
 
         NotifyService.subscribe($rootScope, Events.RouteChanged, function (event, newRoute) {
-            route = new Route(newRoute);
+            route = new embryo.vrmt.Route(newRoute);
         });
     }
 

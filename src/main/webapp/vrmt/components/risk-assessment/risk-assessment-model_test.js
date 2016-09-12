@@ -93,7 +93,7 @@ describe('Risk Assessment Classes', function() {
                         ]
                 };
 
-                var cut = new Route(route);
+                var cut = new embryo.vrmt.Route(route);
 
                 expect(function() {
                     return cut.getTimeAtPosition(new embryo.geo.Position(72, -25));
@@ -101,14 +101,14 @@ describe('Risk Assessment Classes', function() {
             });
 
             it('should calculate time at a given position', function() {
-                var routeData = routeThuleQaarnaaq;
+                var routeData = Object.assign({}, routeThuleQaarnaaq);
                 //shorten the route to two waypoints
                 routeData.wps = routeData.wps.slice(0, 2);//
 
                 var lastWayPoint = routeData.wps[routeData.wps.length - 1];
                 var destinationPosition = new embryo.geo.Position(lastWayPoint.longitude, lastWayPoint.latitude);
 
-                var cut = new Route(routeData);
+                var cut = new embryo.vrmt.Route(routeData);
 
                 expect(cut.getTimeAtPosition(destinationPosition).hours()).toEqual(moment(lastWayPoint.eta).hours());
             });
@@ -157,5 +157,18 @@ describe('Risk Assessment Classes', function() {
 
         });
 
-    });
+        describe('serialize', function() {
+            it('should not include legs', function() {
+                var cut = new embryo.vrmt.Route(routeThuleQaarnaaq);
+                var serializedRoute = angular.toJson(cut, true);
+
+                console.log(serializedRoute);
+
+                expect(serializedRoute).toBeDefined();
+                expect(serializedRoute).not.toContain("legs");
+            });
+
+        });
+
+        });
 });

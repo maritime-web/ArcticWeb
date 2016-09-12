@@ -53,12 +53,13 @@
         function loadCurrentAssessment() {
             RiskAssessmentService.getCurrentAssessment($scope.route.id)
                 .then(function (currentAssessment) {
-                    if (!vm.chosenRouteLocation) {
-                        vm.chosenRouteLocation = currentAssessment.locationsToAssess[0];
-                    } else {
+                    if (vm.chosenRouteLocation) {
                         vm.chosenRouteLocation = currentAssessment.locationsToAssess.find(function (loc) {
                             return vm.chosenRouteLocation.id == loc.id;
                         });
+                    }
+                    if (!vm.chosenRouteLocation) {
+                        vm.chosenRouteLocation = currentAssessment.locationsToAssess[0];
                     }
                     NotifyService.notify(Events.AssessmentUpdated, currentAssessment);
                     NotifyService.notify(Events.RouteLocationChosen, vm.chosenRouteLocation);

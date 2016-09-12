@@ -54,7 +54,7 @@
             this.assessment = assessment;
             this.location = assessment.location;
             this.locationId = assessment.location.id;
-            this.locationName = assessment.location.id + '. ' + assessment.location.name;
+            this.locationName = assessment.location.name || "unnamed";
             this.index = assessment.index || '-';
             this.factorAssessments = assessment.scores || [];
 

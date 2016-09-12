@@ -188,16 +188,17 @@ describe('RiskAssessmentService', function () {
 
     describe('createRouteLocation', function () {
         it('should return the new location', function () {
+            var route = createTestRoute();
             var theNewlocation = undefined;
             dataService.storeAssessmentData = getFunctionResolving();
             dataService.getAssessmentData = getFunctionResolving({
                 routeLocationSequence: 1,
                 routeLocations: [],
+                currentRoute: route,
                 currentAssessment: null,
                 assessments: []
             });
 
-            var route = createTestRoute();
             cut.createRouteLocation(route, {name: "a", lat: -21, lon: 73})
                 .then(function (data) {
                     theNewlocation = data;

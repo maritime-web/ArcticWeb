@@ -1,3 +1,5 @@
+embryo.vrmt = {};
+
 function Assessment(parameters) {
     this.id = parameters.id;
     this.routeId = parameters.routeId;
@@ -58,12 +60,7 @@ function Assessment(parameters) {
 }
 
 function RouteLocation(parameters) {
-    this.routeId = parameters.routeId;
-    this.id = parameters.id;
-    this.name = parameters.name;
-    this.lat = parameters.lat;
-    this.lon = parameters.lon;
-    this.eta = parameters.eta;
+    Object.assign(this, parameters);
     this.asPosition = function () {
         return new embryo.geo.Position(this.lon, this.lat);
     };
@@ -111,26 +108,93 @@ function RiskFactor(parameters) {
     }
 }
 
-function Route(route) {
-    var delegate = route;
+embryo.vrmt.Route = function (route) {
     Object.assign(this, route);
+    this.getTimeAtPosition = getTimeAtPosition;
+    this.isOnRoute = isOnRoute;
+    this.equals = equals;
+
     var metersToNm = embryo.geo.Converter.metersToNm;
+    var routeAsLinestring = toLineString(this.wps);
+    var legs = toLegs(this.wps);
 
-    var routeAsLinestring = toLineString();
-    var legs = toLegs();
+    function getTimeAtPosition(aPosition) {
+        var hours = getHoursToReachPosition(aPosition);
+        var departure = moment(this.etaDep);
 
-    function toLineString() {
-        var coords = delegate.wps.map(function (wp) {
+        return departure.add(hours, "h");
+    }
+
+    function getHoursToReachPosition(aPosition) {
+        var positionOnRoute = getClosestPointOnRoute(aPosition);
+        var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
+        if (distanceBetween > 10) {
+            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
+            throw new Error(errorMsg);
+        }
+
+        var hours = 0;
+        for (var i = 0; i < legs.length; i++) {
+            var leg = legs[i];
+            if (leg.contains(positionOnRoute)) {
+                hours += leg.hoursTo(positionOnRoute);
+                break;
+            } else {
+                hours += leg.hours;
+            }
+        }
+
+        return hours;
+    }
+
+    function getClosestPointOnRoute(givenPosition) {
+        var turfPoint = turf.point([givenPosition.lat, givenPosition.lon]);
+        var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
+        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[1], turfPointOnLine.geometry.coordinates[0]);
+    }
+
+    function isOnRoute(routeLocation) {
+        var givenPosition = turf.point([routeLocation.lat, routeLocation.lon]);
+        var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
+        var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
+        return distanceBetween < 10;
+    }
+
+    function equals(otherRoute) {
+        var thisRoute = this;
+        var sameDeparture = function () {
+            return thisRoute.etaDep == otherRoute.etaDep;
+        };
+        var sameWayPointCount = function () {
+            return thisRoute.wps.length == otherRoute.wps.length;
+        };
+        var sameWayPoints = function () {
+            var res = true;
+            for (var i = 0; i < thisRoute.wps; i++) {
+                var thisWp = thisRoute.wps[i];
+                var otherWp = otherRoute.wps[i];
+                if (thisWp.lat != otherWp.lat || thisWp.lon != otherWp.lon || thisWp.eta != otherWp.eta) {
+                    res = false;
+                    break;
+                }
+            }
+            return res;
+        };
+        return sameDeparture() && sameWayPointCount() && sameWayPoints();
+    }
+
+    function toLineString(wps) {
+        var coords = wps.map(function (wp) {
             return [wp.latitude, wp.longitude];
         });
         return turf.linestring(coords);
     }
 
-    function toLegs() {
+    function toLegs(wps) {
         var res = [];
 
-        for (var i = 0; i < delegate.wps.length - 1; i++) {
-            res.push(createLeg(delegate.wps[i], delegate.wps[i + 1]));
+        for (var i = 0; i < wps.length - 1; i++) {
+            res.push(createLeg(wps[i], wps[i + 1]));
         }
 
         function createLeg(wp1, wp2) {
@@ -158,69 +222,4 @@ function Route(route) {
 
         return res;
     }
-
-    this.getTimeAtPosition = function (aPosition) {
-        var hours = getHoursToReachPosition(aPosition);
-        var departure = moment(delegate.etaDep);
-
-        return departure.add(hours, "h");
-    };
-
-    function getHoursToReachPosition(aPosition) {
-        var positionOnRoute = getClosestPointOnRoute(aPosition);
-        var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
-        if (distanceBetween > 10) {
-            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
-            throw new Error(errorMsg);
-        }
-
-        var hours = 0;
-        for (var i = 0; i < legs.length; i++) {
-            var leg = legs[i];
-            if (leg.contains(positionOnRoute)) {
-                hours += leg.hoursTo(positionOnRoute);
-                break;
-            } else {
-                hours += leg.hours;
-            }
-        }
-
-        return hours;
-    }
-    
-    function getClosestPointOnRoute(givenPosition) {
-        var turfPoint = turf.point([givenPosition.lat, givenPosition.lon]);
-        var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
-        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[1], turfPointOnLine.geometry.coordinates[0]);
-    }
-
-    this.equals = function (otherRoute) {
-        var thisRoute = this;
-        var sameDeparture = function () {
-          return thisRoute.etaDep == otherRoute.etaDep;
-        };
-        var sameWayPointCount = function () {
-            return thisRoute.wps.length == otherRoute.wps.length;
-        };
-        var sameWayPoints = function () {
-            var res = true;
-            for (var i = 0; i < thisRoute.wps; i++) {
-                var thisWp = thisRoute.wps[i];
-                var otherWp = otherRoute.wps[i];
-                if (thisWp.lat != otherWp.lat || thisWp.lon != otherWp.lon || thisWp.eta != otherWp.eta) {
-                    res = false;
-                    break;
-                }
-            }
-            return res;
-        };
-        return sameDeparture() && sameWayPointCount() && sameWayPoints();
-    };
-
-    this.isOnRoute = function (routeLocation) {
-        var givenPosition = turf.point([routeLocation.lat, routeLocation.lon]);
-        var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
-        var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
-        return distanceBetween < 10;
-    };
-}
+};

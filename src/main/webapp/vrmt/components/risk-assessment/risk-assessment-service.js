@@ -165,16 +165,15 @@
         }
 
         function updateCurrentRoute(route) {
+
             return RiskAssessmentDataService.getAssessmentData(route.id)
                 .then(function (data) {
                     if (data.currentRoute) {
-                        console.log("currentRoute found");
-                        var currentRoute = new Route(data.currentRoute);
-                        var newRouteVersion = new Route(route);
+                        var currentRoute = new embryo.vrmt.Route(data.currentRoute);
+                        var newRouteVersion = new embryo.vrmt.Route(route);
                         var isChanged = !currentRoute.equals(newRouteVersion);
 
                         if (isChanged) {
-                            console.log("Route has changed!!!");
                             data.currentAssessment = null;
                             data.routeLocations = data.routeLocations.filter(function (loc) {
                                 return newRouteVersion.isOnRoute(loc);
@@ -188,9 +187,38 @@
                     }
 
                     data.currentRoute = route;
+                    var defaultRouteLocations = createDefaultRouteLocationsIfNotPresent(data);
+                    data.routeLocations = data.routeLocations.concat(defaultRouteLocations);
 
                     return saveAssessmentData(route.id, data);
                 });
+
+            function createDefaultRouteLocationsIfNotPresent(data) {
+                var result = [];
+                var route = new embryo.vrmt.Route(data.currentRoute);
+
+                var firstWp = route.wps[0];
+                var found = data.routeLocations.find(function (loc) {
+                    return closeTo(firstWp.latitude, loc.lat) && closeTo(firstWp.longitude, loc.lon);
+                });
+                if (!found) {
+                    result.push(createRouteLocationFromWaypoint(data, firstWp, route.dep));
+                }
+
+                var lastWp = route.wps[route.wps.length - 1];
+                found = data.routeLocations.find(function (loc) {
+                    return closeTo(lastWp.latitude, loc.lat) && closeTo(lastWp.longitude, loc.lon);
+                });
+                if (!found) {
+                    result.push(createRouteLocationFromWaypoint(data, lastWp, route.des));
+                }
+
+                return result;
+
+                function closeTo(operand1, operand2) {
+                    return Math.abs(operand1 - operand2) < 0.0000001;
+                }
+            }
         }
 
         function createRouteLocation(route, locationAttributes) {
@@ -199,10 +227,7 @@
             return RiskAssessmentDataService.getAssessmentData(routeId)
                 .then(function (data) {
                     try {
-                        var routeLocation = new RouteLocation(locationAttributes);
-                        routeLocation.id = data.routeLocationSequence++;
-                        routeLocation.routeId = routeId;
-                        routeLocation.eta = new Route(route).getTimeAtPosition(routeLocation.asPosition());
+                        var routeLocation = createRouteLocation_(data, locationAttributes);
                         data.routeLocations.push(routeLocation);
                         return RiskAssessmentDataService.storeAssessmentData(routeId, data)
                             .then(function () {
@@ -212,6 +237,18 @@
                         return $q.reject(e);
                     }
                 });
+        }
+
+        function createRouteLocationFromWaypoint(data, wp, name) {
+            return createRouteLocation_(data, {lat: wp.latitude, lon: wp.longitude, name: name ? name : wp.name})
+        }
+
+        function createRouteLocation_(data, locationAttributes) {
+            var routeLocation = new RouteLocation(locationAttributes);
+            routeLocation.id = data.routeLocationSequence++;
+            routeLocation.routeId = data.currentRoute.id;
+            routeLocation.eta = new embryo.vrmt.Route(data.currentRoute).getTimeAtPosition(routeLocation.asPosition());
+            return routeLocation;
         }
 
         function deleteRouteLocation(routeLocationToDelete) {
@@ -242,6 +279,5 @@
                     return data.routeLocations;
                 })
         }
-
     }
 })();
