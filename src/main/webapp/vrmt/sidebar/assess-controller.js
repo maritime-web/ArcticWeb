@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessController", AssessController);
 
-    AssessController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'Events'];
+    AssessController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'Events', 'growl'];
 
-    function AssessController($scope, RiskAssessmentService, NotifyService, Events) {
+    function AssessController($scope, RiskAssessmentService, NotifyService, Events, growl) {
         var vm = this;
         vm.active = false;
         vm.currentLocationAssessment = null;
@@ -18,34 +18,57 @@
         vm.discard = discard;
         vm.assessing = false;
         var currentRoute = null;
-
+        var vessel = null;
+        var unSubscribeRouteLocationCreated = null;
 
         function startNew() {
-            RiskAssessmentService.startNewAssessment(currentRoute)
-                .then(function (currentAssessment) {
-                    NotifyService.notify(Events.NewAssessmentStarted, currentAssessment);
-                })
-                .catch(function (e) {
-                    console.log(e);
-                });
+            unSubscribeRouteLocationCreated = NotifyService.subscribe($scope, Events.RouteLocationCreated, function () {
+                RiskAssessmentService.startNewAssessment()
+                    .then(function (currentAssessment) {
+                        growl.info("Started new risk assesssment");
+                        NotifyService.notify(Events.NewAssessmentStarted, currentAssessment);
+                    })
+                    .catch(function (e) {
+                        growl.error("<p>Unable to start new risk assessment:</p>" + e.message);
+                        console.log(e);
+                    });
+                onAddRouteLocationFinished();
+            });
+
+            console.log(moment(vessel.aisVessel.lastReport));
+            console.log(moment().from(vessel.aisVessel.lastReport));
+            console.log(moment().to(vessel.aisVessel.lastReport));
+            var addRouteLocationEvent = {
+                introduction: "Before the new assessment can start you need to create a new assessment location on your vessels current position. Please override the given ais position if it isn't correct. The ais position was last recieved " + moment().to(vessel.aisVessel.lastReport),
+                vessel: {
+                    ais: vessel ? vessel.aisVessel : {},
+                    override: vessel ? Object.assign({}, vessel.aisVessel) : {}
+                }
+            };
+
+            NotifyService.notify(Events.AddRouteLocation, addRouteLocationEvent)
         }
 
         function save() {
-            RiskAssessmentService.endAssessment(currentRoute.id)
+            RiskAssessmentService.endAssessment()
                 .then(function () {
+                    growl.info("Risk assessment saved");
                     NotifyService.notify(Events.AssessmentCompleted);
                 })
                 .catch(function (e) {
+                    growl.error(e.message);
                     console.log(e);
                 });
         }
 
         function discard() {
-            RiskAssessmentService.discardAssessment(currentRoute.id)
+            RiskAssessmentService.discardAssessment()
                 .then(function () {
+                    growl.info("Risk assessment discarded");
                     NotifyService.notify(Events.AssessmentDiscarded);
                 })
                 .catch(function (e) {
+                    growl.error(e.message);
                     console.log(e);
                 });
         }
@@ -65,7 +88,7 @@
 
             this.deleteLocation = function () {
                 var locationToDelete = this.location;
-                RiskAssessmentService.deleteLocation(locationToDelete.routeId, locationToDelete.id)
+                RiskAssessmentService.deleteLocation(locationToDelete.id)
                     .then(function (updatedAssessment) {
                         NotifyService.notify(Events.AssessmentUpdated, updatedAssessment);
                     });
@@ -125,6 +148,18 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
             currentRoute = newRoute;
+        }
+
+        NotifyService.subscribe($scope, Events.VesselLoaded, function (event, v) {
+            vessel = v;
+        });
+
+        NotifyService.subscribe($scope, Events.AddRouteLocationDiscarded, onAddRouteLocationFinished);
+        function onAddRouteLocationFinished() {
+            if (unSubscribeRouteLocationCreated) {
+                unSubscribeRouteLocationCreated();
+                unSubscribeRouteLocationCreated = null;
+            }
         }
     }
 

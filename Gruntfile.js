@@ -26,7 +26,8 @@ var libFiles = [
     {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']},
     {src: ['src/**/js/ext/moment.min.js']},
     {src: ['src/**/js/ext/turf.min.js']},
-    {src: ['src/**/js/ext/arc.js']}
+    {src: ['src/**/js/ext/arc.js']},
+    {src: ['src/**/libs/growl2-lib/*.min.js']}
 ];
 var testUtilityFiles = [
     {src: ['src/test/**/utilities/*.js']}

@@ -28,7 +28,15 @@
         NotifyService.subscribe($scope, Events.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded() {
             vm.functions = [];
-            vm.functions.push(startNewAssessmentfunction, deleteRouteLocationFunction);
+            vm.functions.push(startNewAssessmentfunction);
+        }
+
+        NotifyService.subscribe($scope, Events.AssessmentCompleted, onNoActiveAssessment);
+        NotifyService.subscribe($scope, Events.AssessmentDiscarded, onNoActiveAssessment);
+        NotifyService.subscribe($scope, Events.RouteLocationsLoaded, onNoActiveAssessment);
+        function onNoActiveAssessment() {
+            vm.functions = [];
+            vm.functions.push(deleteRouteLocationFunction);
         }
 
         function close() {

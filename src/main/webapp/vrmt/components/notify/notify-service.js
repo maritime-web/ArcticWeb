@@ -11,9 +11,11 @@
     NotifyService.$inject = ['$rootScope'];
 
     function NotifyService($rootScope) {
+
             this.subscribe = function(scope, event, callback) {
                 var handler = $rootScope.$on(event, callback);
                 scope.$on('$destroy', handler);
+                return handler;
             };
 
             this.notify = function(event, data) {

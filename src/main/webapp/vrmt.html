@@ -33,9 +33,11 @@
     <!-- build:css css/arcticweb-vrmt.css -->
     <link href="css/common.css" rel="stylesheet">
     <link href="vrmt/vrmt.css" rel="stylesheet">
+    <link rel="stylesheet" href="libs/growl2-lib/angular-growl.min.css" />
     <!-- endbuild -->
 
     <!-- build:js js/arcticweb-vrmt.js -->
+    <script src="libs/growl2-lib/angular-growl.min.js"></script>
     <script src="js/utils.js" defer="defer"></script>
     <script src="js/embryo.js" defer="defer"></script>
     <script src="js/authentication.js" defer="defer" type="text/javascript"></script>
@@ -87,7 +89,7 @@
 <div x-ng-include="'vrmt/location/add-assessment-location.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div class="menuDivider"></div>
-
+<div growl></div>
 <div class="container-fluid" ng-controller="AppController as app">
     <div class="row">
         <div x-ng-include="'vrmt/map/map.html'"></div>

@@ -13,11 +13,6 @@ describe('RiskAssessmentService', function () {
     var $q, $rootScope;
 
     //Utilities
-    var latestAssessments;
-    var storeLatestAssessments = function (data) {
-        latestAssessments = data;
-    };
-
     function getFunctionRejectingWith(reason) {
         return function () {
             return $q.reject(reason);
@@ -31,7 +26,7 @@ describe('RiskAssessmentService', function () {
     }
 
     function initializeTestData() {
-        routeId = "1qw2";
+        routeId = "44ce72c0-3d44-411f-a19f-c412b10cda22";
         scores = [
             {
                 "riskFactor": {
@@ -50,7 +45,7 @@ describe('RiskAssessmentService', function () {
             }
         ];
         location = {
-            "routeId": "44ce72c0-3d44-411f-a19f-c412b10cda22",
+            "routeId": routeId,
             "id": 1,
             "name": "Nuuk",
             "eta": moment(),
@@ -87,12 +82,14 @@ describe('RiskAssessmentService', function () {
             routeLocationSequence: 1,
             routeLocations: [],
             currentAssessment: null,
+            currentRoute: createTestRoute(),
             assessments: []
         };
         withCurrentAssessment = {
             routeLocationSequence: 1,
             routeLocations: [location],
             currentAssessment: assessmentOne,
+            currentRoute: createTestRoute(),
             assessments: []
         };
     }
@@ -106,18 +103,34 @@ describe('RiskAssessmentService', function () {
         dataService = RiskAssessmentDataService;
     }));
 
+    describe('updateCurrentRoute', function () {
+        it('should store the given route as current route', function () {
+            spyOn(dataService, "storeAssessmentData").and.callFake(getFunctionResolving());
+            dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
+
+            var route = createTestRoute();
+            cut.updateCurrentRoute(route);
+
+            $rootScope.$apply();
+
+            expect(dataService.storeAssessmentData).toHaveBeenCalledWith(route.id, jasmine.anything());
+        });
+
+    });
+
     describe('createLocationAssessment', function () {
         it('should call RiskAssessmentDataService.storeAssessmentData with an updated current assessment', function () {
+            setActiveRoute();
             spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
             spyOn(dataService, "storeAssessmentData").and.callFake(getFunctionResolving());
 
-            cut.createLocationAssessment(location.routeId, location.id, scores);
+            cut.createLocationAssessment(location.id, scores);
 
             $rootScope.$apply();
 
             expect(dataService.storeAssessmentData).toHaveBeenCalledWith(location.routeId, jasmine.anything());
 
-            var dataToStore = dataService.storeAssessmentData.calls.argsFor(0)[1];
+            var dataToStore = dataService.storeAssessmentData.calls.mostRecent().args[1];
             expect(dataToStore.currentAssessment.getLocationAssessment(location.id).scores).toEqual(scores);
         });
 
@@ -126,7 +139,7 @@ describe('RiskAssessmentService', function () {
             var expectedErrorReason = "Error retrieving data";
             dataService.getAssessmentData = getFunctionRejectingWith(expectedErrorReason);
 
-            cut.createLocationAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.id, scores)
                 .catch(function (reason) {
                     capturedErrorReason = reason;
                 });
@@ -142,7 +155,7 @@ describe('RiskAssessmentService', function () {
             dataService.storeAssessmentData = getFunctionRejectingWith(expectedErrorReason);
             dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createLocationAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.id, scores)
                 .catch(function (reason) {
                     capturedErrorReason = reason;
                 });
@@ -157,7 +170,7 @@ describe('RiskAssessmentService', function () {
             dataService.storeAssessmentData = getFunctionResolving();
             dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createLocationAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.id, scores)
                 .then(function (data) {
                     theNewAssessment = data;
                 });
@@ -174,7 +187,7 @@ describe('RiskAssessmentService', function () {
             dataService.storeAssessmentData = getFunctionResolving();
             dataService.getAssessmentData = getFunctionResolving(withCurrentAssessment);
 
-            cut.createLocationAssessment(location.routeId, location.id, scores)
+            cut.createLocationAssessment(location.id, scores)
                 .then(function (data) {
                     theNewAssessment = data;
                 });
@@ -214,9 +227,13 @@ describe('RiskAssessmentService', function () {
 
     });
 
+    function setActiveRoute() {
+        cut.updateCurrentRoute(createTestRoute());
+    }
+
     function createTestRoute() {
         return {
-            id: "nice route id",
+            id: routeId,
             etaDep: new Date(2016, 3, 30),
             wps: [
                 {latitude: -20, longitude: 70, speed: 4, eta: new Date(2016, 3, 30)},

@@ -111,6 +111,7 @@ function RiskFactor(parameters) {
 embryo.vrmt.Route = function (route) {
     Object.assign(this, route);
     this.getTimeAtPosition = getTimeAtPosition;
+    this.getClosestPointOnRoute = getClosestPointOnRoute;
     this.isOnRoute = isOnRoute;
     this.equals = equals;
 
@@ -127,6 +128,10 @@ embryo.vrmt.Route = function (route) {
 
     function getHoursToReachPosition(aPosition) {
         var positionOnRoute = getClosestPointOnRoute(aPosition);
+        // console.log("DISTANCE BETWEEN");
+        // console.log(aPosition);
+        // console.log(positionOnRoute);
+
         var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
         if (distanceBetween > 10) {
             var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
@@ -148,13 +153,13 @@ embryo.vrmt.Route = function (route) {
     }
 
     function getClosestPointOnRoute(givenPosition) {
-        var turfPoint = turf.point([givenPosition.lat, givenPosition.lon]);
+        var turfPoint = turf.point([givenPosition.lon, givenPosition.lat]);
         var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
-        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[1], turfPointOnLine.geometry.coordinates[0]);
+        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[0], turfPointOnLine.geometry.coordinates[1]);
     }
 
     function isOnRoute(routeLocation) {
-        var givenPosition = turf.point([routeLocation.lat, routeLocation.lon]);
+        var givenPosition = turf.point([routeLocation.lon, routeLocation.lat]);
         var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
         var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
         return distanceBetween < 10;
@@ -185,7 +190,7 @@ embryo.vrmt.Route = function (route) {
 
     function toLineString(wps) {
         var coords = wps.map(function (wp) {
-            return [wp.latitude, wp.longitude];
+            return [wp.longitude, wp.latitude];
         });
         return turf.linestring(coords);
     }
@@ -202,13 +207,13 @@ embryo.vrmt.Route = function (route) {
             leg.speed = wp1.speed;
             leg.heading = wp1.heading;
             leg.from = new embryo.geo.Position(wp1.longitude, wp1.latitude);
-            leg.lineString = turf.linestring([[wp1.latitude, wp1.longitude], [wp2.latitude, wp2.longitude]]);
+            leg.lineString = turf.linestring([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
             leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
 
             leg.contains = function (position) {
-                var turfPoint = turf.point([position.lat, position.lon]);
+                var turfPoint = turf.point([position.lon, position.lat]);
                 var p = turf.pointOnLine(this.lineString, turfPoint);
-                var positionOnLine = new embryo.geo.Position(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                var positionOnLine = new embryo.geo.Position(p.geometry.coordinates[0], p.geometry.coordinates[1]);
                 return positionOnLine.geodesicDistanceTo(position) < 0.1;
             };
 

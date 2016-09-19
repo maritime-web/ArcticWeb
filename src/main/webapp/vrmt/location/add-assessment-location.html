@@ -4,6 +4,9 @@
         <h2>Create a new assessment location</h2>
     </div>
     <div class="modal-body">
+        <p ng-if="loc.introduction">
+            {{loc.introduction}}
+        </p>
         <div class="container-fluid form-horizontal">
             <div class="form-group">
                 <div class="col-xs-offset-4 col-xs-4">Latitude</div>

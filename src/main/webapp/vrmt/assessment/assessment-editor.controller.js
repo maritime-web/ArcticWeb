@@ -33,7 +33,7 @@
             var scores = vm.factorAssessments.map(function (fa) {
                 return fa.toScore();
             });
-            RiskAssessmentService.createLocationAssessment($scope.route.id, locationId, scores)
+            RiskAssessmentService.createLocationAssessment(locationId, scores)
                 .then(
                     function (result) {
                         NotifyService.notify(Events.LocationAssessmentCreated, result);

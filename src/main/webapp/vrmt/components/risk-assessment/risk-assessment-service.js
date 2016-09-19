@@ -20,32 +20,31 @@
         this.deleteRouteLocation = deleteRouteLocation;
         this.getRouteLocations = getRouteLocations;
 
+        var currentRouteId = null;
         /**
          * Returns the assessment currently being created
-         * @param routeId
          * @returns {*}
          */
-        function getCurrentAssessment(routeId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function getCurrentAssessment() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     if (data.currentAssessment) {
                         return new Assessment(data.currentAssessment);
                     }
-                    return $q.reject("There is no current assessment");
+                    return $q.reject("There is no current assessment for route '" +currentRouteId+ "'");
                 });
         }
 
         /**
          * Starts a new assessment and assigns it as the assessment currently under construction.
-         * @param route
-         * @returns a promise of the newly created assessment
+         * @returns {promise} a promise of the newly created assessment
          */
-        function startNewAssessment(route) {
-            return RiskAssessmentDataService.getAssessmentData(route.id)
+        function startNewAssessment() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     data.currentAssessment = null;
                     var locationsToAssess = getLocationsNotYetPassed();
-                    var result = new Assessment({id: moment().unix(), routeId: route.id, started: moment(), locationsToAssess: locationsToAssess});
+                    var result = new Assessment({id: moment().unix(), routeId: currentRouteId, started: moment(), locationsToAssess: locationsToAssess});
                     var lastAssessment = getLastAssessment();
                     locationsToAssess.forEach(function (location) {
                         result.updateLocationAssessment(location.id);
@@ -62,10 +61,10 @@
                     }
 
                     data.currentAssessment = result;
-                    return saveAssessmentData(route.id, data);
+                    return saveAssessmentData(data);
 
                     function getLocationsNotYetPassed() {
-                        var currentTime = moment();
+                        var currentTime = moment().subtract(1, 'm');
                         return data.routeLocations.filter(function (location) {
                             return currentTime.isSameOrBefore(location.eta);
                         });
@@ -84,53 +83,50 @@
 
         /**
          * Ends the current assessment and adds it to the list of completed assessments
-         * @param routeId
          */
-        function endAssessment(routeId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function endAssessment() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     data.assessments.push(data.currentAssessment);
                     data.currentAssessment = null;
-                    return saveAssessmentData(routeId, data);
+                    return saveAssessmentData(currentRouteId, data);
                 });
         }
 
         /**
          * Discards the current assessment.
-         * @param routeId
          */
-        function discardAssessment(routeId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function discardAssessment() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     data.currentAssessment = null;
-                    return saveAssessmentData(routeId, data);
+                    return saveAssessmentData(data);
                 });
         }
 
-        function saveAssessmentData(routeId, data) {
-            return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+        function saveAssessmentData(data, returnValue) {
+            return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                 .then(function () {
-                    return data.currentAssessment;
+                    return returnValue || data.currentAssessment;
                 });
         }
 
         /**
          * Creates a new Risk assessment for the given route and location.
          *
-         * @param routeId
          * @param locationId
          * @param scores
          * @returns {deferred.promise|{then, catch, finally}}
          */
-        function createLocationAssessment(routeId, locationId, scores) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function createLocationAssessment(locationId, scores) {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     try {
                         if (data.currentAssessment) {
                             data.currentAssessment = new Assessment(data.currentAssessment);
                             data.currentAssessment.updateLocationAssessment(locationId, scores);
 
-                            return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                            return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                                 .then(function () {
                                     return $q.when(data.currentAssessment.getLocationAssessment(locationId));
                                 });
@@ -143,15 +139,15 @@
                 });
         }
         
-        function deleteLocation(routeId, locationId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function deleteLocation(locationId) {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     try {
                         if (data.currentAssessment) {
                             data.currentAssessment = new Assessment(data.currentAssessment);
                             data.currentAssessment.deleteLocation(locationId);
 
-                            return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                            return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                                 .then(function () {
                                     return $q.when(data.currentAssessment);
                                 });
@@ -165,7 +161,7 @@
         }
 
         function updateCurrentRoute(route) {
-
+            currentRouteId = route.id;
             return RiskAssessmentDataService.getAssessmentData(route.id)
                 .then(function (data) {
                     if (data.currentRoute) {
@@ -190,7 +186,7 @@
                     var defaultRouteLocations = createDefaultRouteLocationsIfNotPresent(data);
                     data.routeLocations = data.routeLocations.concat(defaultRouteLocations);
 
-                    return saveAssessmentData(route.id, data);
+                    return saveAssessmentData(data, data.currentRoute);
                 });
 
             function createDefaultRouteLocationsIfNotPresent(data) {
@@ -221,15 +217,14 @@
             }
         }
 
-        function createRouteLocation(route, locationAttributes) {
-            var routeId = route.id;
+        function createRouteLocation(locationAttributes) {
 
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     try {
                         var routeLocation = createRouteLocation_(data, locationAttributes);
                         data.routeLocations.push(routeLocation);
-                        return RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                        return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                             .then(function () {
                                 return $q.when(routeLocation);
                             });
@@ -252,8 +247,7 @@
         }
 
         function deleteRouteLocation(routeLocationToDelete) {
-            var routeId = routeLocationToDelete.routeId;
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     try {
                         var routeLocations = data.routeLocations;
@@ -263,7 +257,7 @@
 
                         var deletedRouteLocationArray = routeLocations.splice(index, 1);
 
-                        RiskAssessmentDataService.storeAssessmentData(routeId, data)
+                        RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                             .then(function () {
                                 return $q.when(deletedRouteLocationArray);
                             });
@@ -273,8 +267,8 @@
                 });
         }
 
-        function getRouteLocations(routeId) {
-            return RiskAssessmentDataService.getAssessmentData(routeId)
+        function getRouteLocations() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     return data.routeLocations;
                 })

@@ -6,17 +6,17 @@
         .constant('Events', {
             LocationAssessmentCreated: "LocationAssessmentCreated",
             LocationAssessmentDeleted: "LocationAssessmentDeleted",
+            AddRouteLocation: "AddRouteLocation",
+            AddRouteLocationDiscarded: "AddRouteLocationDiscarded",
             RouteLocationCreated: "RouteLocationCreated",
             RouteLocationDeleted: "RouteLocationDeleted",
             RouteChanged: "RouteChanged",
             VesselLoaded: "VesselLoaded",
-            LatestRiskAssessmentsLoaded: "LatestRiskAssessmentsLoaded",
             OpenAssessmentEditor: "OpenAssessmentEditor",
             OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
             RouteLocationChosen: "RouteLocationChosen",
             RouteLocationClicked: "RouteLocationClicked",
             VesselClicked: "VesselClicked",
-            AddRouteLocation: "AddRouteLocation",
             RouteLocationsLoaded: "RouteLocationsLoaded",
             AssessmentUpdated: "AssessmentUpdated",
             NewAssessmentStarted: "NewAssessmentStarted",
@@ -51,7 +51,7 @@
         }
 
         function loadCurrentAssessment() {
-            RiskAssessmentService.getCurrentAssessment($scope.route.id)
+            RiskAssessmentService.getCurrentAssessment()
                 .then(function (currentAssessment) {
                     if (vm.chosenRouteLocation) {
                         vm.chosenRouteLocation = currentAssessment.locationsToAssess.find(function (loc) {
@@ -70,7 +70,7 @@
         }
 
         function loadRouteLocations() {
-            RiskAssessmentService.getRouteLocations($scope.route.id)
+            RiskAssessmentService.getRouteLocations()
                 .then(function (routeLocations) {
                     NotifyService.notify(Events.RouteLocationsLoaded, routeLocations);
                     if (routeLocations.length > 0) {
