@@ -22,22 +22,19 @@
         var unSubscribeRouteLocationCreated = null;
 
         function startNew() {
+            if (currentRoute.isVesselOnRoute()) {
+                addCurrentPositionAsRouteLocationThenStartAssessment();
+            } else {
+                startAssessment();
+            }
+        }
+
+        function addCurrentPositionAsRouteLocationThenStartAssessment() {
             unSubscribeRouteLocationCreated = NotifyService.subscribe($scope, Events.RouteLocationCreated, function () {
-                RiskAssessmentService.startNewAssessment()
-                    .then(function (currentAssessment) {
-                        growl.info("Started new risk assesssment");
-                        NotifyService.notify(Events.NewAssessmentStarted, currentAssessment);
-                    })
-                    .catch(function (e) {
-                        growl.error("<p>Unable to start new risk assessment:</p>" + e.message);
-                        console.log(e);
-                    });
+                startAssessment();
                 onAddRouteLocationFinished();
             });
 
-            console.log(moment(vessel.aisVessel.lastReport));
-            console.log(moment().from(vessel.aisVessel.lastReport));
-            console.log(moment().to(vessel.aisVessel.lastReport));
             var addRouteLocationEvent = {
                 introduction: "Before the new assessment can start you need to create a new assessment location on your vessels current position. Please override the given ais position if it isn't correct. The ais position was last recieved " + moment().to(vessel.aisVessel.lastReport),
                 vessel: {
@@ -47,6 +44,18 @@
             };
 
             NotifyService.notify(Events.AddRouteLocation, addRouteLocationEvent)
+        }
+
+        function startAssessment() {
+            RiskAssessmentService.startNewAssessment()
+                .then(function (currentAssessment) {
+                    growl.info("Started new risk assesssment");
+                    NotifyService.notify(Events.NewAssessmentStarted, currentAssessment);
+                })
+                .catch(function (e) {
+                    growl.error("<p>Unable to start new risk assessment:</p>" + e.message);
+                    console.log(e);
+                });
         }
 
         function save() {
@@ -126,11 +135,11 @@
 
         function byEta(a, b) {
             if (moment(a.eta).isAfter(b.eta)) {
-                return -1;
+                return 1;
             } else if (moment(a.eta).isSame(b.eta)) {
                 return 0;
             } else {
-                return 1;
+                return -1;
             }
         }
 
@@ -147,7 +156,7 @@
 
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
-            currentRoute = newRoute;
+            currentRoute = new embryo.vrmt.Route(newRoute);
         }
 
         NotifyService.subscribe($scope, Events.VesselLoaded, function (event, v) {

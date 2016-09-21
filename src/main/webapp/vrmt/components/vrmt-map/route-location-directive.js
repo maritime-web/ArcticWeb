@@ -7,13 +7,12 @@
     routeLocations.$inject = ['NotifyService', 'Events'];
 
     function routeLocations(NotifyService, Events) {
-        var directive = {
+        return {
             restrict: 'E',
             require: '^olMap',
             scope: {},
             link: link
         };
-        return directive;
 
         function link(scope, element, attrs, ctrl) {
             var olScope = ctrl.getOpenlayersScope();
@@ -51,7 +50,7 @@
             function createSelectedLocationStyleFunction() {
                 return function (feature, resolution) {
                     var routeLocation = feature.get("routeLocation");
-                    var style = createStyle(routeLocation, 'blue', 2);
+                    var style = createStyle(routeLocation, 'blue', 4);
                     return [style];
                 };
             }
@@ -64,9 +63,12 @@
                 if (index > 1000) fillColor = 'yellow';
                 if (index > 2000) fillColor = 'red';
 
-                var style = new ol.style.Style({
-                    image: new ol.style.Circle({
+                var style = new ol.style.Style(/** @type {olx.style.StyleOptions}*/{
+                    image: new ol.style.RegularShape({
                         radius: 12,
+                        points: 6,
+                        angle: 0,
+                        snapToPixel: false,
                         fill: new ol.style.Fill({
                             color: fillColor
                         }),
@@ -123,7 +125,7 @@
             /**
              * Interactions
              */
-            var select = new ol.interaction.Select({
+            var select = new ol.interaction.Select(/** @type {olx.interaction.SelectOptions}*/{
                 layers: [locationLayer],
                 style: createSelectedLocationStyleFunction(),
                 condition: function (e) {

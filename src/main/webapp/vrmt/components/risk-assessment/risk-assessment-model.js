@@ -114,6 +114,7 @@ embryo.vrmt.Route = function (route) {
     this.getClosestPointOnRoute = getClosestPointOnRoute;
     this.getExpectedVesselPosition = getExpectedVesselPosition;
     this.isOnRoute = isOnRoute;
+    this.isVesselOnRoute = isVesselOnRoute;
     this.getStartPosition = getStartPosition;
     this.equals = equals;
 
@@ -176,10 +177,15 @@ embryo.vrmt.Route = function (route) {
         return distanceBetween < 10;
     }
 
+    function isVesselOnRoute() {
+        var now = moment();
+        return legs.some(function (leg) {
+            return leg.containsVesselAt(now);
+        });
+    }
+
     function getStartPosition() {
         var firstWp = this.wps[0];
-        console.log("getStartPosition");
-        console.log(firstWp);
         return [firstWp.longitude, firstWp.latitude];
     }
 

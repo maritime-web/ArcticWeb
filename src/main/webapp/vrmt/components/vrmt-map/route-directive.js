@@ -30,8 +30,6 @@
 
             function addOrReplaceRoute() {
                 route = new embryo.vrmt.Route(arguments[1]);
-                console.log("route-directive ROUTE CHANGED");
-                console.log(route);
                 source.clear();
 
                 var routeFeature = createRouteFeature();
@@ -39,7 +37,6 @@
                     /** @type {ol.Coordinate|[]} */
                     var coord = [wp.longitude, wp.latitude];
                     var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
-                    console.log(mercatorCoord);
                     routeFeature.getGeometry().appendCoordinate(mercatorCoord);
                     source.addFeature(createWaypointFeature(mercatorCoord));
                 });
@@ -86,7 +83,7 @@
             }
 
             function createVesselLocationFeature() {
-                var style = new ol.style.Style({
+                var style = new ol.style.Style(/** @type {olx.style.StyleOptions}*/{
                     image: new ol.style.RegularShape({
                         radius: 8,
                         points: 3,
