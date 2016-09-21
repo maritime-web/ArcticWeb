@@ -75,7 +75,10 @@
                             <tr ng-click="assessment.choose()"
                                 ng-class="{'active': assess.currentLocationAssessment.locationId == assessment.locationId}"
                                 ng-repeat="assessment in assess.assessmentViews">
-                                <td>{{assessment.locationName}}</td>
+                                <td>
+                                    {{assessment.locationName}}
+                                    <span data-ng-show="assessment.valid" class="glyphicon glyphicon-ok text-success"></span>
+                                </td>
                                 <td>
                                     <div class="col-xs-4">
                                         <index-color index="assessment.index"></index-color>

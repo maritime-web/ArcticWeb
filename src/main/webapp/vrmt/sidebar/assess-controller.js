@@ -90,6 +90,7 @@
             this.locationName = assessment.location.name || "unnamed";
             this.index = assessment.index || '-';
             this.factorAssessments = assessment.scores || [];
+            this.valid = assessment.scores.length > 0;
 
             this.newAssessment = function () {
                 NotifyService.notify(Events.RouteLocationChosen, this.location);

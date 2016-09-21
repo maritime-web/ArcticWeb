@@ -30,7 +30,6 @@
     function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout) {
         var vm = this;
         $scope.mmsi = embryo.authentication.shipMmsi;
-        vm.route = {};
         vm.chosenRouteLocation = null;
 
         /**
@@ -40,7 +39,9 @@
             VesselService.details($scope.mmsi, function (v) {
                 NotifyService.notify(Events.VesselLoaded, v);
                 console.log(v);
-                loadRoute(v.additionalInformation.routeId);
+                //Only change rute if we don't have one yet
+                var routeId = $scope.route ? $scope.route.id : v.additionalInformation.routeId;
+                loadRoute(routeId);
             });
         }
 
