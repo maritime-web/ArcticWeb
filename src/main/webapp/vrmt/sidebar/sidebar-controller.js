@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("SidebarController", SidebarController);
 
-    SidebarController.$inject = ['$scope', 'RouteService', 'ScheduleService', 'NotifyService', 'Events'];
+    SidebarController.$inject = ['$scope', 'RiskAssessmentService', 'RouteService', 'ScheduleService', 'NotifyService', 'Events'];
 
-    function SidebarController($scope, RouteService, ScheduleService, NotifyService, Events) {
+    function SidebarController($scope, RiskAssessmentService, RouteService, ScheduleService, NotifyService, Events) {
         var vm = this;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
@@ -38,7 +38,7 @@
         RouteView.prototype.choose = function () {
             vm.routeDropdownOpen = false;
             RouteService.getRoute(this.routeId, function (route) {
-                NotifyService.notify(Events.RouteChanged, route);
+                RiskAssessmentService.updateCurrentRoute(route);
             });
         };
 

@@ -64,9 +64,9 @@
                 if (index > 1000) fillColor = 'yellow';
                 if (index > 2000) fillColor = 'red';
 
-                return new ol.style.Style({
+                var style = new ol.style.Style({
                     image: new ol.style.Circle({
-                        radius: 6,
+                        radius: 12,
                         fill: new ol.style.Fill({
                             color: fillColor
                         }),
@@ -81,11 +81,13 @@
                         text: text,
                         fill: new ol.style.Fill({color: 'green'}),
                         stroke: new ol.style.Stroke({color: 'white', width: 3}),
-                        offsetX: 10,
+                        offsetX: 11,
                         offsetY: 9,
                         rotation: 0
                     })
                 });
+                style.getImage().setOpacity(0.6);
+                return style;
             }
 
             /**

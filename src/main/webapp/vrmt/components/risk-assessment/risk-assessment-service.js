@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .service('RiskAssessmentService', RiskAssessmentService);
 
-    RiskAssessmentService.$inject = ['$q', 'RiskAssessmentDataService'];
+    RiskAssessmentService.$inject = ['$q', 'RiskAssessmentDataService', 'NotifyService', 'Events'];
 
-    function RiskAssessmentService($q, RiskAssessmentDataService) {
+    function RiskAssessmentService($q, RiskAssessmentDataService, NotifyService, Events) {
 
         this.getCurrentAssessment = getCurrentAssessment;
         this.startNewAssessment = startNewAssessment;
@@ -186,7 +186,10 @@
                     var defaultRouteLocations = createDefaultRouteLocationsIfNotPresent(data);
                     data.routeLocations = data.routeLocations.concat(defaultRouteLocations);
 
-                    return saveAssessmentData(data, data.currentRoute);
+                    return saveAssessmentData(data, data.currentRoute)
+                        .then(function () {
+                            NotifyService.notify(Events.RouteChanged, data.currentRoute);
+                        });
                 });
 
             function createDefaultRouteLocationsIfNotPresent(data) {

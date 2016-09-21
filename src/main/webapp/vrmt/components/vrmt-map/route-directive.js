@@ -30,6 +30,8 @@
 
             function addOrReplaceRoute() {
                 route = new embryo.vrmt.Route(arguments[1]);
+                console.log("route-directive ROUTE CHANGED");
+                console.log(route);
                 source.clear();
 
                 var routeFeature = createRouteFeature();
@@ -37,6 +39,7 @@
                     /** @type {ol.Coordinate|[]} */
                     var coord = [wp.longitude, wp.latitude];
                     var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
+                    console.log(mercatorCoord);
                     routeFeature.getGeometry().appendCoordinate(mercatorCoord);
                     source.addFeature(createWaypointFeature(mercatorCoord));
                 });
@@ -104,7 +107,7 @@
                         fill: new ol.style.Fill({color: 'green'}),
                         stroke: new ol.style.Stroke({color: 'white', width: 3}),
                         offsetX: 10,
-                        offsetY: 9,
+                        offsetY: -9,
                         rotation: 0
                     })
                 });
@@ -121,10 +124,18 @@
 
             function updateExpectedVesselLocation() {
                 var vesselLocationFeature = source.getFeatureById(vesselLocationFeatureId);
-                var vesselCoord = ol.proj.fromLonLat(route.getExpectedVesselPosition(), undefined);
+                var vesselPos = route.getExpectedVesselPosition();
+                var styleText = vesselLocationFeature.getStyle().getText();
+                var vesselCoord = null;
+                if (vesselPos) {
+                    styleText.setText('Expected vessel position');
+                    vesselCoord = ol.proj.fromLonLat(vesselPos, undefined);
+                } else {
+                    styleText.setText('Vessel is not on route');
+                    vesselCoord = ol.proj.fromLonLat(route.getStartPosition(), undefined);
+                }
                 vesselLocationFeature.getGeometry().setCoordinates(vesselCoord);
             }
-
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {

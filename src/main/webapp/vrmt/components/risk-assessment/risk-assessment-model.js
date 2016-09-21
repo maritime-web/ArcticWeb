@@ -114,6 +114,7 @@ embryo.vrmt.Route = function (route) {
     this.getClosestPointOnRoute = getClosestPointOnRoute;
     this.getExpectedVesselPosition = getExpectedVesselPosition;
     this.isOnRoute = isOnRoute;
+    this.getStartPosition = getStartPosition;
     this.equals = equals;
 
     var metersToNm = embryo.geo.Converter.metersToNm;
@@ -173,6 +174,13 @@ embryo.vrmt.Route = function (route) {
         var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
         var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
         return distanceBetween < 10;
+    }
+
+    function getStartPosition() {
+        var firstWp = this.wps[0];
+        console.log("getStartPosition");
+        console.log(firstWp);
+        return [firstWp.longitude, firstWp.latitude];
     }
 
     function equals(otherRoute) {

@@ -46,7 +46,7 @@
 
         function loadRoute(routeId) {
             RouteService.getRoute(routeId, function (r) {
-                NotifyService.notify(Events.RouteChanged, r);
+                RiskAssessmentService.updateCurrentRoute(r);
             })
         }
 
@@ -85,10 +85,7 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChanged);
         function onRouteChanged(event, newRoute) {
             $scope.route = newRoute;
-            RiskAssessmentService.updateCurrentRoute(newRoute)
-                .then(function () {
-                    loadCurrentAssessment();
-                });
+            loadCurrentAssessment();
         }
 
         NotifyService.subscribe($scope, Events.NewAssessmentStarted, function () {
@@ -126,7 +123,7 @@
             vm.chosenRouteLocation = chosen;
         }
 
-        //initial load of vessel and route
+        //reload of vessel and route
         var stop = $interval(loadVessel, 300000);
 
         //Make sure that all subscribers for vessel and route data have been registered before loading data
