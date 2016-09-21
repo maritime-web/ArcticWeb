@@ -112,6 +112,7 @@ embryo.vrmt.Route = function (route) {
     Object.assign(this, route);
     this.getTimeAtPosition = getTimeAtPosition;
     this.getClosestPointOnRoute = getClosestPointOnRoute;
+    this.getExpectedVesselPosition = getExpectedVesselPosition;
     this.isOnRoute = isOnRoute;
     this.equals = equals;
 
@@ -128,9 +129,6 @@ embryo.vrmt.Route = function (route) {
 
     function getHoursToReachPosition(aPosition) {
         var positionOnRoute = getClosestPointOnRoute(aPosition);
-        // console.log("DISTANCE BETWEEN");
-        // console.log(aPosition);
-        // console.log(positionOnRoute);
 
         var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
         if (distanceBetween > 10) {
@@ -156,6 +154,18 @@ embryo.vrmt.Route = function (route) {
         var turfPoint = turf.point([givenPosition.lon, givenPosition.lat]);
         var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
         return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[0], turfPointOnLine.geometry.coordinates[1]);
+    }
+
+    function getExpectedVesselPosition(dateTime) {
+        var vesselPosition = null;
+        legs.some(function (leg) {
+            if (leg.containsVesselAt(dateTime)) {
+                vesselPosition = leg.getVesselPositionAt(dateTime);
+                return true;
+            }
+            return false;
+        });
+        return vesselPosition;
     }
 
     function isOnRoute(routeLocation) {
@@ -204,11 +214,13 @@ embryo.vrmt.Route = function (route) {
 
         function createLeg(wp1, wp2) {
             var leg = {};
-            leg.speed = wp1.speed;
+            leg.speed = wp1.speed; // nots/h
             leg.heading = wp1.heading;
             leg.from = new embryo.geo.Position(wp1.longitude, wp1.latitude);
             leg.lineString = turf.linestring([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
             leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
+            leg.startTime = moment(wp1.eta);
+            leg.endTime = moment(wp2.eta);
 
             leg.contains = function (position) {
                 var turfPoint = turf.point([position.lon, position.lat]);
@@ -220,6 +232,17 @@ embryo.vrmt.Route = function (route) {
             leg.hoursTo = function (position) {
                 var distance = this.from.distanceTo(position, this.heading);
                 return distance / this.speed;
+            };
+
+            leg.containsVesselAt = function (dateTime) {
+                return this.startTime.isSameOrBefore(dateTime) && this.endTime.isSameOrAfter(dateTime)
+            };
+
+            leg.getVesselPositionAt = function (dateTime) {
+                var secondsFromStart = moment.duration(moment(dateTime).diff(this.startTime)).asSeconds();
+                var lengthInKm = embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart / 1000.0;
+                var point = turf.along(this.lineString, lengthInKm, "kilometers");
+                return [point.geometry.coordinates[0],point.geometry.coordinates[1]];
             };
 
             return leg;
