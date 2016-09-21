@@ -57,6 +57,11 @@ function Assessment(parameters) {
         this.locationAssessments.set(routeLocationId, locationAssessment);
     };
 
+    this.isComplete = function () {
+        return Array.from(this.locationAssessments.values()).every(function (locationAssessment) {
+            return locationAssessment.scores.length > 0;
+        });
+    }
 }
 
 function RouteLocation(parameters) {
@@ -73,6 +78,7 @@ function LocationAssessment(parameters) {
     this.index = parameters.scores.reduce(function (prev, cur) {
         return prev + cur.index;
     }, 0);
+
 }
 
 function Score(parameters) {

@@ -98,7 +98,7 @@
                                         ng-click="assess.startNew()">
                                     Start new Assessment
                                 </button>
-                                <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing"
+                                <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing || !assess.isComplete"
                                         ng-click="assess.save()">
                                     Save
                                 </button>

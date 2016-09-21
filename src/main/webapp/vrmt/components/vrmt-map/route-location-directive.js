@@ -30,7 +30,7 @@
             }
 
             function addOrReplaceLocation(location) {
-                var coord = ol.proj.transform([location.lon, location.lat], 'EPSG:4326', 'EPSG:3857');
+                var coord = ol.proj.fromLonLat(/** @type {ol.Coordinate} */[location.lon, location.lat], undefined);
                 var locationFeature = new ol.Feature({
                     geometry: new ol.geom.Point(coord)
                 });

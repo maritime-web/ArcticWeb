@@ -17,6 +17,7 @@
         vm.save = save;
         vm.discard = discard;
         vm.assessing = false;
+        vm.isComplete = false;
         var currentRoute = null;
         var vessel = null;
         var unSubscribeRouteLocationCreated = null;
@@ -121,6 +122,7 @@
         NotifyService.subscribe($scope, Events.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded(event, currentAssessment) {
             vm.assessing = true;
+            vm.isComplete = currentAssessment.isComplete();
             vm.assessmentViews = [];
             vm.currentLocationAssessment = null;
             vm.assessmentStartedAt = currentAssessment.started.format("YYYY-MM-DD HH:mm");

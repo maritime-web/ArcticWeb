@@ -89,7 +89,7 @@
                 .then(function (data) {
                     data.assessments.push(data.currentAssessment);
                     data.currentAssessment = null;
-                    return saveAssessmentData(currentRouteId, data);
+                    return saveAssessmentData(data);
                 });
         }
 
