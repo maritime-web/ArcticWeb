@@ -5,12 +5,12 @@
 
     module.filter('SearchPattern', ['SearchPattern', function(SearchPattern) {
         var texts = {};
-        texts[SearchPattern.CreepingLine] = "Creeping line search";
-        texts[SearchPattern.ParallelSweep] = "Parallel sweep search";
-        texts[SearchPattern.SectorSearch] = "Sector search";
-        texts[SearchPattern.ExpandingSquare] = "Expanding square search";
-        texts[SearchPattern.TrackLineNonReturn] = "Track line search, non-return";
-        texts[SearchPattern.TrackLineReturn] = "Track line search, return";
+        texts[SearchPattern.CreepingLine] = "Creeping line";
+        texts[SearchPattern.ParallelSweep] = "Parallel sweep";
+        texts[SearchPattern.SectorSearch] = "Sector";
+        texts[SearchPattern.ExpandingSquare] = "Expanding square";
+        texts[SearchPattern.TrackLineNonReturn] = "Track line, non-return";
+        texts[SearchPattern.TrackLineReturn] = "Track line, return";
 
         return function(input) {
             if(!input){
