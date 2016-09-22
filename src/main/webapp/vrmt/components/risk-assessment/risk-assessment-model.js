@@ -1,14 +1,57 @@
 embryo.vrmt = {};
 
+/**
+ * @typedef {{
+ * id: (string),
+ * routeId: (string)
+ * locationsToAssess: (Array<RouteLocation>),
+ * started: (number|undefined),
+ * finished: (number|undefined),
+ * locationAssessments: (Array<Array<LocationAssessment>>|undefined)
+ * }} AssessmentOptions
+ */
+
+
+/**
+ * Represents risk assessment of a route.
+ * @param {AssessmentOptions} parameters
+ * @constructor
+ */
 function Assessment(parameters) {
+    /**
+     * Unique id
+     * @type {string}
+     */
     this.id = parameters.id;
+    /**
+     * Reference to the route this risk assessment is made for.
+     * @type {string}
+     */
     this.routeId = parameters.routeId;
+    /**
+     * The time where the assessment was started.
+     * @type {number|undefined}
+     */
     this.started = parameters.started ? moment(parameters.started): undefined;
+    /**
+     * The time where the assessment was completed.
+     * @type {number|undefined}
+     */
     this.finished = parameters.finished ? moment(parameters.finished) : undefined;
+    /**
+     * The locations along the route which must be assessed.
+     * @type {Array<RouteLocation>}
+     */
+    this.locationsToAssess = parameters.locationsToAssess;
+    /**
+     * The assessments made on locations to assess.
+     * @type {Map<LocationAssessment>}
+     */
+    this.locationAssessments = null;
+
     if (!parameters.locationsToAssess) {
         throw "There must be at least one route location";
     }
-    this.locationsToAssess = parameters.locationsToAssess;
     if (parameters.locationAssessments) {
         this.locationAssessments = new Map(parameters.locationAssessments);
     } else {
@@ -46,14 +89,14 @@ function Assessment(parameters) {
         return this.locationAssessments.get(routeLocationId);
     };
 
-    this.updateLocationAssessment = function (routeLocationId, scores) {
+    this.updateLocationAssessment = function (routeLocationId, scores, note) {
         var routeLocation = this.locationsToAssess.find(function (candidate) {
             return routeLocationId == candidate.id;
         });
         if (!routeLocation) {
             throw "Could not find route location with id: '" + routeLocationId + "' in assessment identified by '" + this.id + "'";
         }
-        var locationAssessment = new LocationAssessment({time: moment(), routeLocation: routeLocation, scores: scores || []});
+        var locationAssessment = new LocationAssessment({time: moment(), routeLocation: routeLocation, scores: scores || [], note: note});
         this.locationAssessments.set(routeLocationId, locationAssessment);
     };
 
@@ -78,7 +121,7 @@ function LocationAssessment(parameters) {
     this.index = parameters.scores.reduce(function (prev, cur) {
         return prev + cur.index;
     }, 0);
-
+    this.note = parameters.note;
 }
 
 function Score(parameters) {

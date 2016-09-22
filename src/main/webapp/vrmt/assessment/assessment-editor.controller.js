@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentEditorController", AssessmentEditorController);
 
-    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'RiskFactorAssessorService', 'NotifyService', 'Events'];
+    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'RiskFactorAssessorService', 'NotifyService', 'Events', 'growl'];
 
-    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, RiskFactorAssessorService, NotifyService, Events) {
+    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, RiskFactorAssessorService, NotifyService, Events, growl) {
         var vm = this;
 
         vm.hide = true;
@@ -18,6 +18,7 @@
         vm.chosenLocation = chosenLocation;
         vm.sum = sum;
         vm.factorAssessments = [];
+        vm.note = "";
 
         var chosenRoutelocation = null;
         var currentAssessment = null;
@@ -33,13 +34,14 @@
             var scores = vm.factorAssessments.map(function (fa) {
                 return fa.toScore();
             });
-            RiskAssessmentService.createLocationAssessment(locationId, scores)
+            RiskAssessmentService.createLocationAssessment(locationId, scores, vm.note)
                 .then(
                     function (result) {
+                        growl.success("Saved location assessment");
                         NotifyService.notify(Events.LocationAssessmentCreated, result);
                     },
                     function (reason) {
-                        //TODO display error reason
+                        growl.error("Could not save location assessment: " + reason);
                         console.log(reason);
                     });
             vm.hide = true;
@@ -73,6 +75,7 @@
                     }
                 });
                 vm.factorAssessments.forEach(chooseOption);
+                vm.note = locationAssessment.note;
                 vm.hide = false;
             });
         }
@@ -96,7 +99,7 @@
         }
 
         function chosenLocation() {
-            return chosenRoutelocation ? chosenRoutelocation.id + '. ' + chosenRoutelocation.name : null;
+            return chosenRoutelocation ? chosenRoutelocation.name : null;
         }
 
         function sum() {

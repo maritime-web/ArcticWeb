@@ -62,7 +62,7 @@
         function save() {
             RiskAssessmentService.endAssessment()
                 .then(function () {
-                    growl.info("Risk assessment saved");
+                    growl.success("Risk assessment saved");
                     NotifyService.notify(Events.AssessmentCompleted);
                 })
                 .catch(function (e) {

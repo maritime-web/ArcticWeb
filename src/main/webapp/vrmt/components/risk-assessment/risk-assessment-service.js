@@ -29,7 +29,7 @@
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     if (data.currentAssessment) {
-                        return new Assessment(data.currentAssessment);
+                        return new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
                     }
                     return $q.reject("There is no current assessment for route '" +currentRouteId+ "'");
                 });
@@ -116,15 +116,16 @@
          *
          * @param locationId
          * @param scores
+         * @param note
          * @returns {deferred.promise|{then, catch, finally}}
          */
-        function createLocationAssessment(locationId, scores) {
+        function createLocationAssessment(locationId, scores, note) {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
                     try {
                         if (data.currentAssessment) {
-                            data.currentAssessment = new Assessment(data.currentAssessment);
-                            data.currentAssessment.updateLocationAssessment(locationId, scores);
+                            data.currentAssessment = new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
+                            data.currentAssessment.updateLocationAssessment(locationId, scores, note);
 
                             return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                                 .then(function () {
@@ -144,7 +145,7 @@
                 .then(function (data) {
                     try {
                         if (data.currentAssessment) {
-                            data.currentAssessment = new Assessment(data.currentAssessment);
+                            data.currentAssessment = new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
                             data.currentAssessment.deleteLocation(locationId);
 
                             return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
