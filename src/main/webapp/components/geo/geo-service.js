@@ -415,7 +415,16 @@
         return dest;
     }
 
-    embryo.geo.Position.prototype.transformPositionRhumbline = function(bearing, distanceInNm) {
+
+    embryo.geo.Position.prototype.transform = function (bearing, distanceInNm, heading) {
+        if (heading == embryo.geo.Heading.RL) {
+            return this.transformRhumbLine(bearing, distanceInNm);
+        } else {
+            return this.transformPosition(bearing, distanceInNm);
+        }
+    }
+
+    embryo.geo.Position.prototype.transformRhumbLine = function(bearing, distanceInNm) {
         // Taken from http://cdn.rawgit.com/chrisveness/geodesy/v1.1.1/latlon-spherical.js
         // Consider including latlon-spherical.js in application and let Position use LatLon object
         // (Composition pattern)
@@ -723,7 +732,7 @@
         // Find P2.
         // FIXME: This should not be ordinary 2D calculation if other calculations are based on calculations on the globe
         var bearing = circle0.center.rhumbLineBearingTo(circle1.center);
-        var P2 = circle0.center.transformPosition(bearing, a);
+        var P2 = circle0.center.transformRhumbLine(bearing, a);
         //var lon = circle0.center.lon + a * (circle1.center.lon - circle0.center.lon) / dist;
         //var lat = circle0.center.lat + a * (circle1.center.lat - circle0.center.lat) / dist;
         //var P2 = new embryo.geo.Position(lon, lat);
@@ -735,7 +744,7 @@
         //        P2.lat - h * (circle1.center.lon - circle0.center.lon) / dist)
         //}
         var intersections = {
-            p1 : P2.transformPosition(bearing - 90, h)
+            p1 : P2.transformRhumbLine(bearing - 90, h)
         }
 
         // if two intersections, then calculate it.
@@ -744,7 +753,7 @@
             //intersections.p2 = new embryo.geo.Position(
             //    P2.lon - h * (circle1.center.lat - circle0.center.lat) / dist,
             //    P2.lat + h * (circle1.center.lon - circle0.center.lon) / dist)
-            intersections.p2 = P2.transformPosition(bearing + 90, h);
+            intersections.p2 = P2.transformRhumbLine(bearing + 90, h);
         }
         return intersections;
     }
@@ -808,15 +817,15 @@
         // Offset the tangent vector's points.
         var bearingToTangent1 = circle2a.center.bearingTo(tangents[0].point2, embryo.geo.Heading.RL);
         var tangent1 = {
-            point1 : c1.center.transformPosition(bearingToTangent1, c1.radius),
-            point2 : tangents[0].point2.transformPosition(bearingToTangent1, c1.radius)
+            point1 : c1.center.transformRhumbLine(bearingToTangent1, c1.radius),
+            point2 : tangents[0].point2.transformRhumbLine(bearingToTangent1, c1.radius)
         }
 
         // Offset the tangent vector's points.
         var bearingToTangent2 = circle2a.center.bearingTo(tangents[1].point2, embryo.geo.Heading.RL);
         var tangent2 = {
-            point1 : c1.center.transformPosition(bearingToTangent2, c1.radius),
-            point2 : tangents[1].point2.transformPosition(bearingToTangent2, c1.radius)
+            point1 : c1.center.transformRhumbLine(bearingToTangent2, c1.radius),
+            point2 : tangents[1].point2.transformRhumbLine(bearingToTangent2, c1.radius)
         }
 
         return [tangent1, tangent2]
@@ -880,7 +889,7 @@
         var a = (Math.pow(radius0, 2) - Math.pow(radius1, 2) + Math.pow(d, 2)) / (d * 2);
         var h = Math.sqrt(Math.pow(radius0, 2) - Math.pow(a, 2))
 
-        var p2 = cCenter0.transformPosition(cCenter0.bearingTo(cCenter1, heading), a);
+        var p2 = cCenter0.transformRhumbLine(cCenter0.bearingTo(cCenter1, heading), a);
 
         return {
             pointOnLine: p2,
@@ -927,13 +936,13 @@
         var newPos0ToPos1Length = area / newPos3ToPos0Length;
         var delta = Math.abs(newPos0ToPos1Length - pos0ToPos1Dist) / 2;
 
-        position0 = position0.transformPosition(bearingToMoveLine, lineInfo.distanceToLine);
+        position0 = position0.transform(bearingToMoveLine, lineInfo.distanceToLine, heading);
         var bearingToMovePoint0 = (bearingToMoveLine + 90 + 360) % 360;
 
-        position0 = position0.transformPosition(bearingToMovePoint0, delta);
-        position1 = position0.transformPosition(bearingPoint0To1, newPos0ToPos1Length);
-        position2 = position1.transformPosition(bearingPoint0To1 + 90, newPos3ToPos0Length);
-        position3 = position0.transformPosition(bearingPoint0To1 + 90, newPos3ToPos0Length);
+        position0 = position0.transform(bearingToMovePoint0, delta, heading);
+        position1 = position0.transform(bearingPoint0To1, newPos0ToPos1Length, heading);
+        position2 = position1.transform(bearingPoint0To1 + 90, newPos3ToPos0Length, heading);
+        position3 = position0.transform(bearingPoint0To1 + 90, newPos3ToPos0Length, heading);
 
         var newPositions = [];
         newPositions[lineIndex] = position0;
