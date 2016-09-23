@@ -117,11 +117,13 @@
             function updateExpectedVesselLocation() {
                 var vesselLocationFeature = source.getFeatureById(vesselLocationFeatureId);
                 var vesselPos = route.getExpectedVesselPosition();
-                var styleText = vesselLocationFeature.getStyle().getText();
+                var style = vesselLocationFeature.getStyle();
+                var styleText = style.getText();
                 var vesselCoord = null;
                 if (vesselPos) {
                     styleText.setText('Expected vessel position ['+formatLatLon({lon: vesselPos[0], lat: vesselPos[1]}, 0, true)+']');
                     vesselCoord = ol.proj.fromLonLat(vesselPos, undefined);
+                    style.getImage().setRotation(route.getBearingAt(moment()) - Math.PI/2);
                 } else {
                     styleText.setText('Vessel is not on route');
                     vesselCoord = ol.proj.fromLonLat(route.getStartPosition(), undefined);

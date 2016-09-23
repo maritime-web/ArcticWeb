@@ -108,7 +108,13 @@ function Assessment(parameters) {
 }
 
 function RouteLocation(parameters) {
-    Object.assign(this, parameters);
+    this.id = parameters.id;
+    this.routeId = parameters.routeId;
+    this.name = parameters.name;
+    this.lon = parameters.lon;
+    this.lat = parameters.lat;
+    this.eta = parameters.eta;
+
     this.asPosition = function () {
         return new embryo.geo.Position(this.lon, this.lat);
     };
@@ -162,6 +168,7 @@ embryo.vrmt.Route = function (route) {
     this.getTimeAtPosition = getTimeAtPosition;
     this.getClosestPointOnRoute = getClosestPointOnRoute;
     this.getExpectedVesselPosition = getExpectedVesselPosition;
+    this.getBearingAt = getBearingAt;
     this.isOnRoute = isOnRoute;
     this.isVesselOnRoute = isVesselOnRoute;
     this.getStartPosition = getStartPosition;
@@ -208,15 +215,19 @@ embryo.vrmt.Route = function (route) {
     }
 
     function getExpectedVesselPosition(dateTime) {
-        var vesselPosition = null;
-        legs.some(function (leg) {
-            if (leg.containsVesselAt(dateTime)) {
-                vesselPosition = leg.getVesselPositionAt(dateTime);
-                return true;
-            }
-            return false;
+        var activeLeg = getActiveLegAt(dateTime);
+        return activeLeg ? activeLeg.getVesselPositionAt(dateTime) : null;
+    }
+
+    function getBearingAt(dateTime) {
+        var activeLeg = getActiveLegAt(dateTime);
+        return activeLeg ? activeLeg.getBearing() : 0;
+    }
+
+    function getActiveLegAt(dateTime) {
+        return legs.find(function (leg) {
+            return leg.containsVesselAt(dateTime);
         });
-        return vesselPosition;
     }
 
     function isOnRoute(routeLocation) {
@@ -280,6 +291,7 @@ embryo.vrmt.Route = function (route) {
             leg.speed = wp1.speed; // nots/h
             leg.heading = wp1.heading;
             leg.from = new embryo.geo.Position(wp1.longitude, wp1.latitude);
+            leg.to = new embryo.geo.Position(wp2.longitude, wp2.latitude);
             leg.lineString = turf.linestring([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
             leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
             leg.startTime = moment(wp1.eta);
@@ -308,6 +320,10 @@ embryo.vrmt.Route = function (route) {
                 return [point.geometry.coordinates[0],point.geometry.coordinates[1]];
             };
 
+            leg.getBearing = function () {
+                var bearing = this.from.bearingTo(this.to, this.heading);
+                return embryo.Math.toRadians(bearing);
+            };
             return leg;
         }
 
