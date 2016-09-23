@@ -84,6 +84,15 @@
 
             function createVesselLocationFeature() {
                 var style = new ol.style.Style(/** @type {olx.style.StyleOptions}*/{
+                    image: new ol.style.Icon({
+                        anchor: [0.5, 0.5],
+                        opacity: 0.80,
+                        src: 'img/vessel_gray.png',
+                        color: 'black',
+                        snapToPixel: false
+
+                    }),
+/*
                     image: new ol.style.RegularShape({
                         radius: 8,
                         points: 3,
@@ -97,11 +106,12 @@
                             color: "black"
                         })
                     }),
+*/
                     text: new ol.style.Text(/** @type {olx.style.TextOptions}*/{
                         textAlign: 'start',
                         font: 'bold 12px Arial',
                         text: 'Expected vessel position',
-                        fill: new ol.style.Fill({color: 'green'}),
+                        fill: new ol.style.Fill({color: 'black'}),
                         stroke: new ol.style.Stroke({color: 'white', width: 3}),
                         offsetX: 10,
                         offsetY: -9,

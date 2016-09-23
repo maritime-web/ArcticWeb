@@ -87,6 +87,7 @@
         function endAssessment() {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
+                    data.currentAssessment.finished = moment();
                     data.assessments.push(data.currentAssessment);
                     data.currentAssessment = null;
                     return saveAssessmentData(data);
