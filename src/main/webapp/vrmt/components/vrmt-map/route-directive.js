@@ -92,21 +92,6 @@
                         snapToPixel: false
 
                     }),
-/*
-                    image: new ol.style.RegularShape({
-                        radius: 8,
-                        points: 3,
-                        angle: 0,
-                        snapToPixel: false,
-                        stroke: new ol.style.Stroke({
-                            color: 'black',
-                            width: 2
-                        }),
-                        fill: new ol.style.Fill({
-                            color: "black"
-                        })
-                    }),
-*/
                     text: new ol.style.Text(/** @type {olx.style.TextOptions}*/{
                         textAlign: 'start',
                         font: 'bold 12px Arial',
@@ -135,7 +120,7 @@
                 var styleText = vesselLocationFeature.getStyle().getText();
                 var vesselCoord = null;
                 if (vesselPos) {
-                    styleText.setText('Expected vessel position');
+                    styleText.setText('Expected vessel position ['+formatLatLon({lon: vesselPos[0], lat: vesselPos[1]}, 0, true)+']');
                     vesselCoord = ol.proj.fromLonLat(vesselPos, undefined);
                 } else {
                     styleText.setText('Vessel is not on route');
