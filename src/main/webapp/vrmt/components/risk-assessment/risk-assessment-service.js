@@ -64,7 +64,7 @@
                     return saveAssessmentData(data);
 
                     function getLocationsNotYetPassed() {
-                        var currentTime = moment().subtract(1, 'm');
+                        var currentTime = moment().subtract(1, 'h');
                         return data.routeLocations.filter(function (location) {
                             return currentTime.isSameOrBefore(location.eta);
                         });

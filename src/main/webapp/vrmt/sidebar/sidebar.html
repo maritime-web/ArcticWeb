@@ -31,7 +31,8 @@
                     </div>
                     <div class="text-with-button">
                         <div class="col-xs-8">
-                            Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with estimated departure on {{sidebar.meta.routeView.etaDep}}
+                            Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with estimated
+                            departure on {{sidebar.meta.routeView.etaDep}}
                         </div>
                         <div class="col-xs-4">
                             <div mw-select-renderer>
@@ -69,6 +70,8 @@
                                 <th>
                                     <div class="col-xs-12">Index</div>
                                 </th>
+                                <th></th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -77,20 +80,23 @@
                                 ng-repeat="assessment in assess.assessmentViews">
                                 <td>
                                     {{assessment.locationName}}
-                                    <span data-ng-show="assessment.valid" class="glyphicon glyphicon-ok text-success"></span>
+                                    <span data-ng-show="assessment.valid"
+                                          class="glyphicon glyphicon-ok text-success"></span>
                                 </td>
                                 <td>
-                                    <div class="col-xs-4">
+                                    <div class="col-xs-12">
                                         <index-color index="assessment.index"></index-color>
                                     </div>
-                                    <div class="col-xs-4 col-xs-offset-4">
-                                        <button class="btn btn-primary btn-xs" ng-click="assessment.newAssessment()">
-                                            edit
-                                        </button>
-                                        <button type="button" class="close" x-ng-click="assessment.deleteLocation()">
-                                            x
-                                        </button>
-                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary btn-xs pull-right" ng-click="assessment.newAssessment()">
+                                        edit
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" class="close" x-ng-click="assessment.deleteLocation()">
+                                        x
+                                    </button>
                                 </td>
                             </tr>
                             </tbody>
@@ -101,7 +107,8 @@
                                         ng-click="assess.startNew()">
                                     Start new Assessment
                                 </button>
-                                <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing || !assess.isComplete"
+                                <button class="btn btn-primary btn-xs"
+                                        data-ng-disabled="!assess.assessing || !assess.isComplete"
                                         ng-click="assess.save()">
                                     Save
                                 </button>
@@ -119,7 +126,7 @@
             <accordion-group is-open="sidebar.safetyMeasuresActive">
                 <accordion-heading>
                     SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
-                                          ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
+                                                              ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
                 </accordion-heading>
                 <div class="container-fluid sidebar-grid">
                     <div class="row sidebar-grid-heading sidebar-grid-row">

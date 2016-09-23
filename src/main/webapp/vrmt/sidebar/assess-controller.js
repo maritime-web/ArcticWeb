@@ -38,6 +38,7 @@
 
             var addRouteLocationEvent = {
                 introduction: "Before the new assessment can start you need to create a new assessment location on your vessels current position. Please override the given ais position if it isn't correct. The ais position was last recieved " + moment().to(vessel.aisVessel.lastReport),
+                name: "Position at " + moment().format("MM-DD HH:mm"),
                 vessel: {
                     ais: vessel ? vessel.aisVessel : {},
                     override: vessel ? Object.assign({}, vessel.aisVessel) : {}

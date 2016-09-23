@@ -15,29 +15,35 @@
             <div class="form-group" ng-if="loc.route">
                 <label class="control-label col-xs-4">Location on route:</label>
                 <div class="col-xs-4">
-                    <input type="text" disabled class="form-control input-sm" id="y" ng-model="loc.route.lat"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" disabled class="form-control input-sm" id="y" latitude ng-model="loc.route.lat"/>
                 </div>
                 <div class="col-xs-4">
-                    <input type="text" disabled class="form-control input-sm" id="x" ng-model="loc.route.lon"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" disabled class="form-control input-sm" id="x" longitude ng-model="loc.route.lon"/>
                 </div>
             </div>
 
             <div class="form-group" ng-if="loc.vessel">
                 <label class="control-label col-xs-4">Ais location:</label>
                 <div class="col-xs-4">
-                    <input type="text" disabled class="form-control input-sm" id="y" ng-model="loc.vessel.ais.lat"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" disabled class="form-control input-sm" id="y" latitude ng-model="loc.vessel.ais.lat"/>
                 </div>
                 <div class="col-xs-4">
-                    <input type="text" disabled class="form-control input-sm" id="x" ng-model="loc.vessel.ais.lon"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" disabled class="form-control input-sm" id="x" longitude ng-model="loc.vessel.ais.lon"/>
                 </div>
             </div>
             <div class="form-group" ng-if="loc.vessel">
                 <label class="control-label col-xs-4">Override ais location:</label>
                 <div class="col-xs-4">
-                    <input type="number" step="any" class="form-control input-sm" id="y" ng-model="loc.vessel.override.lat"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" step="any" class="form-control input-sm" id="y" latitude ng-model="loc.vessel.override.lat"/>
                 </div>
                 <div class="col-xs-4">
-                    <input type="number" step="any" class="form-control input-sm" id="x" ng-model="loc.vessel.override.lon"/>
+                    <!--suppress XmlDuplicatedId -->
+                    <input type="text" step="any" class="form-control input-sm" id="x" longitude ng-model="loc.vessel.override.lon"/>
                 </div>
             </div>
             <div class="form-group">

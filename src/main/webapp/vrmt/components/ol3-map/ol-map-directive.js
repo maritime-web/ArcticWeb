@@ -43,8 +43,7 @@
                     pinchRotate: true
                 });
 
-                // var arcticExtent = ol.proj.transformExtent([-180, -180, 180, 180], 'EPSG:4326', 'EPSG:3857');
-                var coords = [ol.proj.fromLonLat([-90, -90]), ol.proj.fromLonLat([90, 90])];
+                var coords = [ol.proj.fromLonLat([-180, -90], undefined), ol.proj.fromLonLat([180, 90], undefined)];
                 var arcticExtent = ol.extent.boundingExtent(coords);
                 var layers = [new ol.layer.Group({
                     'title': 'Base maps',
@@ -59,8 +58,8 @@
                 })];
                 var view = new ol.View({
                     zoom: 6,
-                    minZoom: 3,
-                    center: ol.proj.fromLonLat([-48, 64]),
+                    minZoom: 4,
+                    center: ol.proj.fromLonLat([0, 0], undefined),
                     extent: arcticExtent
                 });
                 var map = new ol.Map({
