@@ -635,10 +635,22 @@
             }
         }
 
+        function leadingZeros(value, number){
+            var str = value.toString();
+            console.log(value)
+            while (str.length < number){
+                str = "0" + str;
+            }
+            return str;
+        }
+
         return {
+
             createSarId: function () {
                 var now = new Date();
-                return "AW-" + now.getUTCFullYear() + now.getUTCMonth() + now.getUTCDay() + now.getUTCHours() + now.getUTCMinutes() + now.getUTCSeconds() + now.getUTCMilliseconds();
+                return "AW-" + now.getUTCFullYear() + leadingZeros(now.getUTCMonth() + 1, 2) + leadingZeros(now.getUTCDate(),2)
+                    + leadingZeros(now.getUTCHours(), 2) + leadingZeros(now.getUTCMinutes(), 2)
+                    + leadingZeros(now.getUTCSeconds(), 2) + leadingZeros(now.getUTCMilliseconds(), 3);
             },
             createSarOperation: function (sarInput) {
                 var outputType = getOutputType(sarInput.type);
