@@ -600,7 +600,7 @@ $(function() {
 
             if (browser.isChrome() && parseFloat(browser.chromeVersion()) > 27) {
                 accelerate = getCookie("dma-ais-accelerate-" + embryo.authentication.userName);
-                $("#accelerate input").prop("checked", accelerate == "true");
+                $("#accelerate input").prop("checked", accelerate != "false");
                 $("#accelerate").css("display", "block");
             }
             $("#switchBaseMapDialog").modal("show");
