@@ -439,7 +439,6 @@
                 }
             }
 
-
         $scope.addPoint = function () {
             $scope.sar.surfaceDriftPoints.push({});
         }

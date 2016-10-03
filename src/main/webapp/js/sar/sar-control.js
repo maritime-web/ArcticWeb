@@ -6,9 +6,20 @@ $(function () {
     var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices', 'embryo.position',
         'embryo.sar.operation.filter', 'embryo.sar.status.filter', 'embryo.sar.SearchPattern.filter', 'embryo.sar.DrawSarSubDocPredicate','embryo.sar.DrawOperationPredicate']);
 
-    module.controller("SARControl", ['$scope', function ($scope) {
+    module.controller("SARControl", ['$scope', 'Subject', 'Operation', function ($scope, Subject, Operation) {
         $scope.selected = {
             open: false
+        }
+
+        $scope.isCoordinator = function(){
+            if(!$scope.selected || !$scope.selected.sar || !$scope.selected.sar.coordinator){
+                return false;
+            }
+            var coordinator = $scope.selected.sar.coordinator;
+            return coordinator.mmsi == Subject.getDetails().shipMmsi || coordinator.name === Subject.getDetails().userName;
+        }
+        $scope.isBackTrack = function(){
+            return $scope.selected && $scope.selected.sar && $scope.selected.sar.input && $scope.selected.sar.input.type === Operation.BackTrack;
         }
     }]);
 
@@ -403,7 +414,6 @@ $(function () {
             delete $scope.msg.longitude;
         }
 
-
         $scope.isParticipant = function () {
             var allocations = $scope.selected.allocations;
             for (var index in allocations) {
@@ -411,9 +421,7 @@ $(function () {
                     return true;
                 }
             }
-            var coordinator = $scope.selected.sar.coordinator;
-
-            return coordinator.mmsi == Subject.getDetails().shipMmsi || coordinator.name === Subject.getDetails().userName;
+            return $scope.isCoordinator();
         }
 
         $scope.$on("$destroy", function () {
