@@ -637,7 +637,6 @@
 
         function leadingZeros(value, number){
             var str = value.toString();
-            console.log(value)
             while (str.length < number){
                 str = "0" + str;
             }
