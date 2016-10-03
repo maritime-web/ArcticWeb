@@ -486,35 +486,32 @@
                 $log.error("end - error")
                 $log.error(err)
             });
-
         }
 
         $scope.archive = function () {
             var id = $scope.sarOperation._id;
-
             LivePouch.get(id).then(function (sar) {
                 sar.status = embryo.SARStatus.ARCHIVED;
-                LivePouch.put(sar).then(function () {
-                    $scope.provider.doShow = false;
-                    SarService.selectSar(null);
-                }).catch(function (err) {
-                    $log.error("archive - error")
-                    $log.error(err)
-                });
+                return LivePouch.put(sar);
+            }).then(function () {
+                $scope.provider.doShow = false;
+                SarService.selectSar(null);
+            }).catch(function (err) {
+                $log.error("archive - error")
+                $log.error(err)
             });
-
         }
 
         $scope.getUsers = function (query) {
             UserPouch.get(query).then(function (sar) {
                 sar.status = embryo.SARStatus.ENDED;
-                LivePouch.put(sar).then(function () {
-                    $scope.provider.doShow = false;
-                    SarService.selectSar(null);
-                }).catch(function (err) {
-                    $log.error("getUsers - error")
-                    $log.error(err)
-                });
+                return LivePouch.put(sar);
+            }).then(function () {
+                $scope.provider.doShow = false;
+                SarService.selectSar(null);
+            }).catch(function (err) {
+                $log.error("getUsers - error")
+                $log.error(err)
             });
         }
     }]);
