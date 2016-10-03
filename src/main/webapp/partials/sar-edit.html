@@ -920,11 +920,21 @@
                 <hr/>
                 Are you sure you wish to end the search and rescue operation {{sar.no}}?
                 <hr/>
-                NB. The details of this search and rescue operation will remain available in ArcticWeb for some time
-                until removed by the system.
+                NB. The details of this search and rescue operation will remain available in ArcticWeb for some time until deleted.
                 <div class="col-xs-12">
                     <span class="pull-right">
                         <button type="button" class="btn btn-primary btn-sm" x-ng-click="end()">Yes</button>
+                        <button type="button" class="btn btn-sm" x-ng-click="cancel()">No</button>
+                    </span>
+                </div>
+            </div>
+            <div x-ng-if="page.name == 'archive'">
+                <hr/>
+                Are you sure you wish to delete the search and rescue operation {{sar.no}}?.
+                <hr/>
+                <div class="col-xs-12">
+                    <span class="pull-right">
+                        <button type="button" class="btn btn-primary btn-sm" x-ng-click="archive()">Yes</button>
                         <button type="button" class="btn btn-sm" x-ng-click="cancel()">No</button>
                     </span>
                 </div>

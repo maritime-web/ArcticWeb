@@ -10,7 +10,8 @@
     embryo.SARStatus = Object.freeze({
         STARTED: "S",
         DRAFT: "D",
-        ENDED: "E"
+        ENDED: "E",
+        ARCHIVED: "A"
     });
 
     module.constant('SarStatus', embryo.SARStatus);

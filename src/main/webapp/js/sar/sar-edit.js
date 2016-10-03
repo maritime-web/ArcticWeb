@@ -475,13 +475,34 @@
 
             LivePouch.get(id).then(function (sar) {
                 sar.status = embryo.SARStatus.ENDED;
+                return LivePouch.put(sar);
+            }).then(function (putResponse) {
+                return LivePouch.get(putResponse.id)
+            }).then(function(sar){
+                $scope.sarOperation = sar;
+                $scope.sar = sar
+                $scope.provider.doShow = false;
+            }).catch(function (err) {
+                $log.error("end - error")
+                $log.error(err)
+            });
+
+        }
+
+        $scope.archive = function () {
+            var id = $scope.sarOperation._id;
+
+            LivePouch.get(id).then(function (sar) {
+                sar.status = embryo.SARStatus.ARCHIVED;
                 LivePouch.put(sar).then(function () {
                     $scope.provider.doShow = false;
                     SarService.selectSar(null);
                 }).catch(function (err) {
-                    console.log(err)
+                    $log.error("archive - error")
+                    $log.error(err)
                 });
             });
+
         }
 
         $scope.getUsers = function (query) {
@@ -981,7 +1002,6 @@
             }
 
             $scope.toSubAreaCalculation = function (effort, $event) {
-                console.log($event)
                 if($event){
                     $event.preventDefault();
                 }

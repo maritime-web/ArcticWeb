@@ -71,6 +71,14 @@
                             </span>
                         </div>
                     </div>
+                    <div class="row sarButtons"
+                         x-ng-if="sar.status == SARStatus.ENDED && ((selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName) || isAdministrator)">
+                        <div class="col-md-12">
+                        <span class="pull-right">
+                            <button type="button" class="btn btn-xs" x-ng-click="archive()">Delete SAR</button>
+                        </span>
+                        </div>
+                    </div>
 
                     <div x-ng-if="tmp.searchObject">
                         <h6>Search Object</h6>

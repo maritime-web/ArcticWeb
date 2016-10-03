@@ -4,7 +4,7 @@ $(function () {
 //    addLayerToMap("msi", msiLayer, embryo.map);
 
     var module = angular.module('embryo.sar.controllers', ['embryo.sar.service', 'embryo.common.service', 'embryo.storageServices', 'embryo.position',
-        'embryo.sar.operation.filter', 'embryo.sar.status.filter', 'embryo.sar.SearchPattern.filter']);
+        'embryo.sar.operation.filter', 'embryo.sar.status.filter', 'embryo.sar.SearchPattern.filter', 'embryo.sar.DrawSarSubDocPredicate','embryo.sar.DrawOperationPredicate']);
 
     module.controller("SARControl", ['$scope', function ($scope) {
         $scope.selected = {
@@ -35,11 +35,12 @@ $(function () {
         return JSON.parse(JSON.stringify(object));
     }
 
-    module.controller("SARLayerControl", ['$scope', 'SarService', 'LivePouch', '$log', 'Subject',
-        function ($scope, SarService, LivePouch, $log, Subject) {
+    module.controller("SARLayerControl", ['$scope', 'SarService', 'LivePouch', '$log', 'DrawOperationPredicate', 'DrawSarSubDocPredicate',
+        function ($scope, SarService, LivePouch, $log, DrawOperationPredicate, DrawSarSubDocPredicate) {
         var sarDocuments = [];
-        var mmsi = Subject.getDetails().shipMmsi;
-        var name = Subject.getDetails().userName;
+
+        var DrawOperationPredicate = DrawOperationPredicate.build();
+        var DrawSarSubDocPredicateType = DrawSarSubDocPredicate;
 
         SarLayerSingleton.getInstance().modified = function (zoneUpdate) {
             $log.debug("zone updated on map");
@@ -79,19 +80,23 @@ $(function () {
                 endkey: 'sarx'
             }).then(function (result) {
                 var documents = [];
+                var idsOfOperationsToDraw = []
+
                 for (var index in result.rows) {
                     var doc = result.rows[index].doc;
-                    if ((doc['@type'] == embryo.sar.Type.Log && (typeof doc.lat) === "string" && typeof doc.lon === "string") ||
-                        doc['@type'] == embryo.sar.Type.SearchArea || doc['@type'] == embryo.sar.Type.SearchPattern ||
-                        doc.status == embryo.sar.effort.Status.Active ||
-                        doc.status == embryo.sar.effort.Status.DraftZone ||
-                        doc.status == embryo.sar.effort.Status.DraftModifiedOnMap) {
-                        if(doc['@type'] != embryo.sar.Type.SearchArea || doc.input.type != embryo.sar.Operation.BackTrack
-                            || (mmsi && doc.coordinator.mmsi == mmsi || doc.coordinator.name === name)){
-                            documents.push(SarService.prepareSearchAreaForDisplayal(doc));
-                        }
+                    if (DrawOperationPredicate.draw(doc)) {
+                        idsOfOperationsToDraw.push(doc._id)
+                        documents.push(SarService.prepareSearchAreaForDisplayal(doc));
+                    }
+                    ;
+                }
+                var DrawSarSubDocPredicate = DrawSarSubDocPredicateType.build(idsOfOperationsToDraw);
+                for (var index in result.rows) {
+                    if (DrawSarSubDocPredicate.draw(result.rows[index].doc)) {
+                            documents.push(result.rows[index].doc);
                     }
                 }
+
                 sarDocuments = documents;
                 SarLayerSingleton.getInstance().draw(sarDocuments);
                 $log.debug("loadSarDocuments");
@@ -123,15 +128,13 @@ $(function () {
         loadSarDocuments();
     }]);
 
-    module.controller("OperationsControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch', 'Subject',
-        function ($scope, SarService, ViewService, $log, LivePouch,Subject) {
-
-            var mmsi = Subject.getDetails().shipMmsi;
-            var name = Subject.getDetails().userName;
+    module.controller("OperationsControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch', 'DrawOperationPredicate',
+        function ($scope, SarService, ViewService, $log, LivePouch, DrawOperationPredicate) {
 
             $scope.sars = [];
-
             $scope.SARStatusLabel = SARStatusLabel;
+
+            var predicate = DrawOperationPredicate.build();
 
             var subscription = ViewService.subscribe({
                 name: "OperationsControl",
@@ -153,9 +156,8 @@ $(function () {
                     var operations = []
                     for (var index in result.rows) {
                         var doc = result.rows[index].doc;
-                        if(doc.input.type != embryo.sar.Operation.BackTrack
-                            || (mmsi && doc.coordinator.mmsi == mmsi || doc.coordinator.name === name)){
-                            operations.push(SarService.toSmallSarObject(result.rows[index].doc));
+                        if (predicate.draw(doc)) {
+                            operations.push(SarService.toSmallSarObject(doc));
                         }
                     }
                     $scope.sars = operations;
@@ -199,12 +201,13 @@ $(function () {
             }
         }]);
 
-    module.controller("OperationControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch',
-        function ($scope, SarService, ViewService, $log, LivePouch) {
+    module.controller("OperationControl", ['$scope', 'SarService', 'ViewService', '$log', 'LivePouch', 'Subject',
+        function ($scope, SarService, ViewService, $log, LivePouch, Subject) {
 
             $scope.SARStatusLabel = SARStatusLabel;
             $scope.SARStatus = embryo.SARStatus;
             var changes = null;
+            $scope.isAdministrator = Subject.authorize("Administration")
 
             var subscription = ViewService.subscribe({
                 name: "OperationControl",
@@ -284,6 +287,10 @@ $(function () {
 
             $scope.newCoordinator = function () {
                 $scope.newSarProvider.show({sarId: $scope.sar._id, page: "coordinator"});
+            }
+
+            $scope.archive = function () {
+                $scope.newSarProvider.show({sarId: $scope.sar._id, page: "archive"});
             }
 
             $scope.confirmEnd = function () {

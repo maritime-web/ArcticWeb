@@ -46,8 +46,6 @@ describe('embryo.geo.Position', function () {
 
 
             var inKm= 201.07670188349698 * 1.852;
-            console.log(inKm)
-            console.log(p1)
 
             var position = p1.transformRhumbLine(277.61590166083806, 201.07670188349698);
             expect(position).toBeDefined();
