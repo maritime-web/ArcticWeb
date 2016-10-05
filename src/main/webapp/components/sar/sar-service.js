@@ -1516,7 +1516,7 @@
                 area.C = result.area.C.toDegreesAndDecimalMinutes();
                 area.D = result.area.D.toDegreesAndDecimalMinutes();
                 result.area = area;
-                result.coordinator = sar.coordinator.name;
+                result.coordinator = sar.coordinator.userName;
                 return result;
             },
             calculateTrackSpacing: function (input) {
@@ -1632,13 +1632,8 @@
             findAndPrepareCurrentUserAsCoordinator: function (users){
                 function findUser(){
                     var userName = Subject.getDetails().userName
-                    var mmsi = Subject.getDetails().shipMmsi;
-
                     for(var index in users) {
-                        // change to '===' when data are both strings / numbers
-                        if (mmsi && users[index].mmsi == mmsi) {
-                            return users[index];
-                        } else if (users[index].name === userName) {
+                        if (users[index].userName === userName) {
                             return users[index];
                         }
                     }
@@ -1656,7 +1651,7 @@
                     return sa;
                 }
                 var details = Subject.getDetails();
-                if(details.userName === sa.coordinator.name || (details.shipMmsi && details.shipMmsi == sa.coordinator.mmsi)){
+                if(details.userName === sa.coordinator.userName){
                     return sa;
                 }
                 var searchArea = clone(sa);

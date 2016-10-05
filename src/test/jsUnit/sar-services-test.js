@@ -861,7 +861,7 @@ describe('embryo.sar.service', function () {
                      }
                  },
                  coordinator : {
-                     name : "foo"
+                     userName : "foo"
                  }
              }
 

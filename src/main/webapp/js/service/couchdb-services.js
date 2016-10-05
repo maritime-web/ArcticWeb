@@ -31,7 +31,6 @@
                     }
                     rolesStr += roles[i];
                 }
-
                 return {
                      'X-Auth-Couchdb-UserName' : Subject.getDetails().userName,
                      'X-Auth-Couchdb-Roles' : rolesStr,

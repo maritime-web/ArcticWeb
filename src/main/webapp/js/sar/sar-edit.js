@@ -1340,7 +1340,7 @@
 
 
             function saveSearchPattern(pattern) {
-                pattern.coordinator = $scope.sar.coordinator.name;
+                pattern.coordinator = $scope.sar.coordinator.userName;
                 LivePouch.put(pattern).then(function () {
                     SarLayerSingleton.getInstance().removeTemporarySearchPattern();
                     $scope.toSrus();
