@@ -49,8 +49,6 @@ $(function() {
         }
         sections[0].services.sort(awSorter);
 
-        sections[1].services.push(embryo.vessel.controllers
-                .service(embryo.additionalInformation.historicalTrack, scope));
         sections[1].services.push(embryo.vessel.controllers.service(embryo.additionalInformation.nearestShips, scope));
         sections[1].services.push(embryo.vessel.controllers
                 .service(embryo.additionalInformation.distanceCircles, scope));
