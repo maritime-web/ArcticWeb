@@ -860,6 +860,9 @@ describe('embryo.sar.service', function () {
                          }
                      }
                  },
+                 coordinator : {
+                     name : "foo"
+                 }
              }
 
              var input = {
@@ -889,6 +892,7 @@ describe('embryo.sar.service', function () {
              expect(result.area.B).toBeDefined()
              expect(result.area.C).toBeDefined()
              expect(result.area.D).toBeDefined()
+             expect(result.coordinator).toBe("foo")
          }));
     });
 
