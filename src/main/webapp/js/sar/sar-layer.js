@@ -351,7 +351,7 @@ function SarLayer() {
     }
 
 
-    function addDriftVector(layer, positions) {
+    function addDriftVector(layer, positions, sarId) {
         if(!positions || positions.length == 0){
             return
         }
@@ -364,7 +364,8 @@ function SarLayer() {
         }
         var features = [new OpenLayers.Feature.Vector(new OpenLayers.Geometry.LineString(points), {
 //            renderers: ['SVGExtended', 'VMLExtended', 'CanvasExtended'],
-            type: "dv"
+            type: "dv",
+            sarId : sarId
         })];
         layer.addFeatures(features);
     }
@@ -424,7 +425,7 @@ function SarLayer() {
     }
 
     function addRdv(layer, lkp, datum, label, id) {
-        addDriftVector(layer, [lkp, datum]);
+        addDriftVector(layer, [lkp, datum], id);
 
         var datumd = embryo.geo.Position.create(datum)
 
@@ -462,16 +463,16 @@ function SarLayer() {
     this.drawDatumPoint = function(id, startPosition, data, active){
         if(data.downWind.rdv.positions){
             addSearchRing(id, this.layers.sar, data.downWind.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(data.downWind.rdv.positions))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.downWind.rdv.positions), id)
         }
         if(data.min.rdv.positions){
             addSearchRing(id, this.layers.sar, data.min.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(data.min.rdv.positions.slice(1)))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.min.rdv.positions.slice(1)), id)
             addRdv(this.layers.sar, startPosition, data.min.circle.datum, "Datum min", id);
         }
         if(data.max.rdv.positions){
             addSearchRing(id, this.layers.sar, data.max.circle, active);
-            addDriftVector(this.layers.sar, prepareDriftVectors(data.max.rdv.positions.slice(0)))
+            addDriftVector(this.layers.sar, prepareDriftVectors(data.max.rdv.positions.slice(0)), id)
             addRdv(this.layers.sar, startPosition, data.max.circle.datum, "Datum max", id);
         }
         addRdv(this.layers.sar, startPosition, data.downWind.circle.datum, "Datum down wind", id);
@@ -513,14 +514,14 @@ function SarLayer() {
             }
 
             if(sar.output.rdv){
-                addDriftVector(this.layers.sar, [sar.output.rdv.positions[0], pos]);
-                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions))
+                addDriftVector(this.layers.sar, [sar.output.rdv.positions[0], pos], sar._id);
+                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions), sar._id)
             }
             if(sar.output.circle){
                 addSearchRing(sar._id, this.layers.sar, sar.output.circle, active);
             }
             if(sar.input && sar.input.planedRoute && sar.input.planedRoute.points){
-                addDriftVector(this.layers.sar, sar.input.planedRoute.points);
+                addDriftVector(this.layers.sar, sar.input.planedRoute.points,sar._id);
             }
             if(sar.input && sar.input.selectedPositions){
                 for(var i in sar.input.selectedPositions){
@@ -541,7 +542,7 @@ function SarLayer() {
             addRdv(this.layers.sar, sar.input.lastKnownPosition, sar.output.circle.datum, "Datum",sar._id);
             if(sar.output.rdv.positions){
                 addSearchRing(sar._id, this.layers.sar, sar.output.circle, active);
-                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions))
+                addDriftVector(this.layers.sar, prepareDriftVectors(sar.output.rdv.positions), sar._id)
             }
         } else if (sar.output.downWind) {
             addLabelPoint(this.layers.sar, sar.input.lastKnownPosition, "LKP", sar._id);

@@ -71,6 +71,14 @@
                             </span>
                         </div>
                     </div>
+                    <div class="row sarButtons"
+                         x-ng-if="sar.status == SARStatus.ENDED && ((selected.sar.coordinator.mmsi == authentication.shipMmsi || selected.sar.coordinator.name === authentication.userName) || isAdministrator)">
+                        <div class="col-md-12">
+                        <span class="pull-right">
+                            <button type="button" class="btn btn-xs" x-ng-click="archive()">Delete SAR</button>
+                        </span>
+                        </div>
+                    </div>
 
                     <div x-ng-if="tmp.searchObject">
                         <h6>Search Object</h6>
@@ -182,7 +190,7 @@
                         </div>
                     </div>
                 </div>
-                <div x-ng-controller="EffortAllocationControl" class="sar-operation-control">
+                <div x-ng-controller="EffortAllocationControl" class="sar-operation-control" x-ng-if="!isBackTrack()">
 
                     <h6>Effort allocations</h6>
                     <table class="table table-condensed ctrl">
@@ -242,9 +250,9 @@
         </div>
 
 
-        <div accordion-group heading="Message log{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}">
+        <div accordion-group heading="Message log{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}" x-ng-if="isCoordinator() || !isBackTrack()">
             <!-- style="height: 300px;" -->
-            <div x-ng-if="selected.sar">
+            <div x-ng-if="selected.sar && !isBackTrack()">
                 <div x-ng-controller="LogControl">
                     <div style="overflow:auto; max-height:300px">
                         <div x-ng-repeat="msg in messages" class="log">
@@ -307,6 +315,9 @@
 
                     </form>
                 </div>
+            </div>
+            <div x-ng-if="selected.sar && isBackTrack()">
+                Message log not available for Back track operations
             </div>
             <div x-ng-if="!selected.sar">
                 Search and rescue operation not selected

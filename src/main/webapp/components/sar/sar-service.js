@@ -31,8 +31,8 @@
         DriftVector.prototype.add = function(vector2){
             var vector1 = this;
             var startLocation = vector1.positions[0];
-            var vector1EndPos = startLocation.transformPosition(vector1.direction, vector1.distance);
-            var vector2EndPos = vector1EndPos.transformPosition(vector2.direction, vector2.distance);
+            var vector1EndPos = startLocation.transformRhumbLine(vector1.direction, vector1.distance);
+            var vector2EndPos = vector1EndPos.transformRhumbLine(vector2.direction, vector2.distance);
 
             if(vector1.validFor !== vector2.validFor){
                 throw new Error("vectors must have been applied for equally long");
@@ -76,7 +76,7 @@
             // We don't need all intermediate positions in final result as only resulting TWC and Leeway vectors are shown
             // Therefore just leave out all intermediate positions and only return start and end pos en resulting DriftVector
             var newBearing = this.direction + divergence;
-            var newEndPos = this.positions[0].transformPosition(newBearing, this.distance);
+            var newEndPos = this.positions[0].transformRhumbLine(newBearing, this.distance);
             return DriftVector.create({
                 positions : [this.positions[0], newEndPos],
                 distance : this.distance,
@@ -148,13 +148,13 @@
         SurfaceDrifts.nextTWCPosition = function (fromPos, validFor, surfaceDrift){
             var currentTWC = surfaceDrift.twcSpeed * validFor;
             var twcDirectionInDegrees = directionDegrees(surfaceDrift.twcDirection);
-            return fromPos.transformPosition(twcDirectionInDegrees, currentTWC);
+            return fromPos.transformRhumbLine(twcDirectionInDegrees, currentTWC);
         };
         SurfaceDrifts.nextLeewayPosition = function (fromPos, validFor, surfaceDrift, searchObject){
             var speed = searchObject.leewaySpeed(surfaceDrift.leewaySpeed);
             var driftDistance = speed * validFor;
             var directionInDegrees = directionDegrees(surfaceDrift.leewayDirection) - 180;
-            return fromPos.transformPosition(directionInDegrees, driftDistance);
+            return fromPos.transformRhumbLine(directionInDegrees, driftDistance);
         };
         SurfaceDrifts.prototype.calculateDrift = function(fnNextPosition, startPosition, commenceSearchStart, searchObject){
             assertValue(startPosition, "startPosition");
@@ -295,16 +295,16 @@
                 }
 
                 // First top side of the box
-                var topCenter = datum.transformPosition(verticalDirection, radius);
+                var topCenter = datum.transformRhumbLine(verticalDirection, radius);
 
                 // Bottom side of the box
-                var bottomCenter = datum.transformPosition(reverseDirection(verticalDirection), radius);
+                var bottomCenter = datum.transformRhumbLine(reverseDirection(verticalDirection), radius);
 
                 // Go left radius length
-                var a = topCenter.transformPosition(reverseDirection(horizontalDirection), radius);
-                var b = topCenter.transformPosition(horizontalDirection, radius);
-                var c = bottomCenter.transformPosition(horizontalDirection, radius);
-                var d = bottomCenter.transformPosition(reverseDirection(horizontalDirection), radius);
+                var a = topCenter.transformRhumbLine(reverseDirection(horizontalDirection), radius);
+                var b = topCenter.transformRhumbLine(horizontalDirection, radius);
+                var c = bottomCenter.transformRhumbLine(horizontalDirection, radius);
+                var d = bottomCenter.transformRhumbLine(reverseDirection(horizontalDirection), radius);
 
                 return SearchArea.create({
                     A: a,
@@ -322,10 +322,10 @@
     module.service('DatumPointSearchAreaCalculator', ["Position", "Circle", "SearchArea", function (Position, Circle, SearchArea) {
         function calculateSearchAreaPointsForMinAndMax(tangent, bigCircle, smallCircle, direction) {
             var bearing = tangent.point2.rhumbLineBearingTo(tangent.point1);
-            var A = smallCircle.center.transformPosition(bearing, smallCircle.radius).transformPosition(bearing - direction * 90, smallCircle.radius);
-            var D = bigCircle.center.transformPosition(bearing + direction * 180, bigCircle.radius).transformPosition(bearing - direction * 90, bigCircle.radius)
-            var B = A.transformPosition(bearing + direction * 90, bigCircle.radius * 2);
-            var C = D.transformPosition(bearing + direction * 90, bigCircle.radius * 2);
+            var A = smallCircle.center.transformRhumbLine(bearing, smallCircle.radius).transformRhumbLine(bearing - direction * 90, smallCircle.radius);
+            var D = bigCircle.center.transformRhumbLine(bearing + direction * 180, bigCircle.radius).transformRhumbLine(bearing - direction * 90, bigCircle.radius)
+            var B = A.transformRhumbLine(bearing + direction * 90, bigCircle.radius * 2);
+            var C = D.transformRhumbLine(bearing + direction * 90, bigCircle.radius * 2);
             return {
                 A: A,
                 B: B,
@@ -351,11 +351,11 @@
             var h = Math.sqrt(Math.pow(dwD, 2) - Math.pow(d, 2));
 
             if (h < dwRadius) {
-                result.D = result.D.transformPosition(bearing - direction * 90, dwRadius - h);
-                result.A = result.A.transformPosition(bearing - direction * 90, dwRadius - h);
+                result.D = result.D.transformRhumbLine(bearing - direction * 90, dwRadius - h);
+                result.A = result.A.transformRhumbLine(bearing - direction * 90, dwRadius - h);
             } else {
-                result.B = result.B.transformPosition(bearing + direction * 90, h - dwRadius);
-                result.C = result.C.transformPosition(bearing + direction * 90, h - dwRadius);
+                result.B = result.B.transformRhumbLine(bearing + direction * 90, h - dwRadius);
+                result.C = result.C.transformRhumbLine(bearing + direction * 90, h - dwRadius);
             }
             var AB = result.A.rhumbLineDistanceTo(result.B);
             result.size = DA * AB;
@@ -635,10 +635,21 @@
             }
         }
 
+        function leadingZeros(value, number){
+            var str = value.toString();
+            while (str.length < number){
+                str = "0" + str;
+            }
+            return str;
+        }
+
         return {
+
             createSarId: function () {
                 var now = new Date();
-                return "AW-" + now.getUTCFullYear() + now.getUTCMonth() + now.getUTCDay() + now.getUTCHours() + now.getUTCMinutes() + now.getUTCSeconds() + now.getUTCMilliseconds();
+                return "AW-" + now.getUTCFullYear() + leadingZeros(now.getUTCMonth() + 1, 2) + leadingZeros(now.getUTCDate(),2)
+                    + leadingZeros(now.getUTCHours(), 2) + leadingZeros(now.getUTCMinutes(), 2)
+                    + leadingZeros(now.getUTCSeconds(), 2) + leadingZeros(now.getUTCMilliseconds(), 3);
             },
             createSarOperation: function (sarInput) {
                 var outputType = getOutputType(sarInput.type);
@@ -744,13 +755,13 @@
             bearingDA = 180;
         }
 
-        var zonePosBetweenAandB = center.transformPosition(bearingAB, quadrantLength / 2);
+        var zonePosBetweenAandB = center.transformRhumbLine(bearingAB, quadrantLength / 2);
 
         var zoneArea = {};
-        zoneArea.B = zonePosBetweenAandB.transformPosition(bearingDA, quadrantLength / 2);
-        zoneArea.A = zoneArea.B.transformPosition(embryo.geo.reverseDirection(bearingAB), quadrantLength);
-        zoneArea.C = zoneArea.B.transformPosition(embryo.geo.reverseDirection(bearingDA), quadrantLength);
-        zoneArea.D = zoneArea.A.transformPosition(embryo.geo.reverseDirection(bearingDA), quadrantLength);
+        zoneArea.B = zonePosBetweenAandB.transformRhumbLine(bearingDA, quadrantLength / 2);
+        zoneArea.A = zoneArea.B.transformRhumbLine(embryo.geo.reverseDirection(bearingAB), quadrantLength);
+        zoneArea.C = zoneArea.B.transformRhumbLine(embryo.geo.reverseDirection(bearingDA), quadrantLength);
+        zoneArea.D = zoneArea.A.transformRhumbLine(embryo.geo.reverseDirection(bearingDA), quadrantLength);
         zoneArea.size = areaSize;
 
         return zoneArea;
@@ -898,8 +909,8 @@
         var after = this.cornerPosition(zone, this.cornerKeyAfter(cornerKey));
 
         var dist = zone.S / 2;
-        var tmp = corner.transformPosition(embryo.geo.reverseDirection(before.rhumbLineBearingTo(corner)), dist);
-        var CSP = tmp.transformPosition(corner.rhumbLineBearingTo(after), dist);
+        var tmp = corner.transformRhumbLine(embryo.geo.reverseDirection(before.rhumbLineBearingTo(corner)), dist);
+        var CSP = tmp.transformRhumbLine(corner.rhumbLineBearingTo(after), dist);
         return CSP;
     }
 
@@ -952,7 +963,7 @@
             if (totalDistance + distance > onSceneDistance) {
                 distance = onSceneDistance - totalDistance;
             }
-            var lastPosition = lastPosition.transformPosition(bearing, distance);
+            var lastPosition = lastPosition.transformRhumbLine(bearing, distance);
             wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, xtd));
 
             if (nextIsSearchLeg) {
@@ -1066,7 +1077,7 @@
             if (totalDistance + distance > onSceneDistance) {
                 distance = onSceneDistance - totalDistance;
             }
-            var lastPosition = lastPosition.transformPosition(bearing, distance);
+            var lastPosition = lastPosition.transformRhumbLine(bearing, distance);
             wayPoints.push(this.createWaypoint(index++, lastPosition, zone.speed, embryo.geo.Heading.RL, zone.S / 2));
             totalDistance += distance;
         }
@@ -1090,8 +1101,8 @@
         var bearingAB = posA.rhumbLineBearingTo(posB);
         var bearingBC = posB.rhumbLineBearingTo(posC);
 
-        var centerAB = posA.transformPosition(bearingAB, distAB/2);
-        var center = centerAB.transformPosition(bearingBC, distBC/2);
+        var centerAB = posA.transformRhumbLine(bearingAB, distAB/2);
+        var center = centerAB.transformRhumbLine(bearingBC, distBC/2);
 
         var wayPoints = this.createWaypoints(zone, center, bearingAB);
 
@@ -1123,7 +1134,7 @@
 
         for(var counter = 0; counter < 5; counter++){
             direction= (direction + (turn === embryo.sar.effort.Side.Port ? -60 : 60)) % 360;
-            turnPoints.push(center.transformPosition(direction, radius))
+            turnPoints.push(center.transformRhumbLine(direction, radius))
         }
 
         var wayPoints = [];
@@ -1156,8 +1167,8 @@
             var bearingAB = posA.rhumbLineBearingTo(posB);
             var bearingBC = posB.rhumbLineBearingTo(posC);
 
-            var centerAB = posA.transformPosition(bearingAB, distAB / 2);
-            var center = centerAB.transformPosition(bearingBC, distBC / 2);
+            var centerAB = posA.transformRhumbLine(bearingAB, distAB / 2);
+            center = centerAB.transformRhumbLine(bearingBC, distBC / 2);
         }
         return center
     }
@@ -1187,7 +1198,7 @@
 
     SectorCalculator.prototype.calculateCSP = function (zone, sp) {
         var center = this.center(zone,sp);
-        return center.transformPosition(embryo.geo.reverseDirection(sp.direction), sp.radius)
+        return center.transformRhumbLine(embryo.geo.reverseDirection(sp.direction), sp.radius)
     }
 
 
@@ -1238,7 +1249,7 @@
 
                 if(!startPos){
                     if (distance >= routeLengthToTravel) {
-                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                        wp2 = wp1.transformRhumbLine(bearing, routeLengthToTravel);
                     }
 
                     if(routePointsToTravel.length === 0 && !startPos){
@@ -1266,10 +1277,10 @@
                 var p2 = routePointsToTravel[i + 1]
 
                 var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
-                turnPointsOut.push(p1.transformPosition(bearing + outBearing, zone.S/2))
-                turnPointsReturn.push(p1.transformPosition(bearing + returnBearing, zone.S/2))
-                turnPointsOut.push(p2.transformPosition(bearing + outBearing, zone.S/2))
-                turnPointsReturn.push(p2.transformPosition(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p1.transformRhumbLine(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p1.transformRhumbLine(bearing + returnBearing, zone.S/2))
+                turnPointsOut.push(p2.transformRhumbLine(bearing + outBearing, zone.S/2))
+                turnPointsReturn.push(p2.transformRhumbLine(bearing + returnBearing, zone.S/2))
             }
 
             var turnPoints = turnPointsOut.concat(turnPointsReturn.reverse());
@@ -1349,7 +1360,7 @@
 
                 if(!startPos){
                     if (distance >= routeLengthToTravel) {
-                        wp2 = wp1.transformPosition(bearing, routeLengthToTravel);
+                        wp2 = wp1.transformRhumbLine(bearing, routeLengthToTravel);
                     }
 
                     if(routePointsToTravel.length === 0 && !startPos){
@@ -1380,12 +1391,12 @@
                 var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
 
                 leg1Out.push(p1);
-                leg2Return.push(p1.transformPosition(bearing + returnBearing, zone.S))
-                leg3Out.push(p1.transformPosition(bearing + out3Bearing, zone.S))
+                leg2Return.push(p1.transformRhumbLine(bearing + returnBearing, zone.S))
+                leg3Out.push(p1.transformRhumbLine(bearing + out3Bearing, zone.S))
 
                 leg1Out.push(p2);
-                leg2Return.push(p2.transformPosition(bearing + returnBearing, zone.S))
-                leg3Out.push(p2.transformPosition(bearing + out3Bearing, zone.S))
+                leg2Return.push(p2.transformRhumbLine(bearing + returnBearing, zone.S))
+                leg3Out.push(p2.transformRhumbLine(bearing + out3Bearing, zone.S))
             }
 
             var turnPoints = leg1Out.concat(leg2Return.reverse()).concat(leg3Out);

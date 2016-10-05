@@ -439,7 +439,6 @@
                 }
             }
 
-
         $scope.addPoint = function () {
             $scope.sar.surfaceDriftPoints.push({});
         }
@@ -475,25 +474,43 @@
 
             LivePouch.get(id).then(function (sar) {
                 sar.status = embryo.SARStatus.ENDED;
-                LivePouch.put(sar).then(function () {
-                    $scope.provider.doShow = false;
-                    SarService.selectSar(null);
-                }).catch(function (err) {
-                    console.log(err)
-                });
+                return LivePouch.put(sar);
+            }).then(function (putResponse) {
+                return LivePouch.get(putResponse.id)
+            }).then(function(sar){
+                $scope.sarOperation = sar;
+                $scope.sar = sar
+                $scope.provider.doShow = false;
+            }).catch(function (err) {
+                $log.error("end - error")
+                $log.error(err)
+            });
+        }
+
+        $scope.archive = function () {
+            var id = $scope.sarOperation._id;
+            LivePouch.get(id).then(function (sar) {
+                sar.status = embryo.SARStatus.ARCHIVED;
+                return LivePouch.put(sar);
+            }).then(function () {
+                $scope.provider.doShow = false;
+                SarService.selectSar(null);
+            }).catch(function (err) {
+                $log.error("archive - error")
+                $log.error(err)
             });
         }
 
         $scope.getUsers = function (query) {
             UserPouch.get(query).then(function (sar) {
                 sar.status = embryo.SARStatus.ENDED;
-                LivePouch.put(sar).then(function () {
-                    $scope.provider.doShow = false;
-                    SarService.selectSar(null);
-                }).catch(function (err) {
-                    $log.error("getUsers - error")
-                    $log.error(err)
-                });
+                return LivePouch.put(sar);
+            }).then(function () {
+                $scope.provider.doShow = false;
+                SarService.selectSar(null);
+            }).catch(function (err) {
+                $log.error("getUsers - error")
+                $log.error(err)
             });
         }
     }]);
@@ -749,12 +766,12 @@
     AllocationStatusLabel[embryo.sar.effort.Status.DraftModifiedOnMap] = "label-danger";
 
     var patternTexts = {}
-    patternTexts[embryo.sar.effort.SearchPattern.CreepingLine] = "Creeping line search";
-    patternTexts[embryo.sar.effort.SearchPattern.ParallelSweep] = "Parallel sweep search";
-    patternTexts[embryo.sar.effort.SearchPattern.SectorSearch] = "Sector search";
-    patternTexts[embryo.sar.effort.SearchPattern.ExpandingSquare] = "Expanding square search";
-    patternTexts[embryo.sar.effort.SearchPattern.TrackLineNonReturn] = "Track line search, non-return";
-    patternTexts[embryo.sar.effort.SearchPattern.TrackLineReturn] = "Track line search, return";
+    patternTexts[embryo.sar.effort.SearchPattern.CreepingLine] = "Creeping line";
+    patternTexts[embryo.sar.effort.SearchPattern.ParallelSweep] = "Parallel sweep";
+    patternTexts[embryo.sar.effort.SearchPattern.SectorSearch] = "Sector";
+    patternTexts[embryo.sar.effort.SearchPattern.ExpandingSquare] = "Expanding square";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineNonReturn] = "Track line, non-return";
+    patternTexts[embryo.sar.effort.SearchPattern.TrackLineReturn] = "Track line, return";
 
 
     function clone(object) {
@@ -981,7 +998,6 @@
             }
 
             $scope.toSubAreaCalculation = function (effort, $event) {
-                console.log($event)
                 if($event){
                     $event.preventDefault();
                 }
