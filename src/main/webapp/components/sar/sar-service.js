@@ -1516,6 +1516,7 @@
                 area.C = result.area.C.toDegreesAndDecimalMinutes();
                 area.D = result.area.D.toDegreesAndDecimalMinutes();
                 result.area = area;
+                result.coordinator = sar.coordinator.name;
                 return result;
             },
             calculateTrackSpacing: function (input) {

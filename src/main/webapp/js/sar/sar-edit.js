@@ -1255,7 +1255,6 @@
                 } else {
                     $scope.sp.csp = null;
                 }
-
                 this.generateSearchPattern();
             }
 
@@ -1264,14 +1263,11 @@
                     try {
                         var spCopy = clone($scope.sp);
                         spCopy.sar = $scope.sar;
-
                         $scope.sp.csp = SarService.calculateSectorCsp($scope.zone, spCopy)
                     }catch(error){
-                        console.log(error)
                         $log.error(error);
                     }
                 }
-
                 this.generateSearchPattern();
             }
 
@@ -1344,6 +1340,7 @@
 
 
             function saveSearchPattern(pattern) {
+                pattern.coordinator = $scope.sar.coordinator.name;
                 LivePouch.put(pattern).then(function () {
                     SarLayerSingleton.getInstance().removeTemporarySearchPattern();
                     $scope.toSrus();
