@@ -11,7 +11,7 @@
 	<parent>
         <groupId>dk.dma.enav.services</groupId>
 		<artifactId>parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.4-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -127,6 +127,12 @@
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
 			<artifactId>sar</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>dk.dma.enav.services</groupId>
+			<artifactId>vrmt</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 

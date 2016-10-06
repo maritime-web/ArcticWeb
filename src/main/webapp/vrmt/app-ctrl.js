@@ -25,9 +25,9 @@
         })
         .controller("AppController", AppController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout'];
+    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout', 'growl'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout) {
+    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout, growl) {
         var vm = this;
         $scope.mmsi = embryo.authentication.shipMmsi;
         vm.chosenRouteLocation = null;
@@ -77,6 +77,9 @@
                     if (routeLocations.length > 0) {
                         NotifyService.notify(Events.RouteLocationChosen, routeLocations[0]);
                     }
+                })
+                .catch(function (err) {
+                    growl.error(err);
                 })
         }
 

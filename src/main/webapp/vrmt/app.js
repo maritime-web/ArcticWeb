@@ -10,11 +10,11 @@ angular.module('vrmt.app', []);
         [
             'ngAnimate', 'ngSanitize', 'ui.bootstrap', 'ui.bootstrap.accordion',
             'vrmt.render', 'vrmt.map', 'vrmt.app', 'embryo.menu', 'embryo.authentication', 'embryo.routeService',
-            'embryo.vessel.service', 'embryo.scheduleService', 'angular-growl'
+            'embryo.vessel.service', 'embryo.scheduleService', 'angular-growl', 'embryo.pouchdb.services'
         ])
         .config(['growlProvider', function (growlProvider) {
-        growlProvider.globalTimeToLive(8000);
-        growlProvider.globalPosition('top-center');
+        growlProvider.globalTimeToLive(6000);
+        growlProvider.globalPosition('bottom-left');
     }]);
 
     $(function () {
