@@ -5,25 +5,12 @@
         .module('vrmt.app')
         .service('RiskFactorService', RiskFactorService);
 
-    RiskFactorService.$inject = ['$q', '$window', '$timeout'];
+    RiskFactorService.$inject = ['$q', 'RiskAssessmentDataService', 'growl'];
 
-    function RiskFactorService($q, $window, $timeout) {
+    function RiskFactorService($q, RiskAssessmentDataService, growl) {
 
         this.getRiskFactors = getRiskFactors;
         this.saveRiskFactor = saveRiskFactor;
-
-        function getRiskFactorData(vesselId) {
-            var deferred = $q.defer();
-            $timeout(function () {
-                try {
-                    var riskFactorData = $window.localStorage.getItem(vesselId);
-                    deferred.resolve(angular.fromJson(riskFactorData) || undefined);
-                } catch (e) {
-                    deferred.reject(e);
-                }
-            });
-            return deferred.promise;
-        }
 
         function getDefaultRiskFactorData(vesselId) {
             return [
@@ -331,22 +318,14 @@
             ];
         }
 
-        function saveRiskFactorData(vesselId, riskFactorData) {
-            var deferred = $q.defer();
-            $timeout(function () {
-                try {
-                    deferred.resolve($window.localStorage.setItem(vesselId, angular.toJson(riskFactorData)));
-                } catch (e) {
-                    deferred.reject(e);
-                }
-            });
-            return deferred.promise;
-        }
-
         function getRiskFactors(vesselId) {
-            return getRiskFactorData(vesselId)
+            return RiskAssessmentDataService.getRiskFactorData()
                 .then(function (riskFactors) {
                     return riskFactors || getDefaultRiskFactorData(vesselId);
+                }).catch(function (err) {
+                    console.log(err);
+                    growl.error(err);
+                    return $q.reject(err);
                 });
         }
 
@@ -360,7 +339,7 @@
                     });
                     riskFactors.splice(indexOfRiskFactor, 1, riskFactor);
 
-                    return saveRiskFactorData(vesselId, riskFactors).then(function () {
+                    return RiskAssessmentDataService.storeRiskFactorData(riskFactors).then(function () {
                         return riskFactor;
                     });
                 });

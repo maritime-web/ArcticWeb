@@ -11,7 +11,10 @@
 
         this.getAssessmentData = getAssessmentData;
         this.storeAssessmentData = storeAssessmentData;
+        this.getRiskFactorData = getRiskFactorData;
+        this.storeRiskFactorData = storeRiskFactorData;
 
+        var riskFactorId = "mmsi_" + Subject.getDetails().shipMmsi;
         var pouch = initializePouch();
 
         function getAssessmentData(routeId) {
@@ -55,6 +58,50 @@
                         return $q.reject(err);
                     }
                 });
+        }
+
+        function getRiskFactorData() {
+            return pouch.get(riskFactorId)
+                .then(function (doc) {
+                    return unWrapriskFactorData(angular.fromJson(doc));
+                })
+                .catch(function (err) {
+                    if (err.status == 404) {
+                        return undefined;
+                    } else {
+                        return $q.reject(err);
+                    }
+                });
+        }
+
+        function storeRiskFactorData(riskFactorData) {
+            //PouchDB can't handle objects with functions hence the serializing/deserializing
+            riskFactorData = angular.fromJson(angular.toJson(riskFactorData));
+            var wrappeddata = wrapRiskFactorData(riskFactorData);
+
+            return pouch.get(riskFactorId)
+                .then(function (oldDoc) {
+                    wrappeddata._rev = oldDoc._rev;
+                    return pouch.put(wrappeddata);
+                })
+                .catch(function (err) {
+                    if (err.status == 404) {
+                        return pouch.put(wrappeddata);
+                    } else {
+                        return $q.reject(err);
+                    }
+                })
+        }
+
+        function wrapRiskFactorData(data) {
+            return {
+                _id: riskFactorId,
+                data: data
+            };
+        }
+
+        function unWrapriskFactorData(wrappedData) {
+            return wrappedData.data;
         }
 
         function ensureSupportForMapSerialization() {
