@@ -13,6 +13,7 @@
             RouteChanged: "RouteChanged",
             VesselLoaded: "VesselLoaded",
             OpenAssessmentEditor: "OpenAssessmentEditor",
+            OpenAssessmentView: "OpenAssessmentView",
             OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
             RouteLocationChosen: "RouteLocationChosen",
             RouteLocationClicked: "RouteLocationClicked",

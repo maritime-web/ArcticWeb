@@ -49,9 +49,11 @@ body {
 }
 
 /** Accordion modifications **/
+/*
 .panel-group {
     margin: 1px;
 }
+*/
 
 /** sidebar **/
 
@@ -135,6 +137,11 @@ h4.text-center  {
 .text-with-button > div:first-child {
     line-height: 1.5;
     padding-top: 4px;
+}
+
+/** Striped div rows **/
+.div-striped > .row:nth-of-type(odd) {
+    background-color: #f5f5f5;
 }
 
 /** Timeline **/

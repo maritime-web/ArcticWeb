@@ -49,12 +49,14 @@
         };
 
         function CompletedAssessmentView(completedAssessment) {
+            this.assessment = completedAssessment;
             this.finished = completedAssessment.finished.format("YYYY-MM-DD HH:mm");
             this.maxIndex = completedAssessment.getMaxScore();
         }
 
         CompletedAssessmentView.prototype.showDetails = function () {
             console.log("SHOW ASSESSMENT DETAILS");
+            NotifyService.notify(Events.OpenAssessmentView, this.assessment);
         };
 
         function toggleVisibility() {

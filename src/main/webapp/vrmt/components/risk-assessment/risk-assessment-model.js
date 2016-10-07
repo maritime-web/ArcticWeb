@@ -89,6 +89,10 @@ function Assessment(parameters) {
         return this.locationAssessments.get(routeLocationId);
     };
 
+    this.getLocationAssessments = function () {
+        return Array.from(this.locationAssessments.values());
+    };
+
     this.updateLocationAssessment = function (routeLocationId, scores, note) {
         var routeLocation = this.locationsToAssess.find(function (candidate) {
             return routeLocationId == candidate.id;

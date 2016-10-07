@@ -1,0 +1,54 @@
+<div class="col-xs-12 col-lg-4" style="z-index: 999" ng-hide="assess.hide"
+     ng-controller="AssessmentViewController as assess">
+
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div>
+                    <button type="button" class="close" x-ng-click="assess.dismiss()">x</button>
+                </div>
+                <h4>Details for assessment finished on {{assess.finished}}</h4>
+            </div>
+        </div>
+        <accordion close-others="true">
+            <div class="panel" style="border: none" ng-repeat="locationAssessment in assess.locationAssessments">
+                <accordion-group is-open="locationAssessment.active">
+                    <accordion-heading>
+                        <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}} with index score
+                        <index-color index="locationAssessment.index"></index-color>
+                        <span class="pull-right glyphicon"
+                              ng-class="{'glyphicon-menu-down': !locationAssessment.active, 'glyphicon-menu-up': locationAssessment.active}"></span>
+                    </accordion-heading>
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-xs-6"><strong>Factor</strong></div>
+                            <div class="col-xs-4"><strong>Value</strong></div>
+                            <div class="col-xs-2" style="text-align: right;"><strong>Index</strong></div>
+                        </div>
+                    </div>
+                    <div class="container-fluid div-striped">
+                        <div class="row" ng-repeat="score in locationAssessment.scores">
+                            <div class="col-xs-6">{{score.factorName}}</div>
+                            <div class="col-xs-4">{{score.name}}</div>
+                            <div class="col-xs-2" style="text-align: right;">{{score.index}}</div>
+                        </div>
+                    </div>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-xs-offset-10 col-xs-2" style="text-align: right;">
+                                <index-color index="locationAssessment.index"></index-color>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <div><strong>Note:</strong></div>
+                                <div>{{locationAssessment.note}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </accordion-group>
+            </div>
+        </accordion>
+    </div>
+</div>
