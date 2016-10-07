@@ -26,6 +26,12 @@
             routeView: {id: null, name: null}
         };
 
+        /**
+         * Log of measures and reports
+         */
+        vm.assessments = [];
+
+
         function RouteView(params) {
             var originalRoute = params.route ? params.route : params;
             this.name = originalRoute.name;
@@ -40,6 +46,15 @@
             RouteService.getRoute(this.routeId, function (route) {
                 RiskAssessmentService.updateCurrentRoute(route);
             });
+        };
+
+        function CompletedAssessmentView(completedAssessment) {
+            this.finished = completedAssessment.finished.format("YYYY-MM-DD HH:mm");
+            this.maxIndex = completedAssessment.getMaxScore();
+        }
+
+        CompletedAssessmentView.prototype.showDetails = function () {
+            console.log("SHOW ASSESSMENT DETAILS");
         };
 
         function toggleVisibility() {
@@ -78,11 +93,24 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
             vm.meta.routeView = new RouteView(newRoute);
+            loadCompletedAssessments();
         }
 
         NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, newVessel) {
             vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
+        }
+
+
+        NotifyService.subscribe($scope, Events.AssessmentCompleted, loadCompletedAssessments);
+
+        function loadCompletedAssessments() {
+            RiskAssessmentService.getCompletedAssessments()
+                .then(function (completedAssessments) {
+                    vm.assessments = completedAssessments.map(function (assessment) {
+                        return new CompletedAssessmentView(assessment);
+                    });
+                });
         }
     }
 })();

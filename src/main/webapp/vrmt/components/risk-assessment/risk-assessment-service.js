@@ -14,6 +14,7 @@
         this.endAssessment = endAssessment;
         this.discardAssessment = discardAssessment;
         this.createLocationAssessment = createLocationAssessment;
+        this.getCompletedAssessments = getCompletedAssessments;
         this.deleteLocation = deleteLocation;
         this.updateCurrentRoute = updateCurrentRoute;
         this.createRouteLocation = createRouteLocation;
@@ -140,7 +141,16 @@
                     }
                 });
         }
-        
+
+        function getCompletedAssessments() {
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
+                .then(function (data) {
+                    return data.assessments.map(function (assessment) {
+                        return new Assessment(assessment);
+                    })
+                })
+        }
+
         function deleteLocation(locationId) {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {

@@ -174,15 +174,17 @@
 
                 <div class="container-fluid sidebar-grid">
                     <div class="row sidebar-grid-heading sidebar-grid-row">
-                        <div class="col-xs-4">DATE AND TIME</div>
-                        <div class="col-xs-4">INDEX</div>
+                        <div class="col-xs-5">Date and time</div>
+                        <div class="col-xs-4">Max index</div>
                     </div>
-                    <div class="row sidebar-grid-row">
-                        <div class="col-xs-4">03-06-2016</div>
-                        <div class="col-xs-4">1965</div>
+                    <div class="row sidebar-grid-row" ng-repeat="assessment in sidebar.assessments">
+                        <div class="col-xs-5">{{assessment.finished}}</div>
                         <div class="col-xs-4">
+                            <index-color index="assessment.maxIndex"></index-color>
+                        </div>
+                        <div class="col-xs-3">
                             <div class="pull-right">
-                                <button class="btn-primary">DETAILS</button>
+                                <button class="btn btn-xs btn-primary" ng-click="assessment.showDetails()">Details</button>
                             </div>
                         </div>
                     </div>

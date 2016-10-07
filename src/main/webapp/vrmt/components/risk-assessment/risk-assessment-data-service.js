@@ -118,6 +118,14 @@
             var local = PouchDBFactory.createLocalPouch(dbName);
             var remote = PouchDBFactory.createRemotePouch(dbName);
 
+            local.compact().then(function (result) {
+                console.log("Compaction done.");
+                console.log(result);
+            }).catch(function (err) {
+                console.log("Compaction failed.");
+                console.log(err);
+            });
+
             local.sync(remote, {
                 live: true,
                 retry: true
