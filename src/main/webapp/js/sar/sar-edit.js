@@ -648,12 +648,23 @@
         }
 
         $scope.assign = function () {
-            var sarOperation = SarService.setUserAsCoordinator($scope.sarOperation, $scope.coordinator.user);
-            LivePouch.put(sarOperation).then(function () {
+            LivePouch.query('sar/effortView', {
+                key: $scope.sarOperation._id,
+                include_docs: true
+            }).then(function (result) {
+                var allocationsAndPatterns = [];
+                for (var index in result.rows) {
+                    allocationsAndPatterns.push(result.rows[index].doc)
+                }
+                var updatedDocs = SarService.setUserAsCoordinator($scope.sarOperation, allocationsAndPatterns, $scope.coordinator.user);
+                return LivePouch.bulkDocs(updatedDocs);
+            }).then(function(){
                 $scope.provider.close();
             }).catch(function (error) {
+                $log.error("sareffortview error in controller.js");
+                $log.error(error)
                 $scope.alertMessages = [error.toString()];
-            })
+            });
         }
     }]);
 

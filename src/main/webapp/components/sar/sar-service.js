@@ -1620,14 +1620,22 @@
                 }
                 return users;
             },
-            setUserAsCoordinator: function (sar, user){
+            setUserAsCoordinator: function (sar, allocationsAndPatterns, user){
                 var sarOperation = clone(sar);
                 var coordinator = clone(user);
                 delete coordinator._rev
                 delete coordinator['@class']
                 delete coordinator['@type']
                 sarOperation.coordinator = coordinator;
-                return sarOperation;
+                var updatedDocs = [sarOperation];
+
+                for(var i in allocationsAndPatterns){
+                    var doc = clone(allocationsAndPatterns[i])
+                    doc.coordinator = coordinator.userName;
+                    updatedDocs.push(doc);
+                }
+
+                return updatedDocs;
             },
             findAndPrepareCurrentUserAsCoordinator: function (users){
                 function findUser(){
@@ -1643,8 +1651,8 @@
                 if(!user){
                     throw new Error("Current user not found among existing users");
                 }
-                var result = service.setUserAsCoordinator({}, user);
-                return result.coordinator;
+                var updatedDocs = service.setUserAsCoordinator({}, [], user);
+                return updatedDocs[0].coordinator;
             },
             prepareSearchAreaForDisplayal: function(sa){
                 if (sa['@type'] != embryo.sar.Type.SearchArea){
