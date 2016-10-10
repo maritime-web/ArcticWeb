@@ -1516,6 +1516,7 @@
                 area.C = result.area.C.toDegreesAndDecimalMinutes();
                 area.D = result.area.D.toDegreesAndDecimalMinutes();
                 result.area = area;
+                result.coordinator = sar.coordinator.userName;
                 return result;
             },
             calculateTrackSpacing: function (input) {
@@ -1619,25 +1620,28 @@
                 }
                 return users;
             },
-            setUserAsCoordinator: function (sar, user){
+            setUserAsCoordinator: function (sar, allocationsAndPatterns, user){
                 var sarOperation = clone(sar);
                 var coordinator = clone(user);
                 delete coordinator._rev
                 delete coordinator['@class']
                 delete coordinator['@type']
                 sarOperation.coordinator = coordinator;
-                return sarOperation;
+                var updatedDocs = [sarOperation];
+
+                for(var i in allocationsAndPatterns){
+                    var doc = clone(allocationsAndPatterns[i])
+                    doc.coordinator = coordinator.userName;
+                    updatedDocs.push(doc);
+                }
+
+                return updatedDocs;
             },
             findAndPrepareCurrentUserAsCoordinator: function (users){
                 function findUser(){
                     var userName = Subject.getDetails().userName
-                    var mmsi = Subject.getDetails().shipMmsi;
-
                     for(var index in users) {
-                        // change to '===' when data are both strings / numbers
-                        if (mmsi && users[index].mmsi == mmsi) {
-                            return users[index];
-                        } else if (users[index].name === userName) {
+                        if (users[index].userName === userName) {
                             return users[index];
                         }
                     }
@@ -1647,15 +1651,15 @@
                 if(!user){
                     throw new Error("Current user not found among existing users");
                 }
-                var result = service.setUserAsCoordinator({}, user);
-                return result.coordinator;
+                var updatedDocs = service.setUserAsCoordinator({}, [], user);
+                return updatedDocs[0].coordinator;
             },
             prepareSearchAreaForDisplayal: function(sa){
                 if (sa['@type'] != embryo.sar.Type.SearchArea){
                     return sa;
                 }
                 var details = Subject.getDetails();
-                if(details.userName === sa.coordinator.name || (details.shipMmsi && details.shipMmsi == sa.coordinator.mmsi)){
+                if(details.userName === sa.coordinator.userName){
                     return sa;
                 }
                 var searchArea = clone(sa);

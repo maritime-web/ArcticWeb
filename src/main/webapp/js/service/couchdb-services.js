@@ -23,11 +23,19 @@
                 return couchUrl;
             },
             createCouchHeaders : function(){
-                 return {
+                var roles = Subject.roles()
+                var rolesStr = "";
+                for(var i in roles){
+                    if(i > 0){
+                        rolesStr += ","
+                    }
+                    rolesStr += roles[i];
+                }
+                return {
                      'X-Auth-Couchdb-UserName' : Subject.getDetails().userName,
-                     'X-Auth-Couchdb-Roles' : '',
+                     'X-Auth-Couchdb-Roles' : rolesStr,
                      'X-Auth-Couchdb-Token' : Subject.getDetails().t
-                 }
+                }
             }
 
         }

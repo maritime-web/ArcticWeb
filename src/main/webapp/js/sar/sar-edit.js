@@ -648,12 +648,23 @@
         }
 
         $scope.assign = function () {
-            var sarOperation = SarService.setUserAsCoordinator($scope.sarOperation, $scope.coordinator.user);
-            LivePouch.put(sarOperation).then(function () {
+            LivePouch.query('sar/effortView', {
+                key: $scope.sarOperation._id,
+                include_docs: true
+            }).then(function (result) {
+                var allocationsAndPatterns = [];
+                for (var index in result.rows) {
+                    allocationsAndPatterns.push(result.rows[index].doc)
+                }
+                var updatedDocs = SarService.setUserAsCoordinator($scope.sarOperation, allocationsAndPatterns, $scope.coordinator.user);
+                return LivePouch.bulkDocs(updatedDocs);
+            }).then(function(){
                 $scope.provider.close();
             }).catch(function (error) {
+                $log.error("sareffortview error in controller.js");
+                $log.error(error)
                 $scope.alertMessages = [error.toString()];
-            })
+            });
         }
     }]);
 
@@ -1255,7 +1266,6 @@
                 } else {
                     $scope.sp.csp = null;
                 }
-
                 this.generateSearchPattern();
             }
 
@@ -1264,14 +1274,11 @@
                     try {
                         var spCopy = clone($scope.sp);
                         spCopy.sar = $scope.sar;
-
                         $scope.sp.csp = SarService.calculateSectorCsp($scope.zone, spCopy)
                     }catch(error){
-                        console.log(error)
                         $log.error(error);
                     }
                 }
-
                 this.generateSearchPattern();
             }
 
@@ -1344,6 +1351,7 @@
 
 
             function saveSearchPattern(pattern) {
+                pattern.coordinator = $scope.sar.coordinator.userName;
                 LivePouch.put(pattern).then(function () {
                     SarLayerSingleton.getInstance().removeTemporarySearchPattern();
                     $scope.toSrus();
