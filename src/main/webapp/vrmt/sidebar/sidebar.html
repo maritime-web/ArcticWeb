@@ -51,146 +51,151 @@
                 </div>
             </div>
 
-        <accordion close-others="true">
-            <div class="panel" style="border: none" ng-controller="AssessController as assess">
-                <accordion-group is-open="assess.active">
+            <accordion close-others="true">
+                <div class="panel" style="border: none" ng-controller="AssessController as assess">
+                    <accordion-group is-open="assess.active">
+                        <accordion-heading>
+                            ASSESS <strong style="font-size: x-small" data-ng-show="assess.assessing">Since:
+                            {{assess.assessmentStartedAt}}</strong>
+                            <span class="pull-right glyphicon"
+                                  ng-class="{'glyphicon-menu-down': !assess.active, 'glyphicon-menu-up': assess.active}"></span>
+                        </accordion-heading>
+
+                        <div class="table-responsive">
+                            <table class="table table-condensed">
+                                <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>
+                                        <div class="col-xs-12">Index</div>
+                                    </th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-click="assessment.choose()"
+                                    ng-class="{'active': assess.currentLocationAssessment.locationId == assessment.locationId}"
+                                    ng-repeat="assessment in assess.assessmentViews">
+                                    <td>
+                                        {{assessment.locationName}}
+                                        <span data-ng-show="assessment.valid"
+                                              class="glyphicon glyphicon-ok text-success"></span>
+                                    </td>
+                                    <td>
+                                        <div class="col-xs-12">
+                                            <index-color index="assessment.index"></index-color>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs pull-right"
+                                                ng-click="assessment.newAssessment()">
+                                            edit
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="close" x-ng-click="assessment.deleteLocation()">
+                                            x
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="col-xs-12">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs"
+                                            data-ng-disabled="assess.assessing || assess.isInAssessable"
+                                            ng-click="assess.startNew()">
+                                        Start new Assessment
+                                    </button>
+                                    <button class="btn btn-primary btn-xs"
+                                            data-ng-disabled="!assess.assessing || !assess.isComplete"
+                                            ng-click="assess.save()">
+                                        Save
+                                    </button>
+                                    <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing"
+                                            ng-click="assess.discard()">
+                                        Discard
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 text-danger">
+                                {{assess.newAssessmentNotPossibleWarning}}
+                            </div>
+                        </div>
+
+                    </accordion-group>
+                </div>
+                <accordion-group is-open="sidebar.safetyMeasuresActive">
                     <accordion-heading>
-                        ASSESS <strong style="font-size: x-small" data-ng-show="assess.assessing">Since:
-                        {{assess.assessmentStartedAt}}</strong>
-                        <span class="pull-right glyphicon"
-                              ng-class="{'glyphicon-menu-down': !assess.active, 'glyphicon-menu-up': assess.active}"></span>
+                        SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
+                                                                  ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
+                    </accordion-heading>
+                    <div class="container-fluid sidebar-grid">
+                        <div class="row sidebar-grid-heading sidebar-grid-row">
+                            <div class="col-xs-12">SUGGESTED MEASURES</div>
+                        </div>
+                        <div class="row sidebar-grid-row">
+                            <div class="col-xs-6">CHANGE OF ROUTE</div>
+                            <div class="col-xs-6">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs">DETAILS</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row sidebar-grid-row">
+                            <div class="col-xs-6">CHANGE OF LANDINGSITE</div>
+                            <div class="col-xs-6">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs">DETAILS</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row sidebar-grid-row">
+                            <div class="col-xs-6">ASSESSMENT OF RISK IN ROUTE CHANGE</div>
+                            <div class="col-xs-6">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs">Assessment</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row sidebar-grid-row">
+                            <div class="col-xs-6">ASSESSMENT OF RISK IN ENTERING HARBOUR</div>
+                            <div class="col-xs-6">
+                                <div class="pull-right">
+                                    <button class="btn btn-primary btn-xs">Assessment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </accordion-group>
+                <accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
+                    <accordion-heading>
+                        LOG OF MEASURES AND REPORTS <span class="pull-right glyphicon"
+                                                          ng-class="{'glyphicon-menu-down': !sidebar.logOfMeasuresAndReportsActive, 'glyphicon-menu-up': sidebar.logOfMeasuresAndReportsActive}"></span>
                     </accordion-heading>
 
-                    <div class="table-responsive">
-                        <table class="table table-condensed">
-                            <thead>
-                            <tr>
-                                <th>Location</th>
-                                <th>
-                                    <div class="col-xs-12">Index</div>
-                                </th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr ng-click="assessment.choose()"
-                                ng-class="{'active': assess.currentLocationAssessment.locationId == assessment.locationId}"
-                                ng-repeat="assessment in assess.assessmentViews">
-                                <td>
-                                    {{assessment.locationName}}
-                                    <span data-ng-show="assessment.valid"
-                                          class="glyphicon glyphicon-ok text-success"></span>
-                                </td>
-                                <td>
-                                    <div class="col-xs-12">
-                                        <index-color index="assessment.index"></index-color>
-                                    </div>
-                                </td>
-                                <td>
-                                    <button class="btn btn-primary btn-xs pull-right" ng-click="assessment.newAssessment()">
-                                        edit
-                                    </button>
-                                </td>
-                                <td>
-                                    <button type="button" class="close" x-ng-click="assessment.deleteLocation()">
-                                        x
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        <div class="col-xs-12">
-                            <div class="pull-right">
-                                <button class="btn btn-primary btn-xs" data-ng-disabled="assess.assessing"
-                                        ng-click="assess.startNew()">
-                                    Start new Assessment
-                                </button>
-                                <button class="btn btn-primary btn-xs"
-                                        data-ng-disabled="!assess.assessing || !assess.isComplete"
-                                        ng-click="assess.save()">
-                                    Save
-                                </button>
-                                <button class="btn btn-primary btn-xs" data-ng-disabled="!assess.assessing"
-                                        ng-click="assess.discard()">
-                                    Discard
-                                </button>
+                    <div class="container-fluid sidebar-grid">
+                        <div class="row sidebar-grid-heading sidebar-grid-row">
+                            <div class="col-xs-5">Date and time</div>
+                            <div class="col-xs-4">Max index</div>
+                        </div>
+                        <div class="row sidebar-grid-row" ng-repeat="assessment in sidebar.assessments">
+                            <div class="col-xs-5">{{assessment.finished}}</div>
+                            <div class="col-xs-4">
+                                <index-color index="assessment.maxIndex"></index-color>
                             </div>
-
+                            <div class="col-xs-3">
+                                <div class="pull-right">
+                                    <button class="btn btn-xs btn-primary" ng-click="assessment.showDetails()">Details
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                 </accordion-group>
-            </div>
-            <accordion-group is-open="sidebar.safetyMeasuresActive">
-                <accordion-heading>
-                    SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
-                                                              ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
-                </accordion-heading>
-                <div class="container-fluid sidebar-grid">
-                    <div class="row sidebar-grid-heading sidebar-grid-row">
-                        <div class="col-xs-12">SUGGESTED MEASURES</div>
-                    </div>
-                    <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">CHANGE OF ROUTE</div>
-                        <div class="col-xs-6">
-                            <div class="pull-right">
-                                <button class="btn btn-primary btn-xs">DETAILS</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">CHANGE OF LANDINGSITE</div>
-                        <div class="col-xs-6">
-                            <div class="pull-right">
-                                <button class="btn btn-primary btn-xs">DETAILS</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">ASSESSMENT OF RISK IN ROUTE CHANGE</div>
-                        <div class="col-xs-6">
-                            <div class="pull-right">
-                                <button class="btn btn-primary btn-xs">Assessment</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row sidebar-grid-row">
-                        <div class="col-xs-6">ASSESSMENT OF RISK IN ENTERING HARBOUR</div>
-                        <div class="col-xs-6">
-                            <div class="pull-right">
-                                <button class="btn btn-primary btn-xs">Assessment</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </accordion-group>
-            <accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
-                <accordion-heading>
-                    LOG OF MEASURES AND REPORTS <span class="pull-right glyphicon"
-                                                      ng-class="{'glyphicon-menu-down': !sidebar.logOfMeasuresAndReportsActive, 'glyphicon-menu-up': sidebar.logOfMeasuresAndReportsActive}"></span>
-                </accordion-heading>
-
-                <div class="container-fluid sidebar-grid">
-                    <div class="row sidebar-grid-heading sidebar-grid-row">
-                        <div class="col-xs-5">Date and time</div>
-                        <div class="col-xs-4">Max index</div>
-                    </div>
-                    <div class="row sidebar-grid-row" ng-repeat="assessment in sidebar.assessments">
-                        <div class="col-xs-5">{{assessment.finished}}</div>
-                        <div class="col-xs-4">
-                            <index-color index="assessment.maxIndex"></index-color>
-                        </div>
-                        <div class="col-xs-3">
-                            <div class="pull-right">
-                                <button class="btn btn-xs btn-primary" ng-click="assessment.showDetails()">Details</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </accordion-group>
-        </accordion>
+            </accordion>
         </div>
     </div>
 

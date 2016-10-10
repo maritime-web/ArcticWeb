@@ -17,7 +17,9 @@
         vm.save = save;
         vm.discard = discard;
         vm.assessing = false;
+        vm.isInAssessable = true;
         vm.isComplete = false;
+        vm.newAssessmentNotPossibleWarning = undefined;
         var currentRoute = null;
         var vessel = null;
         var unSubscribeRouteLocationCreated = null;
@@ -161,6 +163,8 @@
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
             currentRoute = new embryo.vrmt.Route(newRoute);
+            vm.isInAssessable = currentRoute.isCompleted();
+            vm.newAssessmentNotPossibleWarning = vm.isInAssessable ? "Please note. It is not possible to start a new assessment on an already completed route!" : undefined;
         }
 
         NotifyService.subscribe($scope, Events.VesselLoaded, function (event, v) {

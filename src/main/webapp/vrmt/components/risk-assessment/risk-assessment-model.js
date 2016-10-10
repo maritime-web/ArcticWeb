@@ -11,11 +11,11 @@ embryo.vrmt = {};
  * }} AssessmentOptions
  */
 
-
 /**
+ * @classdesc
  * Represents risk assessment of a route.
- * @param {AssessmentOptions} parameters
  * @constructor
+ * @param {AssessmentOptions} parameters
  */
 function Assessment(parameters) {
     /**
@@ -176,6 +176,7 @@ embryo.vrmt.Route = function (route) {
     this.isOnRoute = isOnRoute;
     this.isVesselOnRoute = isVesselOnRoute;
     this.getStartPosition = getStartPosition;
+    this.isCompleted = isCompleted;
     this.equals = equals;
 
     var metersToNm = embryo.geo.Converter.metersToNm;
@@ -251,6 +252,10 @@ embryo.vrmt.Route = function (route) {
     function getStartPosition() {
         var firstWp = this.wps[0];
         return [firstWp.longitude, firstWp.latitude];
+    }
+
+    function isCompleted() {
+        return moment().isAfter(this.eta);
     }
 
     function equals(otherRoute) {

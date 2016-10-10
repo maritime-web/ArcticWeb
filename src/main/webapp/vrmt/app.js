@@ -8,7 +8,7 @@ angular.module('vrmt.app', []);
 
     angular.module('vrmt',
         [
-            'ngAnimate', 'ngSanitize', 'ui.bootstrap', 'ui.bootstrap.accordion',
+            'ngAnimate', 'ngSanitize', 'ui.bootstrap', 'ui.bootstrap.accordion', 'ui.bootstrap.tooltip',
             'vrmt.render', 'vrmt.map', 'vrmt.app', 'embryo.menu', 'embryo.authentication', 'embryo.routeService',
             'embryo.vessel.service', 'embryo.scheduleService', 'angular-growl', 'embryo.pouchdb.services'
         ])

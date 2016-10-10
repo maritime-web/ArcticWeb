@@ -43,26 +43,42 @@
         function startNewAssessment() {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
-                    data.currentAssessment = null;
-                    var locationsToAssess = getLocationsNotYetPassed();
-                    var result = new Assessment({id: moment().unix(), routeId: currentRouteId, started: moment(), locationsToAssess: locationsToAssess});
-                    var lastAssessment = getLastAssessment();
-                    locationsToAssess.forEach(function (location) {
-                        result.updateLocationAssessment(location.id);
-                    });
+                    discardCurrentAssessment();
+                    assertThatRouteIsAssessable();
+                    data.currentAssessment = createNewAssessment();
+                    return saveAssessmentData(data);
 
-                    if (lastAssessment) {
-                        lastAssessment = new Assessment(lastAssessment);
-                        locationsToAssess.forEach(function (location) {
-                            var defaultLocationAssessment = lastAssessment.getLocationAssessment(location.id);
-                            if (defaultLocationAssessment) {
-                                result.updateLocationAssessment(location.id, defaultLocationAssessment.scores);
-                            }
-                        });
+                    function discardCurrentAssessment() {
+                        data.currentAssessment = null;
                     }
 
-                    data.currentAssessment = result;
-                    return saveAssessmentData(data);
+                    function assertThatRouteIsAssessable() {
+                        var currentRoute = new embryo.vrmt.Route(data.currentRoute);
+                        if (currentRoute.isCompleted()) {
+                            throw new Error("Can not start a new assessment since the route is already completed");
+                        }
+                    }
+
+                    function createNewAssessment() {
+                        var locationsToAssess = getLocationsNotYetPassed();
+                        var result = new Assessment({id: moment().unix(), routeId: currentRouteId, started: moment(), locationsToAssess: locationsToAssess});
+                        var lastAssessment = getLastAssessment();
+                        locationsToAssess.forEach(function (location) {
+                            result.updateLocationAssessment(location.id);
+                        });
+
+                        if (lastAssessment) {
+                            lastAssessment = new Assessment(lastAssessment);
+                            locationsToAssess.forEach(function (location) {
+                                var defaultLocationAssessment = lastAssessment.getLocationAssessment(location.id);
+                                if (defaultLocationAssessment) {
+                                    result.updateLocationAssessment(location.id, defaultLocationAssessment.scores);
+                                }
+                            });
+                        }
+
+                        return result;
+                    }
 
                     function getLocationsNotYetPassed() {
                         var currentTime = moment().subtract(1, 'h');
@@ -189,7 +205,6 @@
 
                             data.routeLocations.forEach(function (loc) {
                                 loc.eta = newRouteVersion.getTimeAtPosition(new RouteLocation(loc).asPosition());
-                                console.log(loc.eta.format());
                             })
                         }
                     }

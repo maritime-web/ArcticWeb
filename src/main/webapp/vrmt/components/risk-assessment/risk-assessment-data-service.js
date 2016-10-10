@@ -28,6 +28,7 @@
                             _id: routeId,
                             routeLocationSequence: 1,
                             routeLocations: [],
+                            /** @type {Assessment|null} */
                             currentAssessment: null,
                             assessments: []
                         };
