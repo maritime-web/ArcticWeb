@@ -48,12 +48,12 @@ describe('RiskAssessmentService', function () {
             "routeId": routeId,
             "id": 1,
             "name": "Nuuk",
-            "eta": moment(),
+            "eta": moment().utc(),
             "lat": 64.16990200118559,
             "lon": -51.72088623046876
         };
-        locationAssessment = new LocationAssessment({time: moment(), routeLocation: location, scores: []});
-        assessmentOne = new Assessment({id: 1, routeId: location.routeId, started: moment(), finished: moment(), locationsToAssess: [location], locationAssessments: [[location.id, locationAssessment]]});
+        locationAssessment = new LocationAssessment({time: moment().utc(), routeLocation: location, scores: []});
+        assessmentOne = new Assessment({id: 1, routeId: location.routeId, started: moment().utc(), finished: moment().utc(), locationsToAssess: [location], locationAssessments: [[location.id, locationAssessment]]});
 
         assessmentTwo = {
             "id": 2,

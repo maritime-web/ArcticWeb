@@ -61,7 +61,7 @@
 
                     function createNewAssessment() {
                         var locationsToAssess = getLocationsNotYetPassed();
-                        var result = new Assessment({id: moment().unix(), routeId: currentRouteId, started: moment(), locationsToAssess: locationsToAssess});
+                        var result = new Assessment({id: moment().utc().unix(), routeId: currentRouteId, started: moment().utc(), locationsToAssess: locationsToAssess});
                         var lastAssessment = getLastAssessment();
                         locationsToAssess.forEach(function (location) {
                             result.updateLocationAssessment(location.id);
@@ -81,7 +81,7 @@
                     }
 
                     function getLocationsNotYetPassed() {
-                        var currentTime = moment().subtract(1, 'h');
+                        var currentTime = moment().utc().subtract(1, 'h');
                         return data.routeLocations.filter(function (location) {
                             return currentTime.isSameOrBefore(location.eta);
                         });
@@ -104,7 +104,7 @@
         function endAssessment() {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
-                    data.currentAssessment.finished = moment();
+                    data.currentAssessment.finished = moment().utc();
                     data.assessments.push(data.currentAssessment);
                     data.currentAssessment = null;
                     return saveAssessmentData(data);

@@ -37,7 +37,7 @@ describe('RiskFactorAssessorService', function () {
         it("should return option with name May and index 300 for risk factor 2. Time of the season", function () {
             riskFactor.id = 2;
             riskFactor.scoreOptions.push({name: 'May', index: 300});
-            routeLocation.eta = moment().year(2016).month(4).date(5);
+            routeLocation.eta = moment().utc().year(2016).month(4).date(5);
             var result = null;
 
             cut.chooseOption(routeLocation, riskFactor).then(function (res) {
@@ -51,7 +51,7 @@ describe('RiskFactorAssessorService', function () {
         });
 
         it("should convert May to month number 4", function () {
-            expect(moment().month("May").month()).toBe(4);
+            expect(moment().utc().month("May").month()).toBe(4);
         })
     });
 

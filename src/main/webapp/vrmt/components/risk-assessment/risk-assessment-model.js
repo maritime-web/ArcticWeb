@@ -32,12 +32,12 @@ function Assessment(parameters) {
      * The time where the assessment was started.
      * @type {number|undefined}
      */
-    this.started = parameters.started ? moment(parameters.started): undefined;
+    this.started = parameters.started ? moment(parameters.started).utc(): undefined;
     /**
      * The time where the assessment was completed.
      * @type {number|undefined}
      */
-    this.finished = parameters.finished ? moment(parameters.finished) : undefined;
+    this.finished = parameters.finished ? moment(parameters.finished).utc() : undefined;
     /**
      * The locations along the route which must be assessed.
      * @type {Array<RouteLocation>}
@@ -100,7 +100,7 @@ function Assessment(parameters) {
         if (!routeLocation) {
             throw "Could not find route location with id: '" + routeLocationId + "' in assessment identified by '" + this.id + "'";
         }
-        var locationAssessment = new LocationAssessment({time: moment(), routeLocation: routeLocation, scores: scores || [], note: note});
+        var locationAssessment = new LocationAssessment({time: moment().utc(), routeLocation: routeLocation, scores: scores || [], note: note});
         this.locationAssessments.set(routeLocationId, locationAssessment);
     };
 
@@ -243,7 +243,7 @@ embryo.vrmt.Route = function (route) {
     }
 
     function isVesselOnRoute() {
-        var now = moment();
+        var now = moment().utc();
         return legs.some(function (leg) {
             return leg.containsVesselAt(now);
         });
@@ -255,7 +255,7 @@ embryo.vrmt.Route = function (route) {
     }
 
     function isCompleted() {
-        return moment().isAfter(this.eta);
+        return moment().utc().isAfter(this.eta);
     }
 
     function equals(otherRoute) {

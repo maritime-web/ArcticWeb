@@ -24,13 +24,13 @@ describe('Risk Assessment Classes', function () {
             scoreOption = new ScoreOption({name: 'Region AA', index: 40});
             riskFactor = new RiskFactor({vesselId: '223344', id: 1, name: '1. Regions', scoreOptions: [scoreOption]});
             scores = [new Score({riskFactor: riskFactor, scoreOption: scoreOption, index: 87})];
-            locationAssessment = new LocationAssessment({time: moment(), routeLocation: routeLocation, scores: []});
+            locationAssessment = new LocationAssessment({time: moment().utc(), routeLocation: routeLocation, scores: []});
 
             assessment = new Assessment({
                 id: 1,
                 routeId: 'r1',
-                started: moment(),
-                finished: moment(),
+                started: moment().utc(),
+                finished: moment().utc(),
                 locationsToAssess: [routeLocation],
                 locationAssessments: [[routeLocation.id, locationAssessment]]
             });

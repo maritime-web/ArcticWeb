@@ -37,7 +37,7 @@
             this.name = originalRoute.name;
             this.from = originalRoute.dep;
             this.to = originalRoute.des;
-            this.etaDep = originalRoute.etaDep ? moment(originalRoute.etaDep).format("YYYY-MM-DD") : null;
+            this.etaDep = originalRoute.etaDep ? moment(originalRoute.etaDep).utc().format("YYYY-MM-DD HH:mm UTC") : null;
             this.routeId = originalRoute.id;
         }
 
@@ -55,7 +55,6 @@
         }
 
         CompletedAssessmentView.prototype.showDetails = function () {
-            console.log("SHOW ASSESSMENT DETAILS");
             NotifyService.notify(Events.OpenAssessmentView, this.assessment);
         };
 
