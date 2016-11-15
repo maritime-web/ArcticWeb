@@ -34,7 +34,7 @@ $(function() {
         }
 
         var sections = [ {
-            name : "ArcticWeb Reporting",
+            name : "PolarWeb Reporting",
             services : [],
             type : "edit"
         }, {
