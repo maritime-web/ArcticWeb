@@ -35,6 +35,8 @@ import dk.dma.embryo.vessel.json.RouteRestService;
 import dk.dma.embryo.vessel.json.RouteUploadRestService;
 import dk.dma.embryo.vessel.json.ScheduleRestService;
 import dk.dma.embryo.weather.json.WeatherRestService;
+import dk.dma.enav.services.nwnm.NwNmRestService;
+import dk.dma.enav.services.registry.ServiceLookupRestService;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

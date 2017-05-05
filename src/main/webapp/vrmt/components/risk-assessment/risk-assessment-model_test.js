@@ -162,6 +162,37 @@ describe('Risk Assessment Classes', function () {
                 expect(aDate.minutes()).toEqual(30);
             });
 
+            it('should something correctly', function () {
+                console.log("Compare turf and ol");
+                var route = [[[31.9, -71.1], [35.9, -71.1]]];
+
+                var point = [31.886914, -71.162306];
+                var turfPoint = turf.point(point);
+                var turfLinestring = turf.linestring(route);
+                var turfClosestPoint = turf.pointOnLine(turfLinestring, point);
+                console.log(turfClosestPoint);
+
+                var turfDist = embryo.geo.Converter.metersToNm(turf.distance(turfClosestPoint, turfPoint)*1000);
+                console.log(turfDist);
+
+                var line = new ol.geom.LineString([], "XY");
+                route.forEach(function (p) {
+                    var mercatorCoord = ol.proj.fromLonLat(p, undefined);
+                    line.appendCoordinate(mercatorCoord);
+                });
+
+                var olPoint = ol.proj.fromLonLat(point, undefined);
+                var closestPoint = line.getClosestPoint(olPoint);
+                var closestPointLonLat = ol.proj.toLonLat(closestPoint, undefined);
+                console.log(closestPoint);
+                var rhumbDist = CoordinateSystem.CARTESIAN.distanceBetween(point[0], point[1], closestPointLonLat[1], closestPointLonLat[0]);
+
+                console.log(rhumbDist);
+
+
+
+            });
+
         });
 
         describe('serialize', function () {
@@ -176,7 +207,7 @@ describe('Risk Assessment Classes', function () {
         });
 
         describe('getClosestPointOnRoute', function () {
-            it('should somthing', function () {
+            it('should something', function () {
                 var cut = new embryo.vrmt.Route(routeThuleQaarnaaq);
                 // var p = cut.getClosestPointOnRoute({lat: 72.29222998918011, lon: -56.69085405085945});
                 var p = cut.getClosestPointOnRoute({lat: 72.87637, lon: -56.527416});

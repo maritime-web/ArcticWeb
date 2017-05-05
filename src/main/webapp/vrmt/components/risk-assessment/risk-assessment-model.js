@@ -236,6 +236,10 @@ embryo.vrmt.Route = function (route) {
     }
 
     function isOnRoute(routeLocation) {
+        console.log("isOnRoute");
+        console.log(routeLocation);
+
+
         var givenPosition = turf.point([routeLocation.lon, routeLocation.lat]);
         var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
         var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);

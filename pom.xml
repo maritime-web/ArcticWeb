@@ -120,6 +120,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>dk.dma.enav.services</groupId>
+			<artifactId>service-registry</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>dk.dma.enav</groupId>
 			<artifactId>enav-model</artifactId>
 		</dependency>

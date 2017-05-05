@@ -21,6 +21,8 @@ var mountFolder = function (connect, dir) {
 
 var libFiles = [
     {src: ['src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js']},
+    {src: ['src/**/js/ext/cdn.cloudflare/openlayers/v3.19.0-dist/ol.js']},
+    {src: ['src/**/js/cached/map/cdn.cloudflare/pouchdb/5.1.0/pouchdb.js']},
     {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/angular.js']},
     {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/!(*min*).js']},
     {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']},
@@ -42,7 +44,7 @@ var vrmtFiles = [
     {src: ['src/**/js/embryo-for-test.js']},
     {src: ['src/**/vrmt/**/app.js']},
     {src: ['src/**/vrmt/**/*.js']},
-    {src: ['src/**/js/service/geo-service.js']},
+    {src: ['src/**/components/geo/geo-service.js']},
     {src: ['src/**/js/authentication.js']}
 ];
 
