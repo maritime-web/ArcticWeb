@@ -121,7 +121,7 @@
 
 		<dependency>
 			<groupId>dk.dma.enav.services</groupId>
-			<artifactId>service-registry</artifactId>
+			<artifactId>service-registry-static</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 
