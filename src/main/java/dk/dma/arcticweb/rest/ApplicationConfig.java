@@ -35,6 +35,7 @@ import dk.dma.embryo.vessel.json.RouteRestService;
 import dk.dma.embryo.vessel.json.RouteUploadRestService;
 import dk.dma.embryo.vessel.json.ScheduleRestService;
 import dk.dma.embryo.weather.json.WeatherRestService;
+import dk.dma.enav.services.nwnm.NwNmRestService;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -61,7 +62,8 @@ public class ApplicationConfig extends Application {
                 TestDataRestService.class, 
                 IceObservationRestService.class, 
                 MsiRestService.class,
-                MetocRestService.class, 
+                NwNmRestService.class,
+                MetocRestService.class,
                 ArcticWebVesselRestService.class, 
                 ScheduleRestService.class,
                 LogEntryRestService.class, 
