@@ -26,7 +26,11 @@
 			</table>
 		</div>
 		<div accordion-group heading="Selected Warning" is-open="selected.open" e-left-bar-content-change="{{selected.msi}}">
-			<p>{{selected.msi.enctext}}</p>
+
+            <div ng-if="selected.msi.originalInformation">&#10029;</div>
+            <div ng-if="selected.msi.shortId"><span class="badge label-message-id">{{selected.msi.shortId}}</span></div>
+			<p><strong>{{selected.msi.enctext}}</strong></p>
+
 			<table class="table table-condensed" x-ng-if="selected.msi">
                 <!-- Reference lines -->
                 <tr ng-if="selected.msi.references && selected.msi.references.length > 0">

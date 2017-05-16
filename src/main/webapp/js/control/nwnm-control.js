@@ -77,5 +77,6 @@ $(function() {
         return function (value) {
             return $sce.trustAsHtml(value);
         };
-    }])
+    }]);
+
 });

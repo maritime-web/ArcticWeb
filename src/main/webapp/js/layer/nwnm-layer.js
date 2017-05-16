@@ -22,16 +22,13 @@ function NWNMLayer() {
                 return -context.size() / 2;
             },
             size: function() {
-                return [16, 20, 24][that.zoomLevel];
+                // return [16, 20, 24][that.zoomLevel];
+                return [14, 17, 20][that.zoomLevel];
             },
             description: function(feature) {
                 return feature.cluster ? feature.cluster.length + ' warnings' : feature.attributes.description;
             },
             extGraphic: function(feature) {
-                console.log(feature.attributes.mainType);
-                if (feature.attributes.mainType === undefined) {
-                    console.log(feature.attributes);
-                }
                 return feature.attributes.mainType === 'NW' ? 'img/nwnm/nw.png' : 'img/nwnm/nm.png';
             }
         };
@@ -77,19 +74,13 @@ function NWNMLayer() {
                     fontOpacity: 1,
                     fontSize: "10px",
                     fontFamily: "Courier New, monospace",
-                    label : "${description}",
+                    // label : "${description}",
                     fill: true,
                     fillOpacity: 0.6,
                     strokeOpacity: 0.8
                 }, { context: context} )
 
-            }),
-            strategies: [
-                    new OpenLayers.Strategy.Cluster({
-                        distance: 25,
-                        threshold: 3
-                    })
-            ]
+            })
         });
 
         this.selectableLayers = [this.layers.nwnm];
