@@ -9,42 +9,42 @@ $(function() {
     var module = angular.module('embryo.nwnm.controllers', [ 'embryo.nwnm.service' ]);
 
     module.controller("NWNMLayerControl", [ '$scope', 'NWNMService', function($scope, NWNMService) {
-        NWNMService.subscribe(function(error, warnings){
+        NWNMService.subscribe(function(error, messages){
             if(error){
                 embryo.messagePanel.show({
                     text: error,
                     type: "error"
                 });
             }else{
-                nwnmLayer.draw(warnings);
+                nwnmLayer.draw(messages);
             }
         });
     } ]);
 
     module.controller("NWNMControl", [ '$scope', 'NWNMService', function($scope, NWNMService) {
         $scope.regions = [];
-        $scope.warnings = [];
+        $scope.messages = [];
         $scope.selected = {};
 
-        NWNMService.subscribe(function(error, warnings, regions, selectedRegions){
+        NWNMService.subscribe(function(error, messages, regions, selectedRegions){
             for ( var x in regions) {
                 if ($.inArray(regions[x].name, selectedRegions) != -1) {
                     regions[x].selected = true;
                 }
             }
             $scope.regions = regions;
-            $scope.warnings = warnings;
+            $scope.messages = messages;
         });
 
-        $scope.showMsi = function() {
+        $scope.showMsg = function() {
             var regionNames = NWNMService.regions2Array($scope.regions);
             NWNMService.setSelectedRegions(regionNames);
             NWNMService.update();
         };
 
-        nwnmLayer.select("nwnm", function(msi) {
-            $scope.selected.open = !!msi;
-            $scope.selected.msi = msi;
+        nwnmLayer.select("nwnm", function(msg) {
+            $scope.selected.open = !!msg;
+            $scope.selected.msg = msg;
             if (!$scope.$$phase) {
                 $scope.$apply(function() {
                 });
@@ -55,18 +55,18 @@ $(function() {
             return formatDate(timeInMillis);
         };
 
-        $scope.selectMsi = function(msi) {
-            switch (msi.type) {
+        $scope.selectMsg = function(msg) {
+            switch (msg.type) {
             case "Point":
-                embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
+                embryo.map.setCenter(msg.points[0].longitude, msg.points[0].latitude, 8);
                 break;
             case "Points":
             case "Polygon":
             case "Polyline":
-                embryo.map.setCenter(msi.points[0].longitude, msi.points[0].latitude, 8);
+                embryo.map.setCenter(msg.points[0].longitude, msg.points[0].latitude, 8);
                 break;
             }
-            nwnmLayer.select(msi);
+            nwnmLayer.select(msg);
         };
     } ]);
 
@@ -78,5 +78,49 @@ $(function() {
             return $sce.trustAsHtml(value);
         };
     }]);
+
+    /****************************************************************
+     * Renders the message source + publication date (adapted from niord)
+     ****************************************************************/
+    module.directive('renderMessageSource', [
+        function () {
+
+            return {
+                restrict: 'E',
+                template: '<span class="message-source">{{source}}</span>',
+                scope: {
+                    msg: "="
+                },
+                link: function(scope) {
+
+                    scope.source = '';
+
+                    scope.updateSource = function () {
+                        scope.source = '';
+
+                        if (scope.msg) {
+                            var desc = scope.msg.descs[0];
+                            if (desc && desc.source) {
+                                scope.source = desc.source;
+                            }
+                            if (scope.msg.publishDateFrom &&
+                                (scope.msg.status === 'PUBLISHED' || scope.msg.status === 'EXPIRED' || scope.msg.status === 'CANCELLED')) {
+                                if (scope.source.length > 0) {
+                                    if (scope.source.charAt(scope.source.length-1) !== '.') {
+                                        scope.source += ".";
+                                    }
+                                    scope.source += " ";
+                                }
+
+                                scope.source += "Published"
+                                    + " " + moment(scope.msg.publishDateFrom).format("D MMMM YYYY");
+                            }
+                        }
+                    };
+
+                    scope.$watch("[msg.descs, msg.publishDateFrom]", scope.updateSource, true);
+                }
+            };
+        }])
 
 });

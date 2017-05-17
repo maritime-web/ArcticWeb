@@ -4,7 +4,7 @@
     module.service('NWNMService', [ '$http', 'CookieService', '$interval', function($http, CookieService, $interval) {
         var subscription = null;
         var service = null;
-        var interval = 1 * 60 * 1000 * 60;
+        var interval = 60 * 1000 * 60;
 
         function notifySubscribers() {
             if (subscription) {
@@ -13,23 +13,22 @@
                         if (subscription.error) {
                             subscription.callbacks[i](subscription.error);
                         } else {
-                            subscription.callbacks[i](null, subscription.warnings, subscription.regions, subscription.selectedRegions);
+                            subscription.callbacks[i](null, subscription.messages, subscription.regions, subscription.selectedRegions);
                         }
                     }
                 }
             }
         }
 
-        
-        function getMsiData() {
-            function getWarnings(regionNames){
+        function getNWNMData() {
+            function getMessages(){
                 subscription.selectedRegions = service.getSelectedRegions();
                 if(!subscription.selectedRegions){
                     var regionNames = service.regions2Array(subscription.regions, true);
                     service.setSelectedRegions(regionNames);
                 }
-                service.list(subscription.selectedRegions, function(warnings){
-                    subscription.warnings = warnings;
+                service.list(subscription.selectedRegions, function(messages){
+                    subscription.messages = messages;
                     notifySubscribers();
                 }, function(error, status){
                     subscription.error = error;
@@ -42,18 +41,17 @@
             if (!subscription.regions) {
                 service.regions(function(regions) {
                     subscription.regions = regions;
-                    getWarnings();
+                    getMessages();
                 }, function (errorMsg){
                     subscription.error = errorMsg;
                     notifySubscribers();
                 });
             }else{
-                getWarnings();
+                getMessages();
             }
         }
 
         function toViewType(messages) {
-            console.log('messages size: ' + messages.length);
             var res = [];
 
             function augmentMessage(m) {
@@ -122,14 +120,14 @@
 
                 $http.get(embryo.baseUrl + "/rest/nw-nm/messages?" + params, {
                     timeout : embryo.defaultTimeout
-                }).success(function(warnings){
+                }).success(function(messages){
                     embryo.messagePanel.replace(messageId, {
-                        text : warnings.length + " NW-NM warnings returned.",
+                        text : messages.length + " NW-NM messages returned.",
                         type : "success"
                     });
-                    success(toViewType(warnings));
+                    success(toViewType(messages));
                 }).error(function(data, status, headers, config) {
-                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting MSI warnings");
+                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting NW-NM messagess");
                     embryo.messagePanel.replace(messageId, {
                         text : errorMsg,
                         type : "error"
@@ -155,19 +153,19 @@
                     subscription = {
                         callbacks : [],
                         regions : null,
-                        warnings : null,
+                        messagess : null,
                         interval : null
                     };
                 }
                 var id = subscription.callbacks.push(callback);
 
                 if (subscription.interval == null) {
-                    subscription.interval = $interval(getMsiData, interval);
-                    getMsiData();
+                    subscription.interval = $interval(getNWNMData, interval);
+                    getNWNMData();
                 }else if (subscription.error) {
                     callback(subscription.error, null, null, null);
-                } else if (subscription.warnings) {
-                    callback(null, subscription.warnings, subscription.regions, subscription.selectedRegions);
+                } else if (subscription.messages) {
+                    callback(null, subscription.messages, subscription.regions, subscription.selectedRegions);
                 }
                 return {
                     id : id
@@ -186,9 +184,9 @@
             update : function(){
                 if(subscription.interval){
                     $interval.cancel(subscription.interval);
-                    subscription.interval = $interval(getMsiData, interval);
+                    subscription.interval = $interval(getNWNMData, interval);
                 }
-                getMsiData();
+                getNWNMData();
             }
         };
 
