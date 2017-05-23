@@ -136,11 +136,17 @@
                 });
             },
             regions : function(success, error) {
+/*
                 $http.get(embryo.baseUrl + 'rest/msi/regions', {
                     timeout : embryo.defaultTimeout
                 }).success(success).error(function(data, status, headers, config) {
-                    error(embryo.ErrorService.errorStatus(data, status, "requesting MSI regions"), status);
+                    error(embryo.ErrorService.errorStatus(data, status, "requesting NW-NM areas"), status);
                 });
+*/
+                var regions = [
+                    'GL', 'DK'
+                ];
+                success(regions);
             },
             setSelectedRegions : function(regions) {
                 CookieService.set("dma-msi-regions-" + embryo.authentication.userName, regions, 30);

@@ -22,7 +22,6 @@ import dk.dma.embryo.dataformats.json.ForecastRestService;
 import dk.dma.embryo.dataformats.json.IceObservationRestService;
 import dk.dma.embryo.dataformats.json.ShapeFileRestService;
 import dk.dma.embryo.metoc.json.MetocRestService;
-import dk.dma.embryo.msi.rs.MsiRestService;
 import dk.dma.embryo.tiles.json.TileSetJsonService;
 import dk.dma.embryo.user.json.AreasOfInterestRestService;
 import dk.dma.embryo.user.json.AuthenticationService;
@@ -61,7 +60,6 @@ public class ApplicationConfig extends Application {
                 AuthenticationService.class,
                 TestDataRestService.class, 
                 IceObservationRestService.class, 
-                MsiRestService.class,
                 NwNmRestService.class,
                 MetocRestService.class,
                 ArcticWebVesselRestService.class, 

@@ -251,7 +251,7 @@ At the time of writing the current services are subject to surveillance
 * dk.dma.embryo.dataformats.service.ForecastServiceImpl
 * dk.dma.embryo.weather.service.DmiWeatherJob
 * dk.dma.embryo.user.json.AuthenticationService
-* dk.dma.embryo.msi.MsiClientImpl
+* dk.dma.enav.services.nwnm.NwNmService
 * dk.dma.embryo.common.mail.MailServiceImpl
 * dk.dma.embryo.metoc.service.MetocServiceImpl
 * dk.dma.embryo.dataformats.job.FcooFtpReaderJob
