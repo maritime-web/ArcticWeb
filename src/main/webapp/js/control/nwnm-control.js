@@ -56,16 +56,8 @@ $(function() {
         };
 
         $scope.selectMsg = function(msg) {
-            switch (msg.type) {
-            case "Point":
-                embryo.map.setCenter(msg.points[0].longitude, msg.points[0].latitude, 8);
-                break;
-            case "Points":
-            case "Polygon":
-            case "Polyline":
-                embryo.map.setCenter(msg.points[0].longitude, msg.points[0].latitude, 8);
-                break;
-            }
+            var point = embryo.map.getCenterForGeoJsonFeature(msg.jsonFeatures[0]);
+            embryo.map.setCenter(point.longitude, point.latitude, 8);
             nwnmLayer.select(msg);
         };
     } ]);

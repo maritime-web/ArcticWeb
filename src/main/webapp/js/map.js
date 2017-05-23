@@ -257,6 +257,17 @@ $(function() {
                 map.zoomToExtent(b);
             }
         },
+        getCenterForGeoJsonFeature: function (geoJsonFeature) {
+            var point = null;
+            var geoJSONFormat = new OpenLayers.Format.GeoJSON();
+            var featureCollection = geoJSONFormat.read(geoJsonFeature);
+            angular.forEach(featureCollection, function (featureVector) {
+                point = featureVector.geometry.getCentroid();
+                point.longitude = point.x;
+                point.latitude = point.y;
+            });
+            return point;
+        },
         setCenter : function(longitude, latitude, zoom) {
             var pos = transformPosition(longitude, latitude);
 
