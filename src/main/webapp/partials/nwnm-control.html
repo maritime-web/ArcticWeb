@@ -7,6 +7,16 @@
 						id="ActiveFilter" /></td>
 					<td><label for="ActiveFilter">Show Active Now</label></td>
 				</tr>
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNW" name="regions"
+						id="NWFilter" /></td>
+					<td><label for="NWFilter">Navigational Warnings</label></td>
+				</tr>
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNM" name="regions"
+						id="NMFilter" /></td>
+					<td><label for="NMFilter">Notices to Mariners</label></td>
+				</tr>
 			</table>
 		</div>
 		<div accordion-group heading="Active Messages" e-left-bar-open-on-init>

@@ -14,6 +14,8 @@ $(function() {
         $scope.selected = {};
         $scope.state = {};
         $scope.state.showOnlyActive = false;
+        $scope.state.showNW = true;
+        $scope.state.showNM = false;
 
 
         NWNMService.subscribe(function (error, messages) {
@@ -34,8 +36,20 @@ $(function() {
          */
         function filter(messages) {
             return messages.filter(function (msg) {
-                return !$scope.state.showOnlyActive || msg.isActive;
+                return activeFilter(msg) && nwFilter(msg) && nmFilter(msg);
             })
+        }
+
+        function activeFilter(msg) {
+            return !$scope.state.showOnlyActive || msg.isActive;
+        }
+
+        function nmFilter(msg) {
+            return $scope.state.showNM || msg.mainType !== "NM";
+        }
+
+        function nwFilter(msg) {
+            return $scope.state.showNW || msg.mainType !== "NW";
         }
 
         function onStateChange() {
