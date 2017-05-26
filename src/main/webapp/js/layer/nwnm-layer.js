@@ -110,52 +110,6 @@ function NWNMLayer() {
                     features.push(featureVector);
                 });
             });
-
-
-/*
-            switch (messages[i].type) {
-                case "Point":
-                case "Points":
-                    for (var j in messages[i].points) {
-                        var p = messages[i].points[j];
-                        features.push(new OpenLayers.Feature.Vector(this.map.createPoint(p.longitude, p.latitude), attr));
-                    }
-                    break;
-                case "Polygon":
-                    var points = [];
-
-                    for (var j in messages[i].points) {
-                        var p = messages[i].points[j];
-                        points.push(this.map.createPoint(p.longitude, p.latitude));
-                    }
-
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.Polygon([new OpenLayers.Geometry.LinearRing(points)]), attr
-                    ));
-
-                    break;
-                case "Polyline":
-                    var points = [];
-
-                    for (var j in messages[i].points) {
-                        var p = messages[i].points[j];
-                        points.push(this.map.createPoint(p.longitude, p.latitude));
-                    }
-
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.LineString(points), attr
-                    ));
-
-/!*
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.Curve([new OpenLayers.Geometry.LineString(points)]), attr
-                    ));
-*!/
-
-                    break;
-            }
-*/
-
         }
 
         this.layers.nwnm.addFeatures(features);

@@ -8,40 +8,55 @@ $(function() {
 
     var module = angular.module('embryo.nwnm.controllers', [ 'embryo.nwnm.service' ]);
 
-    module.controller("NWNMLayerControl", [ '$scope', 'NWNMService', function($scope, NWNMService) {
-        NWNMService.subscribe(function(error, messages){
-            if(error){
+    module.controller("NWNMControl", [ '$scope', 'NWNMService', function($scope, NWNMService) {
+        $scope.unfilteredMmessages = [];
+        $scope.messages = [];
+        $scope.selected = {};
+        $scope.state = {};
+        $scope.state.showOnlyActive = false;
+
+
+        NWNMService.subscribe(function (error, messages) {
+            if (error) {
                 embryo.messagePanel.show({
                     text: error,
                     type: "error"
                 });
-            }else{
-                nwnmLayer.draw(messages);
+            } else {
+                $scope.unfilteredMmessages = messages;
+                onStateChange();
             }
         });
-    } ]);
 
-    module.controller("NWNMControl", [ '$scope', 'NWNMService', function($scope, NWNMService) {
-        $scope.regions = [];
-        $scope.messages = [];
-        $scope.selected = {};
+        /**
+         * Filter messages according to the currently chosen filter criteria.
+         * @param messages unfiltered list of NW-NM messages
+         */
+        function filter(messages) {
+            return messages.filter(function (msg) {
+                return !$scope.state.showOnlyActive || msg.isActive;
+            })
+        }
 
-        NWNMService.subscribe(function(error, messages, regions, selectedRegions){
-            for ( var x in regions) {
-                if ($.inArray(regions[x].name, selectedRegions) != -1) {
-                    regions[x].selected = true;
-                }
-            }
-            $scope.regions = regions;
-            $scope.messages = messages;
-        });
+        function onStateChange() {
+            $scope.messages = filter($scope.unfilteredMmessages);
+            nwnmLayer.draw($scope.messages);
+        }
+
+        /**
+         * Called whenever messages are loaded from the server or any filter changes.
+         */
+        $scope.stateChanged = function() {
+            onStateChange();
+        };
 
         $scope.showMsg = function() {
-            var regionNames = NWNMService.regions2Array($scope.regions);
-            NWNMService.setSelectedRegions(regionNames);
             NWNMService.update();
         };
 
+        /**
+         * Add controller as lister to map select events
+         */
         nwnmLayer.select("nwnm", function(msg) {
             $scope.selected.open = !!msg;
             $scope.selected.msg = msg;
@@ -60,6 +75,7 @@ $(function() {
             embryo.map.setCenter(point.longitude, point.latitude, 8);
             nwnmLayer.select(msg);
         };
+
     } ]);
 
     /**

@@ -1,12 +1,11 @@
 <div x-ng-controller="NWNMControl">
 	<div e-left-bar accordion close-others="true" class="controlPanel2">
-		<div accordion-group heading="Message Filtering" x-ng-if="regions && regions.length > 1">
+		<div accordion-group heading="Message Filtering">
 			<table class="table">
-				<tr x-ng-repeat="region in regions" class="e-iceprovider">
-					<td><input type="checkbox" x-ng-change="showMsg()" x-ng-model="region.selected" name="regions"
-						id="region_{{$index}}" /></td>
-					<td><label for="region_{{$index}}">{{region.description}}</label></td>
-					<td><label for="region_{{$index}}">({{region.name}})</label></td>
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showOnlyActive" name="regions"
+						id="ActiveFilter" /></td>
+					<td><label for="ActiveFilter">Show Active Now</label></td>
 				</tr>
 			</table>
 		</div>

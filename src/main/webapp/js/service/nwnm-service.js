@@ -59,6 +59,19 @@
                 m.areaHeading = getAreaHeading(m);
                 m.jsonFeatures = getMessagePartFeatures(m);
 
+                var now = moment();
+                var partActiveNow = m.parts.find(function (part) {
+                    if (part.eventDates) {
+                        return part.eventDates.find(function (dateInterval) {
+                            return now.isSameOrAfter(moment(dateInterval.fromDate)) && now.isSameOrBefore(moment(dateInterval.toDate));
+                        });
+                    } else {
+                        return false;
+                    }
+                });
+                m.isActive = (m.status === "PUBLISHED") && partActiveNow;
+
+
                 return m;
             }
 
