@@ -57,6 +57,7 @@
             function augmentMessage(m) {
                 m.enctext = m.descs[0].title;
                 m.areaHeading = getAreaHeading(m);
+                m.mainArea = getMainArea(m);
                 m.jsonFeatures = getMessagePartFeatures(m);
 
                 var now = moment();
@@ -70,7 +71,6 @@
                     }
                 });
                 m.isActive = (m.status === "PUBLISHED") && partActiveNow;
-
 
                 return m;
             }
@@ -103,6 +103,17 @@
                     return heading;
                 }
                 return '';
+            }
+
+            function getMainArea(m) {
+                if (m && m.areas && m.areas.length > 0) {
+                    var area = m.areas[0];
+                    while (area.parent) {
+                        area = area.parent;
+                    }
+                    return area;
+                }
+                return null;
             }
 
             angular.forEach(messages, function (m) {

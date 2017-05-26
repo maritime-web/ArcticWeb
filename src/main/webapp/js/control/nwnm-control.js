@@ -36,7 +36,7 @@ $(function() {
          */
         function filter(messages) {
             return messages.filter(function (msg) {
-                return activeFilter(msg) && nwFilter(msg) && nmFilter(msg);
+                return activeFilter(msg) && nwFilter(msg) && nmFilter(msg) && areaFilter(msg);
             })
         }
 
@@ -52,9 +52,8 @@ $(function() {
             return $scope.state.showNW || msg.mainType !== "NW";
         }
 
-        function onStateChange() {
-            $scope.messages = filter($scope.unfilteredMmessages);
-            nwnmLayer.draw($scope.messages);
+        function areaFilter(msg) {
+            return msg.mainArea.mrn === $scope.state.showArea.mrn || !msg.mainArea.mrn;
         }
 
         /**
@@ -63,6 +62,54 @@ $(function() {
         $scope.stateChanged = function() {
             onStateChange();
         };
+
+        $scope.areaChanged = function() {
+            onStateChange();
+            centerMapOnArea($scope.state.showArea);
+        };
+
+        function onStateChange() {
+            $scope.mainAreas = extractMainAreas();
+            if (!$scope.state.showArea) {
+                $scope.state.showArea = $scope.mainAreas[0];
+            }
+            $scope.messages = filter($scope.unfilteredMmessages);
+            nwnmLayer.draw($scope.messages);
+        }
+
+        function centerMapOnArea(showArea) {
+            var areaCenters = [];
+            areaCenters["urn:mrn:iho:country:dk"] = {longitude: 11, latitude: 55, zoom: 6};
+            areaCenters["urn:mrn:iho:country:gl"] = {longitude: -44, latitude: 69, zoom: 4};
+            areaCenters["urn:mrn:iho:country:fo"] = {longitude: -6, latitude: 62, zoom: 8};
+
+            var arg = areaCenters[showArea.mrn];
+            embryo.map.setCenter(arg.longitude, arg.latitude, arg.zoom);
+        }
+
+        function extractMainAreas() {
+            var mrns = new Set();
+            var areas = $scope.unfilteredMmessages.map(function (m) {
+                var area = null;
+                if (m.areas && m.areas.length > 0) {
+                    area = m.areas[0];
+                    while (area.parent) {
+                        area = area.parent;
+                    }
+                }
+                return area;
+            }).filter(function (area) {
+                var mrn = area.mrn;
+                if (mrns.has(mrn)) {
+                    return false;
+                } else {
+                    mrns.add(mrn);
+                    return true;
+                }
+            });
+
+            return areas;
+        }
 
         $scope.showMsg = function() {
             NWNMService.update();
@@ -85,11 +132,14 @@ $(function() {
         };
 
         $scope.selectMsg = function(msg) {
-            var point = embryo.map.getCenterForGeoJsonFeature(msg.jsonFeatures[0]);
-            embryo.map.setCenter(point.longitude, point.latitude, 8);
+            centerMapOn(msg);
             nwnmLayer.select(msg);
         };
 
+        function centerMapOn(msg) {
+            var point = embryo.map.getCenterForGeoJsonFeature(msg.jsonFeatures[0]);
+            embryo.map.setCenter(point.longitude, point.latitude, 8);
+        }
     } ]);
 
     /**

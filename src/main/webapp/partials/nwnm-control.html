@@ -3,19 +3,31 @@
 		<div accordion-group heading="Message Filtering">
 			<table class="table">
 				<tr class="e-iceprovider">
-					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showOnlyActive" name="regions"
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showOnlyActive" name="Active today"
 						id="ActiveFilter" /></td>
 					<td><label for="ActiveFilter">Show Active Now</label></td>
 				</tr>
 				<tr class="e-iceprovider">
-					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNW" name="regions"
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNW" name="NW"
 						id="NWFilter" /></td>
 					<td><label for="NWFilter">Navigational Warnings</label></td>
 				</tr>
 				<tr class="e-iceprovider">
-					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNM" name="regions"
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNM" name="NM"
 						id="NMFilter" /></td>
 					<td><label for="NMFilter">Notices to Mariners</label></td>
+				</tr>
+			</table>
+			<table class="table">
+                <tr>
+                    <th colspan="2">
+                        Main Area
+                    </th>
+                </tr>
+				<tr x-ng-repeat="area in mainAreas" class="e-iceprovider">
+					<td><input type="radio" x-ng-change="areaChanged()" x-ng-model="state.showArea" x-ng-value="area" name="Areas"
+						id="Area_{{$index}}" /></td>
+					<td><label for="Area_{{$index}}">{{area.descs[0].name}}</label></td>
 				</tr>
 			</table>
 		</div>
