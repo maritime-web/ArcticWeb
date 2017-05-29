@@ -13,7 +13,7 @@
                         if (subscription.error) {
                             subscription.callbacks[i](subscription.error);
                         } else {
-                            subscription.callbacks[i](null, subscription.messages, subscription.regions, subscription.selectedRegions);
+                            subscription.callbacks[i](null, subscription.messages);
                         }
                     }
                 }
@@ -21,33 +21,17 @@
         }
 
         function getNWNMData() {
+            subscription.error = null;
+            getMessages();
+
             function getMessages(){
-                subscription.selectedRegions = service.getSelectedRegions();
-                if(!subscription.selectedRegions){
-                    var regionNames = service.regions2Array(subscription.regions, true);
-                    service.setSelectedRegions(regionNames);
-                }
-                service.list(subscription.selectedRegions, function(messages){
+                service.list(function(messages){
                     subscription.messages = messages;
                     notifySubscribers();
                 }, function(error, status){
                     subscription.error = error;
                     notifySubscribers();
                 });
-            }
-
-            subscription.error = null;
-
-            if (!subscription.regions) {
-                service.regions(function(regions) {
-                    subscription.regions = regions;
-                    getMessages();
-                }, function (errorMsg){
-                    subscription.error = errorMsg;
-                    notifySubscribers();
-                });
-            }else{
-                getMessages();
             }
         }
 
@@ -124,16 +108,7 @@
         }
 
         service = {
-            regions2Array : function(regions, all) {
-                var result = [];
-                for ( var x in regions) {
-                    if (all || regions[x].selected) {
-                        result.push(regions[x].name);
-                    }
-                }
-                return result;
-            },
-            list : function(regions, success, error) {
+            list : function(success, error) {
                 var messageId = embryo.messagePanel.show({
                     text : "Requesting active NW and NM messages ..."
                 });
@@ -159,27 +134,14 @@
                     error(errorMsg, status);
                 });
             },
-            regions : function(success, error) {
-/*
-                $http.get(embryo.baseUrl + 'rest/msi/regions', {
-                    timeout : embryo.defaultTimeout
-                }).success(success).error(function(data, status, headers, config) {
-                    error(embryo.ErrorService.errorStatus(data, status, "requesting NW-NM areas"), status);
-                });
-*/
-                var regions = [
-                    'GL', 'DK'
-                ];
-                success(regions);
+            getFilterState : function() {
+                return CookieService.get("dma-msi-filters-" + embryo.authentication.userName);
             },
-            setSelectedRegions : function(regions) {
-                CookieService.set("dma-msi-regions-" + embryo.authentication.userName, regions, 30);
-            },
-            getSelectedRegions : function() {
-                return CookieService.get("dma-msi-regions-" + embryo.authentication.userName);
+            setFilterState : function(state) {
+                CookieService.set("dma-msi-filters-" + embryo.authentication.userName, state, 30);
             },
             subscribe : function(callback) {
-                if (subscription == null) {
+                if (subscription === null) {
                     subscription = {
                         callbacks : [],
                         regions : null,
@@ -189,13 +151,13 @@
                 }
                 var id = subscription.callbacks.push(callback);
 
-                if (subscription.interval == null) {
+                if (subscription.interval === null) {
                     subscription.interval = $interval(getNWNMData, interval);
                     getNWNMData();
                 }else if (subscription.error) {
-                    callback(subscription.error, null, null, null);
+                    callback(subscription.error, null);
                 } else if (subscription.messages) {
-                    callback(null, subscription.messages, subscription.regions, subscription.selectedRegions);
+                    callback(null, subscription.messages);
                 }
                 return {
                     id : id
@@ -205,7 +167,7 @@
                 subscription.callbacks[id.id] = null;
                 var allDead = true;
                 for ( var i in subscription.callbacks)
-                    allDead &= subscription.callbacks[i] == null;
+                    allDead &= subscription.callbacks[i] === null;
                 if (allDead) {
                     clearInterval(subscription.interval);
                     subscription = null;

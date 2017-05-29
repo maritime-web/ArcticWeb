@@ -18,6 +18,9 @@ $(function() {
         $scope.state.showNM = false;
 
 
+        /**
+         * Subscribe to notifications on NW-NM message loading.
+         */
         NWNMService.subscribe(function (error, messages) {
             if (error) {
                 embryo.messagePanel.show({
@@ -26,6 +29,11 @@ $(function() {
                 });
             } else {
                 $scope.unfilteredMmessages = messages;
+                var state = NWNMService.getFilterState();
+                if (state) {
+                    $scope.state = state;
+                }
+
                 onStateChange();
             }
         });
@@ -37,23 +45,23 @@ $(function() {
         function filter(messages) {
             return messages.filter(function (msg) {
                 return activeFilter(msg) && nwFilter(msg) && nmFilter(msg) && areaFilter(msg);
-            })
-        }
+            });
 
-        function activeFilter(msg) {
-            return !$scope.state.showOnlyActive || msg.isActive;
-        }
+            function activeFilter(msg) {
+                return !$scope.state.showOnlyActive || msg.isActive;
+            }
 
-        function nmFilter(msg) {
-            return $scope.state.showNM || msg.mainType !== "NM";
-        }
+            function nmFilter(msg) {
+                return $scope.state.showNM || msg.mainType !== "NM";
+            }
 
-        function nwFilter(msg) {
-            return $scope.state.showNW || msg.mainType !== "NW";
-        }
+            function nwFilter(msg) {
+                return $scope.state.showNW || msg.mainType !== "NW";
+            }
 
-        function areaFilter(msg) {
-            return msg.mainArea.mrn === $scope.state.showArea.mrn || !msg.mainArea.mrn;
+            function areaFilter(msg) {
+                return msg.mainArea.mrn === $scope.state.showArea || !msg.mainArea.mrn;
+            }
         }
 
         /**
@@ -63,16 +71,19 @@ $(function() {
             onStateChange();
         };
 
-        $scope.areaChanged = function() {
-            onStateChange();
-            centerMapOnArea($scope.state.showArea);
-        };
+        $scope.$watch("state.showArea", function (oldVal, newVal) {
+            if (oldVal !== newVal) {
+                centerMapOnArea($scope.state.showArea);
+            }
+        });
 
         function onStateChange() {
             $scope.mainAreas = extractMainAreas();
             if (!$scope.state.showArea) {
-                $scope.state.showArea = $scope.mainAreas[0];
+                $scope.state.showArea = $scope.mainAreas[0].mrn;
             }
+
+            NWNMService.setFilterState($scope.state);
             $scope.messages = filter($scope.unfilteredMmessages);
             nwnmLayer.draw($scope.messages);
         }
@@ -83,13 +94,13 @@ $(function() {
             areaCenters["urn:mrn:iho:country:gl"] = {longitude: -44, latitude: 69, zoom: 4};
             areaCenters["urn:mrn:iho:country:fo"] = {longitude: -6, latitude: 62, zoom: 8};
 
-            var arg = areaCenters[showArea.mrn];
+            var arg = areaCenters[showArea];
             embryo.map.setCenter(arg.longitude, arg.latitude, arg.zoom);
         }
 
         function extractMainAreas() {
             var mrns = new Set();
-            var areas = $scope.unfilteredMmessages.map(function (m) {
+            return $scope.unfilteredMmessages.map(function (m) {
                 var area = null;
                 if (m.areas && m.areas.length > 0) {
                     area = m.areas[0];
@@ -107,8 +118,6 @@ $(function() {
                     return true;
                 }
             });
-
-            return areas;
         }
 
         $scope.showMsg = function() {
@@ -116,7 +125,7 @@ $(function() {
         };
 
         /**
-         * Add controller as lister to map select events
+         * Add controller as listener to map select events
          */
         nwnmLayer.select("nwnm", function(msg) {
             $scope.selected.open = !!msg;

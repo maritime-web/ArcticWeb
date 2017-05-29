@@ -25,7 +25,7 @@
                     </th>
                 </tr>
 				<tr x-ng-repeat="area in mainAreas" class="e-iceprovider">
-					<td><input type="radio" x-ng-change="areaChanged()" x-ng-model="state.showArea" x-ng-value="area" name="Areas"
+					<td><input type="radio" x-ng-change="stateChanged()" x-ng-model="state.showArea" x-ng-value="area.mrn" name="Areas"
 						id="Area_{{$index}}" /></td>
 					<td><label for="Area_{{$index}}">{{area.descs[0].name}}</label></td>
 				</tr>
