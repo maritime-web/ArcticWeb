@@ -21,11 +21,12 @@
             // '</div>',
             link : function(scope, element, attrs, ngModelController) {
                 $(element).datetimepicker({
-                    language : 'da',
-                    pick12HourFormat : false,
-                    useSeconds : false,
+                    format: 'YYYY-MM-DD HH:mm',
+                    locale : 'da',
                     useCurrent : true,
-                    showToday : true,
+                    showTodayButton : true,
+                    focusOnShow: false,
+                    debug: false,
                     icons : {
                         time : 'fa fa-clock-o',
                         date : 'fa fa-calendar',
@@ -35,39 +36,62 @@
                 });
                 var picker = $(element).data('DateTimePicker');
 
+                //The default key bindings of version 4.17.45 prevents cursor movement in the input field hence the modified bindings below
+                var defaultKeyBinds = picker.keyBinds();
+                var customKeyBinds = Object.assign({}, defaultKeyBinds);
+                customKeyBinds.left = "disabled";
+                customKeyBinds.right = "disabled";
+                customKeyBinds['delete'] = "disabled";
+                picker.keyBinds(customKeyBinds);
+
                 ngModelController.$formatters.push(function(modelValue) {
-                    var adjustedDate
+                    var adjustedDate;
                     if (!modelValue) {
                         adjustedDate = null;
-                        picker.setDate(null);
+                        picker.date(null);
                     } else {
                         adjustedDate = adjustDateForUTC(modelValue);
-                        picker.setDate(moment(adjustedDate).format('YYYY-MM-DD HH:mm'));
+                        picker.date(moment(adjustedDate));
                     }
+
                     return adjustedDate
                 });
 
                 ngModelController.$parsers.push(function(valueFromInput) {
-                    if (!picker.getDate()) {
+                    if (!picker.date()) {
                         return null;
                     }
-                    var value = adjustDateForLocal(picker.getDate().valueOf());
+                    var value = adjustDateForLocal(picker.date().valueOf());
+
                     return value;
                 });
 
-                element.bind('changeDate', function(e) {
-                    var val = $(element).find('input').val();
-                    ngModelController.$setViewValue(val);
 
-                    if (!scope.$$phase) {
-                        scope.$apply(function () {
-                        });
-                    }
+                /**
+                 * When input is clicked hide the date picker
+                 */
+                element.find("input").on('click', function () {
+                    picker.hide();
+                    element.find("input").focus();
                 });
 
-                element.bind('blur change dp.change dp.hide', function() {
+                /**
+                 * Enable changing dates by using arrow keys
+                 */
+                element.on('dp.show', function (e) {
+                    picker.keyBinds(defaultKeyBinds);
+                });
+
+                /**
+                 * Enable movement in input by using arrow keys
+                 */
+                element.on('dp.hide', function (e) {
+                    picker.keyBinds(customKeyBinds);
+                });
+
+                element.bind('blur change dp.change dp.hide', function(e) {
                     var millis = null;
-                    var date = picker.getDate();
+                    var date = picker.date();
                     if (date) {
                         millis = adjustDateForLocal(date.valueOf());
                     }
