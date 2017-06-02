@@ -202,6 +202,6 @@ $(function() {
                     scope.$watch("[msg.descs, msg.publishDateFrom]", scope.updateSource, true);
                 }
             };
-        }])
+        }]);
 
 });

@@ -88,16 +88,17 @@
                 </tr>
 
                 <!-- Attachments -->
-<!--
                 <tr ng-if="selected.msg.attachments">
                     <th>Attachments</th>
                     <td>
                         <span class="attachment-list" ng-repeat="att in selected.msg.attachments">
-                            <message-attachment attachment="att" size="32"></message-attachment>
+                            <span class="glyphicon glyphicon-file"> </span>
+                            <a href="{{att.path}}" target="_blank" class="ng-binding">
+                                {{att.fileName}}
+                            </a>
                         </span>
                     </td>
                 </tr>
--->
 
                 <!-- Charts line -->
                 <tr ng-if="selected.msg.charts.length > 0">
