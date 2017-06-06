@@ -49,7 +49,7 @@
 		<div accordion-group heading="Selected Message" is-open="selected.open" e-left-bar-content-change="{{selected.msg}}">
 
             <div ng-if="selected.msg.originalInformation">&#10029;</div>
-            <div ng-if="selected.msg.shortId"><span class="badge label-message-id">{{selected.msg.shortId}}</span></div>
+            <message-id-badge msg="selected.msg" show-blank="true"></message-id-badge>
 			<p><strong>{{selected.msg.enctext}}</strong></p>
 
 			<table class="table table-condensed" x-ng-if="selected.msg">

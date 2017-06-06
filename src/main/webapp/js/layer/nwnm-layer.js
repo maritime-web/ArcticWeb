@@ -28,6 +28,9 @@ function NWNMLayer() {
             description: function(feature) {
                 return feature.cluster ? feature.cluster.length + ' warnings' : feature.attributes.description;
             },
+            fillColor: function(feature) {
+                return feature.attributes.mainType === 'NW' ? "#FFFFFF" : "#ad57a1";
+            },
             extGraphic: function(feature) {
                 return feature.attributes.mainType === 'NW' ? 'img/nwnm/nw.png' : 'img/nwnm/nm.png';
             }
@@ -50,7 +53,7 @@ function NWNMLayer() {
                     fontWeight: "bold",
                     labelOutlineWidth : 0,
                     labelYOffset: -20,
-                    fillColor: "#ad57a1",
+                    fillColor: "${fillColor}",
                     fillOpacity: "${polygonTransparency}",
                     strokeWidth: 3,
                     strokeColor: "#8f2f7b",
@@ -104,11 +107,24 @@ function NWNMLayer() {
 
             angular.forEach(messages[i].jsonFeatures, function (geoJsonFeatureCollection) {
                 var featureCollection = geoJSONFormat.read(geoJsonFeatureCollection);
+                var geometryCollection = new OpenLayers.Geometry.Collection();
                 angular.forEach(featureCollection, function (featureVector) {
                     featureVector.attributes = attr;
                     featureVector.geometry.transform(new OpenLayers.Projection("EPSG:4326"), embryo.projection);
+
+                    var id = featureVector.geometry.id;
+                    if (!id.match(/OpenLayers_Geometry_Point/) && !id.match(/OpenLayers_Geometry_MultiPoint/) ) {
+                        geometryCollection.addComponent(featureVector.geometry);
+                    }
                     features.push(featureVector);
                 });
+
+                if (geometryCollection.components.length > 0) {
+                    var point = geometryCollection.getCentroid(true);
+                    var feature = new OpenLayers.Feature.Vector(point, attr);
+                    features.push(feature);
+                }
+
             });
         }
 

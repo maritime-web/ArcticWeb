@@ -39,7 +39,7 @@
                     url = url + "?";
                 }
 
-                for (key in params) {
+                for (var key in params) {
                     url = url + key + "=" + params[key] + "&";
                 }
 
