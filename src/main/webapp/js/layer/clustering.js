@@ -16,7 +16,6 @@
 function Grid(size) {
     this.cellSizeInDegrees = size;
     this.multiplier = 360 / this.cellSizeInDegrees;
-
     this.getCellId = function (_lat, _lon) {
         // Negative longitudes are handled by adding 360 (for backwards compatibility).
         //
@@ -26,7 +25,7 @@ function Grid(size) {
         // Result of last two lines Range -3600..3600, span 7200
         return Math.floor(Math.floor(_lat / this.cellSizeInDegrees) * this.multiplier)
             + Math.floor((360 + _lon) / this.cellSizeInDegrees) - Math.floor(360 / this.cellSizeInDegrees);
-    }
+    };
 
     this.getGeoPosOfCellId = function (id) {
         // Make lonPart range be 0..7200
@@ -41,7 +40,7 @@ function Grid(size) {
         var lon = this.cellSizeInDegrees * lonPart;
 
         return new Position(lat, lon);
-    }
+    };
 
     this.getCell = function (id) {
         var from = this.getGeoPosOfCellId(id);
@@ -150,15 +149,15 @@ function ClusterCell(from, to) {
     this.incrementCount = function () {
         this.count = this.count + 1;
         return this.count;
-    }
+    };
 
     this.addItem = function (item) {
         this.items.push(item);
-    }
+    };
 
     this.clearItems = function () {
         this.items = [];
-    }
+    };
 
     this.getDensity = function () {
         if (!this.density) {
@@ -176,7 +175,7 @@ function ClusterCell(from, to) {
 
 function Cluster(vessels, grid, lim) {
     var limit = lim;
-    var cells = {}
+    var cells = {};
 
     this.getCells = function () {
         var result = [];
@@ -184,19 +183,19 @@ function Cluster(vessels, grid, lim) {
             result.push(cells[key]);
         }
         return result;
-    }
+    };
 
     this.getCell = function (id) {
         return cells[id];
-    }
+    };
 
     this.addCell = function (id, clusterCell) {
         cells[id] = clusterCell;
-    }
+    };
 
     this.contains = function (cellId) {
         return cells.hasOwnProperty(cellId);
-    }
+    };
 
     var that = this;
     $.each(vessels, function (index, vessel) {
@@ -209,7 +208,7 @@ function Cluster(vessels, grid, lim) {
 
         if (!that.contains(cellId)) {
             var cell = grid.getCell(cellId);
-            var clusterCell = new ClusterCell(cell.from, cell.to)
+            var clusterCell = new ClusterCell(cell.from, cell.to);
             that.addCell(cellId, clusterCell);
         }
         var cell = that.getCell(cellId);
@@ -220,4 +219,4 @@ function Cluster(vessels, grid, lim) {
         }
     });
 
-};
+}

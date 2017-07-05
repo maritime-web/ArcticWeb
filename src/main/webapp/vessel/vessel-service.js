@@ -17,9 +17,14 @@
     };
     
     module.service('VesselService', [
-            '$http', '$timeout',
-            function($http, $timeout) {
-                return {
+            '$http', '$timeout', 'NotifyService', 'Events',
+            function($http, $timeout, NotifyService, Events) {
+                var service = {
+                    latestVessels:  null,
+                    getLatest : function () {
+                        console.log('getLatest ' + (this.latestVessels ? this.latestVessels.length : 0) + ' returned');
+                        return this.latestVessels;
+                    },
                     list : function(success, error) {
                         var messageId = embryo.messagePanel.show({
                             text: "Loading vessels ..."
@@ -32,9 +37,12 @@
                                 text: vessels.length + " vessels loaded.",
                                 type: "success"
                             });
+                            service.latestVessels = vessels;
+                            console.log('Vessels Loaded');
+                            NotifyService.notify(Events.VesselsLoaded);
                             success(vessels);
                         }).error(function (data, status) {
-                            var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels")
+                            var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels");
                             embryo.messagePanel.replace(messageId, {
                                 text: errorMsg,
                                 type: "error"
@@ -185,6 +193,7 @@
                         });
                     }
                 };
+                return service;
             } ]);
 
     embryo.eventbus.VesselInformationAddedEvent = function() {

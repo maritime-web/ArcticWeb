@@ -108,7 +108,7 @@ function DistanceLayer() {
                         distance : distance,
                         timeInMinutes : (distance / (embryo.getMaxSpeed(v) * 1.852) / 60),
                         vessel : v
-                    }
+                    };
                     if (o.distance > 0) {
                         vessels.push(o);
                     }

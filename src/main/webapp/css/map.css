@@ -307,3 +307,50 @@ table.table > tbody.e-noborder > tr > td {
 table.table > tbody.e-noborder > tr > td.e-bottomborder {
 	border-bottom: 1px solid #ddd;
 }
+
+.map-mouse-position {
+    position: absolute;
+    right: 240px;
+    top: 10px;
+    border-radius: 4px;
+    padding: 4px;
+    width: 160px;
+    height: 21px;
+    text-align: center;
+    font-size: 10px;
+    color: white;
+    z-index: 100;
+    background-color: rgba(0, 60, 136, 0.5);
+}
+
+/* Overriding OL4 style*/
+.ol-attribution ul {
+    font-size: small;
+}
+
+.ol-attribution {
+    bottom: 3em;
+}
+
+.ol-custom-overviewmap {
+    right: 0.5em;
+    left: auto;
+    top: 8.5em;
+    bottom: auto;
+}
+
+.ol-zoom {
+    left: auto;
+    right: 0.5em;
+}
+
+.layer-switcher {
+    top: 10px;
+    right: 20px;
+}
+
+.popover {
+    font-size: 1em;
+    width: 240px;
+}
+/* End Overriding OL4 style*/

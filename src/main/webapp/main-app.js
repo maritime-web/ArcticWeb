@@ -1,40 +1,34 @@
 (function () {
     "use strict";
-    angular.module('embryo.mapapp', [
+    angular.module('embryo.main.app', [
         /* Shared modules */
-        'embryo.map',
         'embryo.menu',
         'embryo.authentication',
-        'embryo.zoom',
+        'embryo.components.openlayer',
+        'embryo.components.notification',
+        'embryo.control',
 
         /* Feature areas */
+        'embryo.vessel',
         'embryo.yourvessel.control',
         'embryo.vessel.controller',
         'embryo.vessel.control',
+        'embryo.vessel.map',
         'embryo.reporting.control',
         'embryo.greenpos',
-        'embryo.ice.control',
-        'embryo.nwnm.controllers',
         'embryo.routeUpload',
         'embryo.schedule',
         'embryo.routeEdit',
         'embryo.decimal',
-        'embryo.shape',
-        'embryo.metoc',
-        'embryo.weather.control',
         'embryo.controller.reporting',
         'embryo.aisinformation',
-        'embryo.forecast.control',
-        'embryo.satellite-ice.control',
         'embryo.areaselect.control',
-        'embryo.sar.controllers',
-        'embryo.sar.views',
 
         /* 3rd-party modules */
         'ui.bootstrap'
     ]);
 
     angular.element(document).ready(function () {
-        angular.bootstrap(document, [ 'embryo.mapapp' ]);
+        angular.bootstrap(document, [ 'embryo.main.app' ]);
     });
 })();
