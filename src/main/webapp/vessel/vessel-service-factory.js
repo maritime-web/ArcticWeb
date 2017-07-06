@@ -5,9 +5,9 @@
         .module('embryo.vessel')
         .factory('VesselServiceFactory', VesselServiceFactory);
 
-    VesselServiceFactory.$inject = ['NotifyService', 'Events'];
+    VesselServiceFactory.$inject = ['NotifyService', 'VesselEvents'];
 
-    function VesselServiceFactory(NotifyService, Events) {
+    function VesselServiceFactory(NotifyService, VesselEvents) {
         function createService(serv, scope) {
             var vesselOverview = scope.vesselOverview || scope.selected.vesselOverview;
             var vesselInformation = scope.vesselInformation || scope.selected.vesselInformation;
@@ -91,11 +91,11 @@
                 return createService(service, scope);
             },
             createNearestShips: function (scope) {
-                NotifyService.subscribe(scope, Events.ShowNearestVessels, function () {
+                NotifyService.subscribe(scope, VesselEvents.ShowNearestVessels, function () {
                     service.isShown = true;
                 });
-                NotifyService.subscribe(scope, Events.HideNearestVessels, hide);
-                NotifyService.subscribe(scope, Events.HideExtraVesselsInfo, hide);
+                NotifyService.subscribe(scope, VesselEvents.HideNearestVessels, hide);
+                NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hide);
                 function hide() {
                     service.isShown = false;
                 }
@@ -110,10 +110,10 @@
                         });
                     },
                     show : function(vessel) {
-                        NotifyService.notify(Events.ShowNearestVessels, {selected: vessel, vessels: embryo.vessel.allVessels()});
+                        NotifyService.notify(VesselEvents.ShowNearestVessels, {selected: vessel, vessels: embryo.vessel.allVessels()});
                     },
                     hide : function() {
-                        NotifyService.notify(Events.HideNearestVessels);
+                        NotifyService.notify(VesselEvents.HideNearestVessels);
                     },
                     shown : function() {
                         return this.isShown;
@@ -125,11 +125,11 @@
                 return createService(service, scope);
             },
             createDistanceCircles: function (scope) {
-                NotifyService.subscribe(scope, Events.ShowDistanceCircles, function () {
+                NotifyService.subscribe(scope, VesselEvents.ShowDistanceCircles, function () {
                     service.isShown = true;
                 });
-                NotifyService.subscribe(scope, Events.HideDistanceCircles, hide);
-                NotifyService.subscribe(scope, Events.HideExtraVesselsInfo, hide);
+                NotifyService.subscribe(scope, VesselEvents.HideDistanceCircles, hide);
+                NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hide);
 
                 function hide() {
                     service.isShown = false;
@@ -142,10 +142,10 @@
                         return embryo.getMaxSpeed(vessel) > 0;
                     },
                     show : function(vessel) {
-                        NotifyService.notify(Events.ShowDistanceCircles, vessel);
+                        NotifyService.notify(VesselEvents.ShowDistanceCircles, vessel);
                     },
                     hide : function() {
-                        NotifyService.notify(Events.HideDistanceCircles);
+                        NotifyService.notify(VesselEvents.HideDistanceCircles);
                     },
                     shown : function() {
                         return this.isShown;
@@ -155,8 +155,38 @@
                     }
                 };
                 return createService(service, scope);
-            }
+            },
+            createRoute: function (scope) {
+                NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hide);
 
+                function hide() {
+                    service.isShown = false;
+                }
+
+                var service = {
+                    title: "Route",
+                    isShown: false,
+                    available: function (vessel, vesselDetails) {
+                        return vesselDetails.additionalInformation.routeId !== null;
+                    },
+                    show: function (vessel, vesselDetails) {
+                        NotifyService.notify(VesselEvents.ShowRoute, vesselDetails.additionalInformation.routeId);
+                        this.isShown = true;
+                    },
+                    hide: function () {
+                        NotifyService.notify(VesselEvents.HideRoute);
+                        this.isShown = false;
+                    },
+                    shown: function () {
+                        return this.isShown;
+                    },
+                    hideAll: function () {
+                        this.hide();
+                    }
+
+                };
+                return createService(service, scope);
+            }
         }
     }
 })();

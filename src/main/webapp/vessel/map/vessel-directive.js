@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('vessel', vessel);
 
-    vessel.$inject = ['VesselService', 'Subject', 'OpenlayerService', 'NotifyService', 'Events'];
+    vessel.$inject = ['VesselService', 'Subject', 'OpenlayerService', 'NotifyService', 'VesselEvents'];
 
-    function vessel(VesselService, Subject, OpenlayerService, NotifyService, Events) {
+    function vessel(VesselService, Subject, OpenlayerService, NotifyService, VesselEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -21,10 +21,9 @@
             var clickedMmsi = null;
             var myMmsi = null;
 
-            NotifyService.subscribe(scope, Events.VesselsLoaded, function () {
+            NotifyService.subscribe(scope, VesselEvents.VesselsLoaded, function () {
                 vessels = VesselService.getLatest();
                 myMmsi = Subject.getDetails().shipMmsi;
-                console.log('MY MMSI: ' + myMmsi);
                 replaceVessels();
             });
 
@@ -166,40 +165,10 @@
                             angular.forEach(cell.items, function (vessel) {
                                 if (vessel.type) {
                                     vesselLayer.getSource().addFeature(createVesselFeature(vessel));
-                                    if (vessel.inAW) {
-                                        vesselLayer.getSource().addFeature(createAwFeature(vessel));
-                                    }
-                                    if (Number(vessel.mmsi) === Number(clickedMmsi)) {
-                                        vesselLayer.getSource().addFeature(createClickedFeature(vessel));
-                                    }
-                                    if (Number(vessel.mmsi) === Number(myMmsi)) {
-                                        console.log('Adding my ship feature');
-                                        vesselLayer.getSource().addFeature(createMyShipFeature(vessel));
-                                    }
                                 }
                             });
                         } else {
-                            var points = [];
-                            points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
-                            points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.from.lat]));
-                            points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.to.lat]));
-                            points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.to.lat]));
-                            points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
-
-                            var cellFeature = new ol.Feature({
-                                geometry: new ol.geom.Polygon([points])
-                            });
-                            cellFeature.set('type', 'cluster', true);
-                            cellFeature.setStyle(new ol.style.Style({
-                                fill: findClusterColor(cell),
-                                text: new ol.style.Text({
-                                    text: cell.count + '',
-                                    fill: new ol.style.Fill({
-                                        color: '#fff'
-                                    })
-                                })
-                            }));
-                            vesselLayer.getSource().addFeature(cellFeature);
+                            vesselLayer.getSource().addFeature(createCreateClusterFeature(cell));
                         }
                     });
 
@@ -210,134 +179,91 @@
                             geometry: new ol.geom.Point(OpenlayerService.fromLonLat([lon, lat]))
                         });
                         vesselFeature.setId(vessel.mmsi);
-
                         vesselFeature.set("vessel", vessel, true);
-                        vesselFeature.set("type", "vessel", true);
 
-                        var vesselStyleCache = {};
-                        var vesselScales = {4: 0.5, 5: 0.55, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.9, 12: 0.9, 13: 0.9};
-                        var vesselStyleFunction = function () {
-                            var style = vesselStyleCache[zoom];
-                            if (!style) {
-                                style = new ol.style.Style();
-                                var props = imageAndTypeTextForVessel(vessel);
+                        var vesselStyleFunction = function (feature, resolution) {
+                            var vesselScale = 7.2111600770441066E-9 * resolution*resolution - 1.2171461369204691E-4*resolution + 1.0002434003827438;
+                            var awScale = 3.6055800385220533E-9 * resolution*resolution - 6.0857306846023454E-5*resolution + 0.45012170019137193;
+                            var vessel = feature.get('vessel');
+                            var styles = [];
 
-                                var image = new ol.style.Icon(({
+                            var props = imageAndTypeTextForVessel(vessel);
+                            styles.push(new ol.style.Style({
+                                image: new ol.style.Icon(({
                                     anchor: [0.85, 0.5],
                                     opacity: 0.85,
                                     src: 'img/' + props.name,
-                                    rotation: (vessel.angle - 90) * (Math.PI / 180)
-                                }));
+                                    rotation: (vessel.angle - 90) * (Math.PI / 180),
+                                    scale: vesselScale
+                                }))
+                            }));
 
-                                image.setScale(vesselScales[zoom] ? vesselScales[zoom] : 1.0);
-                                style.setImage(image);
-
-                                vesselStyleCache[zoom] = style;
-                            }
-
-                            return style;
-                        };
-
-                        vesselFeature.setStyle(vesselStyleFunction);
-                        return vesselFeature;
-                    }
-
-                    function createAwFeature(vessel) {
-                        var lat = vessel.y;
-                        var lon = vessel.x;
-                        var awFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(OpenlayerService.fromLonLat([lon, lat]))
-                        });
-
-                        var styleCache = {};
-                        var scales = {4: 0.2, 5: 0.20, 6: 0.2, 7: 0.25, 8: 0.3, 9: 0.35, 10: 0.35, 11: 0.4, 12: 0.4, 13: 0.45};
-                        var awStyleFunction = function () {
-                            var style = styleCache[zoom];
-                            if (!style) {
-                                style = new ol.style.Style({
+                            if (vessel.inAW) {
+                                styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
-                                        anchor: [0.6, 1.5],
-                                        anchorOrigin: 'top-left',
+                                        anchor: [0.55, 1.5],
+                                        anchorOrigin: 'bottom-left',
                                         opacity: 0.85,
                                         src: 'img/aw-logo.png',
                                         rotation: 0,
-                                        scale: scales[zoom] ? scales[zoom] : 0.5
+                                        scale: awScale
                                     }))
-                                });
-                                styleCache[zoom] = style;
+                                }));
                             }
-                            return style;
-                        };
-                        awFeature.setStyle(awStyleFunction);
-                        awFeature.set('type', 'AW', true);
-                        return awFeature;
-                    }
 
-                    function createClickedFeature(vessel) {
-                        var lat = vessel.y;
-                        var lon = vessel.x;
-                        var clickedFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(OpenlayerService.fromLonLat([lon, lat]))
-                        });
-
-                        var styleCache = {};
-                        var scales = {4: 0.6, 5: 0.7, 6: 0.8, 7: 0.9, 8: 1.0, 9: 1.1, 10: 1.2, 11: 1.3, 12: 1.4, 13: 1.5};
-                        var clickedStyleFunction = function () {
-                            var style = styleCache[zoom];
-                            if (!style) {
-                                style = new ol.style.Style({
+                            if (Number(vessel.mmsi) === Number(clickedMmsi)) {
+                                styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
                                         anchor: [0.7, 0.5],
                                         opacity: 1.0,
                                         src: 'img/selection.png',
                                         rotation: (vessel.angle - 90) * (Math.PI / 180),
-                                        scale: scales[zoom] ? scales[zoom] : 1.3
+                                        scale: vesselScale
                                     }))
-                                });
-                                styleCache[zoom] = style;
+                                }))
                             }
-                            return style;
-                        };
-                        clickedFeature.setStyle(clickedStyleFunction);
-                        clickedFeature.setId('Clicked');
-                        return clickedFeature;
-                    }
 
-                    function createMyShipFeature(vessel) {
-                        var lat = vessel.y;
-                        var lon = vessel.x;
-                        var vesselFeature = new ol.Feature({
-                            geometry: new ol.geom.Point(OpenlayerService.fromLonLat([lon, lat]))
-                        });
-                        vesselFeature.setId('myVessel');
-
-                        vesselFeature.set("vessel", vessel, true);
-                        vesselFeature.set("type", "myVessel", true);
-
-                        var vesselStyleCache = {};
-                        var vesselScales = {4: 0.5, 5: 0.55, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.9, 12: 0.9, 13: 0.9};
-                        var vesselStyleFunction = function () {
-                            var style = vesselStyleCache[zoom];
-                            if (!style) {
-                                style = new ol.style.Style();
-                                var image = new ol.style.Icon(({
-                                    anchor: [0.7, 0.6],
-                                    opacity: 0.85,
-                                    src: 'img/green_marker.png',
-                                    rotation: 0
+                            if (Number(vessel.mmsi) === Number(myMmsi)) {
+                                styles.push(new ol.style.Style({
+                                    image: new ol.style.Icon(({
+                                        anchor: [0.65, 0.65],
+                                        opacity: 0.85,
+                                        src: 'img/green_marker.png',
+                                        rotation: 0,
+                                        scale: vesselScale * 1.1
+                                    }))
                                 }));
-
-                                image.setScale(vesselScales[zoom] ? vesselScales[zoom] : 1.0);
-                                style.setImage(image);
-
-                                vesselStyleCache[zoom] = style;
                             }
 
-                            return style;
+                            return styles;
                         };
 
                         vesselFeature.setStyle(vesselStyleFunction);
                         return vesselFeature;
+                    }
+
+                    function createCreateClusterFeature(cell) {
+                        var points = [];
+                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
+                        points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.from.lat]));
+                        points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.to.lat]));
+                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.to.lat]));
+                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
+
+                        var cellFeature = new ol.Feature({
+                            geometry: new ol.geom.Polygon([points])
+                        });
+                        cellFeature.set('type', 'cluster', true);
+                        cellFeature.setStyle(new ol.style.Style({
+                            fill: findClusterColor(cell),
+                            text: new ol.style.Text({
+                                text: cell.count + '',
+                                fill: new ol.style.Fill({
+                                    color: '#fff'
+                                })
+                            })
+                        }));
+                        return cellFeature;
                     }
                 }
             }
@@ -355,7 +281,7 @@
                 });
             }
 
-            NotifyService.subscribe(scope, Events.VesselSelected, onVesselChosen);
+            NotifyService.subscribe(scope, VesselEvents.VesselSelected, onVesselChosen);
 
             function onVesselChosen(e, vessel) {
                 vessels = VesselService.getLatest();
@@ -383,7 +309,7 @@
                         var vessel = feature.get('vessel');
                         clickedMmsi = vessel.mmsi;
                         replaceVessels();
-                        NotifyService.notify(Events.VesselClicked, vessel);
+                        NotifyService.notify(VesselEvents.VesselClicked, vessel);
                     }
                     scope.$apply();
                 });

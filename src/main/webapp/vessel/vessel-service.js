@@ -17,12 +17,11 @@
     };
     
     module.service('VesselService', [
-            '$http', '$timeout', 'NotifyService', 'Events',
-            function($http, $timeout, NotifyService, Events) {
+            '$http', '$timeout', 'NotifyService', 'VesselEvents',
+            function($http, $timeout, NotifyService, VesselEvents) {
                 var service = {
                     latestVessels:  null,
                     getLatest : function () {
-                        console.log('getLatest ' + (this.latestVessels ? this.latestVessels.length : 0) + ' returned');
                         return this.latestVessels;
                     },
                     list : function(success, error) {
@@ -38,8 +37,7 @@
                                 type: "success"
                             });
                             service.latestVessels = vessels;
-                            console.log('Vessels Loaded');
-                            NotifyService.notify(Events.VesselsLoaded);
+                            NotifyService.notify(VesselEvents.VesselsLoaded);
                             success(vessels);
                         }).error(function (data, status) {
                             var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels");
@@ -232,14 +230,14 @@
                 }
             }
             provider.show(vesselOverview, vesselDetails);
-        }
+        };
 
         this.hide = function(provider) {
             if (provider.hide)
                 provider.hide();
             if (provider.close)
                 provider.close();
-        }
+        };
 
         this.hideAll = function() {
             for ( var index in vesselInformations) {

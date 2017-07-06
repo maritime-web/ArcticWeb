@@ -55,11 +55,6 @@ $(function() {
         return embryo.global.vessels;
     };
 
-    embryo.vessel.setMarkedVessel = function(markedVesselId) {
-        // vesselLayer.markedVesselId = markedVesselId;
-        // vesselLayer.draw(vessels);
-    };
-
 });
 
 $(function() {
@@ -220,9 +215,9 @@ $(function() {
             'VesselService',
             'VesselInformation',
             'NotifyService',
-            'Events',
+            'VesselEvents',
             'VesselServiceFactory',
-            function($scope, VesselService, VesselInformation, NotifyService, Events, VesselServiceFactory) {
+            function($scope, VesselService, VesselInformation, NotifyService, VesselEvents, VesselServiceFactory) {
                 this.scope = $scope;
 
                 $scope.selected = {};
@@ -272,9 +267,10 @@ $(function() {
                     VesselInformation.hideAll();
                 });
 
-                NotifyService.subscribe($scope, Events.VesselClicked, onVesselChosen);
-                NotifyService.subscribe($scope, Events.VesselSelected, onVesselChosen);
+                NotifyService.subscribe($scope, VesselEvents.VesselClicked, onVesselChosen);
+                NotifyService.subscribe($scope, VesselEvents.VesselSelected, onVesselChosen);
                 function onVesselChosen (e, vessel) {
+                    NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
                     VesselInformation.hideAll();
                     $scope.selected.open = true;
 
@@ -328,8 +324,7 @@ $(function() {
                     for ( var i in vesselInformation) {
                         sections[0].services.push(VesselServiceFactory.createService(vesselInformation[i], $scope));
                     }
-                    var selectedActions = embryo.vessel.actions.selectedVessel();
-                    sections[0].services.push(VesselServiceFactory.createService(selectedActions[1], $scope));
+                    sections[0].services.push(VesselServiceFactory.createRoute($scope));
                     sections[0].services.sort(awSorter);
 
                     sections[1].services.push(VesselServiceFactory.createNearestShips($scope));
@@ -338,19 +333,10 @@ $(function() {
                     return sections;
                 }
 
-                embryo.subscription.service.subscribe({
-                    subscriber: "vesselLayerController",
-                    name: "VesselService.list",
-                    fn: embryo.vessel.service.list,
-                    interval: embryo.loadFrequence,
-                    success: function (data) {
-                        embryo.global.vessels = data;
-                    }
-                });
 
             } ]);
 
-    module.controller("SearchVesselController", [ '$scope', 'VesselService', 'NotifyService', 'Events',  function($scope, VesselService, NotifyService, Events) {
+    module.controller("SearchVesselController", [ '$scope', 'VesselService', 'NotifyService', 'VesselEvents',  function($scope, VesselService, NotifyService, VesselEvents) {
         $scope.searchResults = [];
         $scope.searchResultsLimit = 10;
 
@@ -364,23 +350,25 @@ $(function() {
         $scope.select = function($event, vessel) {
             $event.preventDefault();
 
-            NotifyService.notify(Events.VesselSelected, vessel);
+            NotifyService.notify(VesselEvents.VesselSelected, vessel);
         };
     } ]);
 
-    module.controller("MapInformationController", [ '$scope', 'NotifyService', 'Events', function($scope, NotifyService, Events) {
+    module.controller("MapInformationController", [ '$scope', 'NotifyService', 'VesselEvents', function($scope, NotifyService, VesselEvents) {
         var shownCounter = 0;
-        NotifyService.subscribe($scope, Events.ShowNearestVessels, up);
-        NotifyService.subscribe($scope, Events.ShowDistanceCircles, up);
+        NotifyService.subscribe($scope, VesselEvents.ShowNearestVessels, up);
+        NotifyService.subscribe($scope, VesselEvents.ShowDistanceCircles, up);
+        NotifyService.subscribe($scope, VesselEvents.ShowRoute, up);
         function up() {
             shownCounter++;
         }
-        NotifyService.subscribe($scope, Events.HideNearestVessels, down);
-        NotifyService.subscribe($scope, Events.HideDistanceCircles, down);
+        NotifyService.subscribe($scope, VesselEvents.HideNearestVessels, down);
+        NotifyService.subscribe($scope, VesselEvents.HideDistanceCircles, down);
+        NotifyService.subscribe($scope, VesselEvents.HideRoute, down);
         function down() {
             shownCounter--;
         }
-        NotifyService.subscribe($scope, Events.HideExtraVesselsInfo, function () {
+        NotifyService.subscribe($scope, VesselEvents.HideExtraVesselsInfo, function () {
             shownCounter = 0;
         });
 
@@ -390,26 +378,20 @@ $(function() {
         $scope.clearSelectedOnMap = function($event) {
             $event.preventDefault();
 
-            NotifyService.notify(Events.HideExtraVesselsInfo);
+            NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
         };
     } ]);
 
-    embryo.ready(function() {
-        $('#vcpSearch').on('hidden', function() {
-            $("#searchField").blur();
+    embryo.authenticated(function () {
+        embryo.subscription.service.subscribe({
+            subscriber: "vesselLayerController",
+            name: "VesselService.list",
+            fn: embryo.vessel.service.list,
+            interval: embryo.loadFrequence,
+            success: function (data) {
+                embryo.global.vessels = data;
+            }
         });
 
-        $('#vcpSearch').on('shown', function() {
-            $("#searchField").focus();
-        });
-    });
-
-    embryo.authenticated(function() {
-        if (!embryo.authentication.shipMmsi) {
-            embryo.groupChanged(function(e) {
-                if (e.groupId == "vessel")
-                    $("#searchField").focus();
-            });
-        }
     });
 });

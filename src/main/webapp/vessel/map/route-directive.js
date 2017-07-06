@@ -7,8 +7,8 @@
         .module('embryo.vessel.map')
         .directive('route', route);
 
-    route.$inject = ['VesselService', 'Subject', 'RouteService'];
-    function route(VesselService, Subject, RouteService) {
+    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents'];
+    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -19,79 +19,120 @@
         function link() {
             var scope = arguments[0];
             var ctrl = arguments[3];
-            var routeLayer;
+            var myRouteLayer;
+            var selectedRouteLayer;
 
-            var source = new ol.source.Vector();
-            routeLayer = new ol.layer.Vector({source: source});
+            var myRouteSource = new ol.source.Vector();
+            myRouteLayer = new ol.layer.Vector({source: myRouteSource});
+            var selectedRouteSource = new ol.source.Vector();
+            selectedRouteLayer = new ol.layer.Vector({source: selectedRouteSource});
 
-            var mmsi = Subject.getDetails().shipMmsi;
+            var myMmsi = Subject.getDetails().shipMmsi;
 
-            VesselService.subscribe(mmsi, function (error, vesselDetails) {
+            VesselService.subscribe(myMmsi, function (error, vesselDetails) {
                 if (!error) {
-                    embryo.vessel.setMarkedVessel(mmsi);
 
                     if (vesselDetails && vesselDetails.additionalInformation.routeId) {
                         RouteService.getRoute(vesselDetails.additionalInformation.routeId, function(route) {
-                            route.active = true;
-                            route.own = true;
-                            addOrReplaceRoute(route);
-                            routeLayer.setVisible(true);
+                            addOrReplaceRoute(route, true);
+                            myRouteLayer.setVisible(true);
                         });
                     } else {
-                        routeLayer.setVisible(false);
+                        myRouteLayer.setVisible(false);
                     }
                 }
             });
 
+            NotifyService.subscribe(scope, VesselEvents.HideRoute, hideSelected);
+            function hideSelected() {
+                selectedRouteLayer.setVisible(false);
+            }
 
-            function addOrReplaceRoute(route) {
+            NotifyService.subscribe(scope, VesselEvents.ShowRoute, function (event, routeId) {
+                RouteService.getRoute(routeId, function(route) {
+                    addOrReplaceRoute(route, false);
+                    selectedRouteLayer.setVisible(true);
+                });
+            });
+
+            function addOrReplaceRoute(route, isMyRoute) {
+                var source = isMyRoute ? myRouteSource : selectedRouteSource;
                 source.clear();
+                source.addFeature(createRouteFeature());
 
-                var routeFeature = createRouteFeature();
-                angular.forEach(route.wps, function (wp) {
-                    /** @type {ol.Coordinate|[]} */
-                    var coord = [wp.longitude, wp.latitude];
-                    var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
-                    routeFeature.getGeometry().appendCoordinate(mercatorCoord);
-                    source.addFeature(createWaypointFeature(mercatorCoord));
-                });
+                function createRouteFeature() {
+                    /** @type {ol.geom.GeometryLayout|string} */
+                    var xy = "XY";
+                    var line = new ol.geom.LineString([], xy);
+                    var feature = new ol.Feature();
+                    angular.forEach(route.wps, function (wp) {
+                        /** @type {ol.Coordinate|[]} */
+                        var coord = [wp.longitude, wp.latitude];
+                        var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
+                        line.appendCoordinate(mercatorCoord);
+                    });
 
-                source.addFeature(routeFeature);
+                    feature.setGeometry(line);
+                    feature.set('routeColor', isMyRoute ? '#FF0000' : '#3E7D1D', true);
+                    feature.set('arrowImg', isMyRoute ? 'img/arrow_red_route.svg' : 'img/arrow_green_route.svg', true);
+                    feature.setStyle(styleFunction);
+
+                    return feature;
+                }
+
             }
 
-            function createRouteFeature() {
-                /** @type {ol.geom.GeometryLayout|string} */
-                var xy = "XY";
-                var line = new ol.geom.LineString([], xy);
-                var style = new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: '#FF0000',
-                        width: 2,
-                        lineDash: [5, 5, 0, 5]
-                    })
-                });
-                var feature = new ol.Feature();
-                feature.setGeometry(line);
-                feature.setStyle(style);
-                return feature;
-            }
-
-            function createWaypointFeature(mercatorCoord) {
-                var style = new ol.style.Style({
-                    image: new ol.style.Circle({
-                        radius: 4,
+            var styleFunction = function (feature, resolution) {
+                var routeColor = feature.get('routeColor');
+                var arrowImg = feature.get('arrowImg');
+                var geometry = feature.getGeometry();
+                var styles = [
+                    new ol.style.Style({
                         stroke: new ol.style.Stroke({
-                            color: '#FF0000',
-                            width: 1
+                            color: routeColor,
+                            width: 2,
+                            lineDash: [5, 5, 0, 5]
                         })
                     })
+                ];
+
+                geometry.forEachSegment(function(start, end) {
+                    var dx = end[0] - start[0];
+                    var dy = end[1] - start[1];
+                    var rotation = Math.atan2(dy, dx);
+
+                    var a = dy / dx;
+                    var b = start[1] - a*start[0];
+                    var middle = [start[0] + dx/2.0];
+                    middle[1] = a*middle[0] + b;
+
+                    // arrows
+                    styles.push(new ol.style.Style({
+                        geometry: new ol.geom.Point(middle),
+                        image: new ol.style.Icon({
+                            src: arrowImg,
+                            anchor: [0.75, 0.5],
+                            rotateWithView: true,
+                            rotation: -rotation
+                        })
+                    }));
                 });
 
-                var feature = new ol.Feature();
-                feature.setGeometry(new ol.geom.Point(mercatorCoord));
-                feature.setStyle(style);
-                return feature
-            }
+                geometry.getCoordinates().forEach(function (coord) {
+                    styles.push(new ol.style.Style({
+                        geometry: new ol.geom.Point(coord),
+                        image: new ol.style.Circle({
+                            radius: 4,
+                            stroke: new ol.style.Stroke({
+                                color: routeColor,
+                                width: 1
+                            })
+                        })
+                    }));
+                });
+
+                return styles;
+            };
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {
@@ -100,13 +141,17 @@
                 scope.$on('$destroy', function () {
                     onDestroy(map);
                 });
-                routeLayer.setVisible(true);
-                map.addLayer(routeLayer);
+                myRouteLayer.setVisible(true);
+                map.addLayer(myRouteLayer);
+                map.addLayer(selectedRouteLayer);
             });
 
             function onDestroy(map) {
-                if (angular.isDefined(routeLayer)) {
-                    map.removeLayer(routeLayer);
+                if (angular.isDefined(myRouteLayer)) {
+                    map.removeLayer(myRouteLayer);
+                }
+                if (angular.isDefined(selectedRouteLayer)) {
+                    map.removeLayer(selectedRouteLayer);
                 }
             }
         }

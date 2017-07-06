@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('distanceToNearest', distanceToNearest);
 
-    distanceToNearest.$inject = ['OpenlayerService', 'NotifyService', 'Events', 'Position'];
+    distanceToNearest.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'Position'];
 
-    function distanceToNearest(OpenlayerService, NotifyService, Events, Position) {
+    function distanceToNearest(OpenlayerService, NotifyService, VesselEvents, Position) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -21,9 +21,9 @@
 
             var distanceLayer = createDistanceLayer();
 
-            NotifyService.subscribe(scope, Events.ShowNearestVessels, showNearest);
-            NotifyService.subscribe(scope, Events.HideNearestVessels, hideNearest);
-            NotifyService.subscribe(scope, Events.HideExtraVesselsInfo, hideNearest);
+            NotifyService.subscribe(scope, VesselEvents.ShowNearestVessels, showNearest);
+            NotifyService.subscribe(scope, VesselEvents.HideNearestVessels, hideNearest);
+            NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hideNearest);
 
             function showNearest(e, vesselInfo) {
                 selectedVessel = vesselInfo.selected;
