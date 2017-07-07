@@ -246,7 +246,7 @@ $(function() {
         }
 
         var sections = [ {
-            name : "PolarWeb Reporting",
+            name : "ArcticWeb Reporting",
             services : [],
             type : "view"
         }, {
