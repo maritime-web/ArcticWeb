@@ -48,12 +48,6 @@
                     Search and Rescue
                 </a>
             </li>
-            <li requires-permissions="Sailor">
-                <a href="vrmt.html">
-                    <i class="fa fa-dashboard" style="vertical-align: middle; margin-bottom: 4px"></i>
-                    VRMT
-                </a>
-            </li>
             <li x-requires-authenticated>
                 <a href="map.html#/setup">
                     <i class="fa fa-wrench" style="vertical-align: middle; margin-bottom: 4px"></i>
@@ -68,7 +62,14 @@
                 </a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
                     <li class="dropdown-header" style="white-space: nowrap"> <i class="fa fa-rocket" aria-hidden="true"></i> Performance enhancements</li>
-                    <li><a tabindex="-1" href="openlayer-map.html#/vessels"><i class="fa fa-anchor"></i> Vessels</a></li>
+                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/vessels"><i class="fa fa-anchor"></i> Vessels</a></li>
+                    <li class="dropdown-header" style="white-space: nowrap"> <i class="fa fa-check" aria-hidden="true"></i> New features</li>
+                    <li style="padding: 3px 20px;">
+                        <a href="vrmt.html">
+                            <i class="fa fa-dashboard" style="vertical-align: middle; margin-bottom: 4px"></i>
+                            VRMT
+                        </a>
+                    </li>
                 </ul>
             </li>
             <li x-requires-permissions="Administration">

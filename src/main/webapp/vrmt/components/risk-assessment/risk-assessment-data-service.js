@@ -5,17 +5,37 @@
         .module('vrmt.app')
         .service('RiskAssessmentDataService', RiskAssessmentDataService);
 
-    RiskAssessmentDataService.$inject = ['$q', 'PouchDBFactory', 'Subject'];
+    RiskAssessmentDataService.$inject = ['$q', 'PouchDBFactory', 'Subject', '$timeout'];
 
-    function RiskAssessmentDataService($q, PouchDBFactory, Subject) {
+    function RiskAssessmentDataService($q, PouchDBFactory, Subject, $timeout) {
+        var that = this;
+        that.getAssessmentData = unInitialized;
+        that.storeAssessmentData = unInitialized;
+        that.getRiskFactorData = unInitialized;
+        that.storeRiskFactorData = unInitialized;
+        var riskFactorId;
+        var pouch;
 
-        this.getAssessmentData = getAssessmentData;
-        this.storeAssessmentData = storeAssessmentData;
-        this.getRiskFactorData = getRiskFactorData;
-        this.storeRiskFactorData = storeRiskFactorData;
+        initialize();
 
-        var riskFactorId = "mmsi_" + Subject.getDetails().shipMmsi;
-        var pouch = initializePouch();
+        function initialize() {
+            if (Subject.getDetails().shipMmsi) {
+                riskFactorId = "mmsi_" + Subject.getDetails().shipMmsi;
+                pouch = initializePouch();
+                that.getAssessmentData = getAssessmentData;
+                that.storeAssessmentData = storeAssessmentData;
+                that.getRiskFactorData = getRiskFactorData;
+                that.storeRiskFactorData = storeRiskFactorData;
+            } else {
+                $timeout(function () {
+                    initialize();
+                }, 10);
+            }
+        }
+
+        function unInitialized() {
+            return $q.reject("The Data service is not yet initialized");
+        }
 
         function getAssessmentData(routeId) {
             return pouch.get(routeId)

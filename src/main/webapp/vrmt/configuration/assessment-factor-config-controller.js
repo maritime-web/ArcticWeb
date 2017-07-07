@@ -3,17 +3,34 @@
         .module('vrmt.app')
         .controller("AssessmentFactorConfigController", AssessmentFactorConfigController);
 
-    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'Events', "growl"];
+    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'Events', "growl", '$timeout'];
 
-    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, Events, growl) {
+    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, Events, growl, $timeout) {
         var vm = this;
         vm.hide = true;
-        vm.vesselName = $scope.mmsi;
+        vm.vesselName = undefined;
         vm.show = show;
         vm.dismiss = dismiss;
         vm.getVessel = getVessel;
         vm.save = save;
         vm.riskFactors = [];
+
+        initialize();
+
+        function initialize() {
+            if ($scope.mmsi) {
+                vm.vesselName = $scope.mmsi;
+                RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
+                    vm.riskFactors = riskFactors.map(function (riskFactor) {
+                        return new RiskFactorView(riskFactor);
+                    });
+                });
+            } else {
+                $timeout(function () {
+                    initialize();
+                }, 10)
+            }
+        }
 
         NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, newVessel) {
@@ -69,10 +86,5 @@
             return this.riskFactor;
         };
 
-        RiskFactorService.getRiskFactors($scope.mmsi).then(function (riskFactors) {
-            vm.riskFactors = riskFactors.map(function (riskFactor) {
-                return new RiskFactorView(riskFactor);
-            });
-        });
     }
 })();

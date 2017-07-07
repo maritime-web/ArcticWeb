@@ -30,8 +30,29 @@
 
     function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout, growl) {
         var vm = this;
-        $scope.mmsi = embryo.authentication.shipMmsi;
+        $scope.mmsi = null;
         vm.chosenRouteLocation = null;
+
+        initialize();
+
+        function initialize() {
+            if (embryo.authentication.shipMmsi) {
+                $scope.mmsi = embryo.authentication.shipMmsi;
+                //Make sure that all subscribers for vessel and route data have been registered before loading data
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        loadVessel();
+                    });
+                });
+            } else {
+                $timeout(function () {
+                    $scope.$apply(function () {
+                        initialize();
+                    });
+                }, 10);
+
+            }
+        }
 
         /**
          * Load data
@@ -131,12 +152,6 @@
         //reload of vessel and route
         var stop = $interval(loadVessel, 300000);
 
-        //Make sure that all subscribers for vessel and route data have been registered before loading data
-        $timeout(function () {
-            $scope.$apply(function () {
-                loadVessel();
-            });
-        });
 
         /**
          * Clean up

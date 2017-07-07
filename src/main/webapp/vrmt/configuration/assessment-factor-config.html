@@ -9,54 +9,54 @@
                 <h4>Configure risk factors for {{factorConfig.getVessel()}}</h4>
             </div>
         </div>
-    </div>
-    <accordion close-others="true">
-        <accordion-group is-open="riskFactor.isActive" ng-repeat="riskFactor in factorConfig.riskFactors">
-            <accordion-heading>
-                <strong>{{riskFactor.name}}</strong>
-                <span class="pull-right glyphicon"
-                      ng-class="{'glyphicon-menu-down': !riskFactor.isActive, 'glyphicon-menu-up': riskFactor.isActive}"></span>
-            </accordion-heading>
+        <accordion close-others="true">
+            <accordion-group is-open="riskFactor.isActive" ng-repeat="riskFactor in factorConfig.riskFactors">
+                <accordion-heading>
+                    <strong>{{riskFactor.name}}</strong>
+                    <span class="pull-right glyphicon"
+                          ng-class="{'glyphicon-menu-down': !riskFactor.isActive, 'glyphicon-menu-up': riskFactor.isActive}"></span>
+                </accordion-heading>
 
-            <div class="form-horizontal">
-                <div class="form-group">
-                    <div class="col-xs-4">Name</div>
-                    <div class="col-xs-2">Index</div>
-                    <div class="col-xs-2">Min. index</div>
-                    <div class="col-xs-2">Max. index</div>
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-xs-4">Name</div>
+                        <div class="col-xs-2">Index</div>
+                        <div class="col-xs-2">Min. index</div>
+                        <div class="col-xs-2">Max. index</div>
+                    </div>
+                    <div class="form-group" ng-repeat="scoreOption in riskFactor.scoreOptions">
+                        <div class="col-xs-4">
+                            <input type="text" class="form-control input-sm" ng-model="scoreOption.name"/>
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="number" class="form-control input-sm" ng-model="scoreOption.index"/>
+                        </div>
+                        <div class="col-xs-offset-4 col-xs-1">
+                            <button type="button" class="close" x-ng-click="riskFactor.deleteScoreOption(scoringOption)">x
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-if="!riskFactor.hasScoreOptions()">
+                        <div class="col-xs-offset-6 col-xs-2">
+                            <input type="number" class="form-control input-sm" ng-model="riskFactor.scoreInterval.minIndex"/>
+                        </div>
+                        <div class="col-xs-2">
+                            <input type="number" class="form-control input-sm" ng-model="riskFactor.scoreInterval.maxIndex"/>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-if="riskFactor.hasScoreOptions()">
+                        <div class="col-xs-4">
+                            <button class="btn btn-default btn-sm" ng-click="riskFactor.addScoreOption()">Add score option</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-xs-offset-10 col-xs-2">
+                            <button class="btn btn-primary btn-sm" ng-click="factorConfig.save(riskFactor)">Save</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group" ng-repeat="scoreOption in riskFactor.scoreOptions">
-                    <div class="col-xs-4">
-                        <input type="text" class="form-control input-sm" ng-model="scoreOption.name"/>
-                    </div>
-                    <div class="col-xs-2">
-                        <input type="number" class="form-control input-sm" ng-model="scoreOption.index"/>
-                    </div>
-                    <div class="col-xs-offset-4 col-xs-1">
-                        <button type="button" class="close" x-ng-click="riskFactor.deleteScoreOption(scoringOption)">x
-                        </button>
-                    </div>
-                </div>
-                <div class="form-group" ng-if="!riskFactor.hasScoreOptions()">
-                    <div class="col-xs-offset-6 col-xs-2">
-                        <input type="number" class="form-control input-sm" ng-model="riskFactor.scoreInterval.minIndex"/>
-                    </div>
-                    <div class="col-xs-2">
-                        <input type="number" class="form-control input-sm" ng-model="riskFactor.scoreInterval.maxIndex"/>
-                    </div>
-                </div>
-                <div class="form-group" ng-if="riskFactor.hasScoreOptions()">
-                    <div class="col-xs-4">
-                        <button class="btn btn-default btn-sm" ng-click="riskFactor.addScoreOption()">Add score option</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-xs-offset-10 col-xs-2">
-                        <button class="btn btn-primary btn-sm" ng-click="factorConfig.save(riskFactor)">Save</button>
-                    </div>
-                </div>
-            </div>
-        </accordion-group>
-    </accordion>
+            </accordion-group>
+        </accordion>
+    </div>
 
 </div>

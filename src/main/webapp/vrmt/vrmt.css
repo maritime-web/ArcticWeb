@@ -278,35 +278,3 @@ h4.text-center  {
 }
 
 
-/*
-Making room for the beta ribbon banner
-*/
-.navbar-brand{
-    padding-left: 50px;
-}
-/*
-beta ribbon banner in pure css
-*/
-
-body:after {
-    content: "alpha";
-    position: absolute;
-    width: 60px;
-    height: 17px;
-    background: red;
-   /* opacity: 0.90;
-    fill-opacity: 0.90;*/
-    top: 7px;
-    left: -14px;
-    text-align: center;
-    font-size: 11px;
-    font-family: sans-serif;
-    text-transform: uppercase;
-    font-weight: bold;
-    color: #fff;
-    line-height: 18px;
-    -ms-transform: rotate(-45deg);
-    -webkit-transform: rotate(-45deg);
-    transform: rotate(-45deg);
-    z-index: 9999;
-}
