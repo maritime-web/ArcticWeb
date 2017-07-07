@@ -91,10 +91,6 @@
                 return createService(service, scope);
             },
             createNearestShips: function (scope) {
-                NotifyService.subscribe(scope, VesselEvents.ShowNearestVessels, function () {
-                    service.isShown = true;
-                });
-                NotifyService.subscribe(scope, VesselEvents.HideNearestVessels, hide);
                 NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hide);
                 function hide() {
                     service.isShown = false;
@@ -111,9 +107,11 @@
                     },
                     show : function(vessel) {
                         NotifyService.notify(VesselEvents.ShowNearestVessels, {selected: vessel, vessels: embryo.vessel.allVessels()});
+                        service.isShown = true;
                     },
                     hide : function() {
                         NotifyService.notify(VesselEvents.HideNearestVessels);
+                        service.isShown = false;
                     },
                     shown : function() {
                         return this.isShown;
@@ -125,10 +123,6 @@
                 return createService(service, scope);
             },
             createDistanceCircles: function (scope) {
-                NotifyService.subscribe(scope, VesselEvents.ShowDistanceCircles, function () {
-                    service.isShown = true;
-                });
-                NotifyService.subscribe(scope, VesselEvents.HideDistanceCircles, hide);
                 NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hide);
 
                 function hide() {
@@ -143,9 +137,11 @@
                     },
                     show : function(vessel) {
                         NotifyService.notify(VesselEvents.ShowDistanceCircles, vessel);
+                        service.isShown = true;
                     },
-                    hide : function() {
-                        NotifyService.notify(VesselEvents.HideDistanceCircles);
+                    hide : function(vessel) {
+                        NotifyService.notify(VesselEvents.HideDistanceCircles, vessel);
+                        service.isShown = false;
                     },
                     shown : function() {
                         return this.isShown;

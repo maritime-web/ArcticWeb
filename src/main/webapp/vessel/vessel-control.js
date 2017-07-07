@@ -238,39 +238,14 @@ $(function() {
                     $scope.selected.sections = initSelectedSections();
                 }, true);
 
-                $scope.selectedDrawnOnMap = function() {
-                    var selectedActions = embryo.vessel.actions.selectedVessel();
-
-                    for ( var index in selectedActions) {
-                        if (typeof selectedActions[index] == 'object') {
-                            if (selectedActions[index] && selectedActions[index].shown
-                                    && selectedActions[index].shown()) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                };
-                $scope.clearSelectedOnMap = function($event) {
-                    $event.preventDefault();
-
-                    var selectedActions = embryo.vessel.actions.selectedVessel();
-                    for ( var index in selectedActions) {
-                        if (typeof selectedActions[index] == 'object') {
-                            if (selectedActions[index] && selectedActions[index].hideAll) {
-                                selectedActions[index].hideAll();
-                            }
-                        }
-                    }
-                };
                 $scope.$on("$destroy", function() {
                     VesselInformation.hideAll();
+                    NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
                 });
 
                 NotifyService.subscribe($scope, VesselEvents.VesselClicked, onVesselChosen);
                 NotifyService.subscribe($scope, VesselEvents.VesselSelected, onVesselChosen);
                 function onVesselChosen (e, vessel) {
-                    NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
                     VesselInformation.hideAll();
                     $scope.selected.open = true;
 
@@ -292,10 +267,6 @@ $(function() {
                         });
                         delete $scope.selected.loadingMmsi;
                     });
-                    if (!$scope.$$phase) {
-                        $scope.$apply(function () {
-                        });
-                    }
                 }
 
 
@@ -376,6 +347,7 @@ $(function() {
             return shownCounter > 0;
         };
         $scope.clearSelectedOnMap = function($event) {
+            console.log("clearSelectedOnMap");
             $event.preventDefault();
 
             NotifyService.notify(VesselEvents.HideExtraVesselsInfo);

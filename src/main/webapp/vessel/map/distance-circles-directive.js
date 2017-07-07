@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('distanceCircles', distanceCircles);
 
-    distanceCircles.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'Position'];
+    distanceCircles.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'VesselService'];
 
-    function distanceCircles(OpenlayerService, NotifyService, VesselEvents, Position) {
+    function distanceCircles(OpenlayerService, NotifyService, VesselEvents, VesselService) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -16,28 +16,39 @@
         };
 
         function link(scope, element, attrs, ctrl) {
-            var selectedVessel = null;
+            var mmsiToShow = [];
 
             var circleLayer = createCircleLayer();
 
             NotifyService.subscribe(scope, VesselEvents.ShowDistanceCircles, showNearest);
             NotifyService.subscribe(scope, VesselEvents.HideDistanceCircles, hideNearest);
-            NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hideNearest);
+            NotifyService.subscribe(scope, VesselEvents.HideExtraVesselsInfo, hideAll);
 
             function showNearest(e, vessel) {
-                selectedVessel = vessel;
+                var index = mmsiToShow.indexOf(Number(vessel.mmsi));
+                if (index === -1) {
+                    mmsiToShow.push(Number(vessel.mmsi));
+                }
                 replaceDistanceFeatures();
                 circleLayer.setVisible(true);
             }
 
-            function hideNearest() {
-                circleLayer.setVisible(false)
+            function hideNearest(e, vessel) {
+                var index = mmsiToShow.indexOf(Number(vessel.mmsi));
+                if (index > -1) {
+                    mmsiToShow.splice(index, 1);
+                }
+                replaceDistanceFeatures();
             }
 
+            function hideAll() {
+                mmsiToShow.length = 0;
+                replaceDistanceFeatures();
+            }
 
             function createCircleLayer() {
                 return new ol.layer.Vector({
-                    source: new ol.source.Vector(),
+                    source: new ol.source.Vector()
                 });
             }
 
@@ -58,15 +69,18 @@
             }
 
             function replaceDistanceFeatures() {
-                if (selectedVessel) {
-                    circleLayer.getSource().clear();
-                    createDistanceCircleFeatures();
-                }
+                circleLayer.getSource().clear();
+                var vessels = VesselService.getLatest();
+                mmsiToShow.forEach(function (mmsi) {
+                    var vessel = vessels.find(function (v) {return mmsi === Number(v.mmsi);});
+                    if (vessel) {
+                        addDistanceCircleFeaturesFor(vessel);
+                    }
+                });
 
-                function createDistanceCircleFeatures() {
-
-                    var center = [selectedVessel.x, selectedVessel.y];
-                    var speed = embryo.getMaxSpeed(selectedVessel); //in kn
+                function addDistanceCircleFeaturesFor(vessel) {
+                    var center = [vessel.x, vessel.y];
+                    var speed = embryo.getMaxSpeed(vessel); //in kn
                     var distPerHour = speed * 1.852 * 1000; // in meters
 
                     var wgs84Sphere = new ol.Sphere(6378137);
@@ -94,12 +108,12 @@
 
                     function getLabelText() {
                         var maxSpeedLabel;
-                        if(selectedVessel.awsog) {
-                            maxSpeedLabel = "Based on ArcticWeb Max Speed: " + embryo.getMaxSpeed(selectedVessel) + " kn";
-                        } else if (selectedVessel.ssog) {
-                            maxSpeedLabel = "Based on Service Speed: " + embryo.getMaxSpeed(selectedVessel) + " kn";
-                        } else if (selectedVessel.sog) {
-                            maxSpeedLabel = "Based on SOG: " + embryo.getMaxSpeed(selectedVessel) + " kn";
+                        if(vessel.awsog) {
+                            maxSpeedLabel = "Based on ArcticWeb Max Speed: " + embryo.getMaxSpeed(vessel) + " kn";
+                        } else if (vessel.ssog) {
+                            maxSpeedLabel = "Based on Service Speed: " + embryo.getMaxSpeed(vessel) + " kn";
+                        } else if (vessel.sog) {
+                            maxSpeedLabel = "Based on SOG: " + embryo.getMaxSpeed(vessel) + " kn";
                         } else {
 
                             maxSpeedLabel = "No speed found.";

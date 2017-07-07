@@ -226,11 +226,11 @@
                             if (Number(vessel.mmsi) === Number(myMmsi)) {
                                 styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
-                                        anchor: [0.65, 0.65],
+                                        anchor: [0.50, 0.65],
                                         opacity: 0.85,
                                         src: 'img/green_marker.png',
                                         rotation: 0,
-                                        scale: vesselScale * 1.1
+                                        scale: vesselScale * 1.2
                                     }))
                                 }));
                             }
