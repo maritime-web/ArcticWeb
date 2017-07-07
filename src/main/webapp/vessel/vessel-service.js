@@ -17,9 +17,13 @@
     };
     
     module.service('VesselService', [
-            '$http', '$timeout',
-            function($http, $timeout) {
-                return {
+            '$http', '$timeout', 'NotifyService', 'VesselEvents',
+            function($http, $timeout, NotifyService, VesselEvents) {
+                var service = {
+                    latestVessels:  null,
+                    getLatest : function () {
+                        return this.latestVessels;
+                    },
                     list : function(success, error) {
                         var messageId = embryo.messagePanel.show({
                             text: "Loading vessels ..."
@@ -32,9 +36,11 @@
                                 text: vessels.length + " vessels loaded.",
                                 type: "success"
                             });
+                            service.latestVessels = vessels;
+                            NotifyService.notify(VesselEvents.VesselsLoaded);
                             success(vessels);
                         }).error(function (data, status) {
-                            var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels")
+                            var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels");
                             embryo.messagePanel.replace(messageId, {
                                 text: errorMsg,
                                 type: "error"
@@ -185,6 +191,7 @@
                         });
                     }
                 };
+                return service;
             } ]);
 
     embryo.eventbus.VesselInformationAddedEvent = function() {
@@ -223,14 +230,14 @@
                 }
             }
             provider.show(vesselOverview, vesselDetails);
-        }
+        };
 
         this.hide = function(provider) {
             if (provider.hide)
                 provider.hide();
             if (provider.close)
                 provider.close();
-        }
+        };
 
         this.hideAll = function() {
             for ( var index in vesselInformations) {

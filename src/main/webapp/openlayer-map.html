@@ -2,21 +2,22 @@
 <html lang="en" manifest="map.appcache" type="text/cache-manifest">
 <head>
     <meta charset="utf-8"/>
-    <title>PolarWeb - Map</title>
+    <title>ArcticWeb - Map</title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="css/cached/cdn.netdna/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/cached/cdn.netdna/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/cached/cdn.netdna/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol.css" rel="stylesheet">
 
-    <!-- build:css css/arcticweb-map-ext-lib.css -->
+    <!-- build:css css/arcticweb-openlayer-map-ext-lib.css -->
     <link href="css/ext/jquery-file-upload-9.5.7/css/jquery.fileupload.css" rel="stylesheet" type="text/css">
     <link href="css/ext/jquery-file-upload-9.5.7/css/jquery.fileupload-ui.css" rel="stylesheet" type="text/css">
     <link href="css/ext/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css">
     <!-- endbuild -->
 
-    <!-- build:css css/arcticweb-map.css -->
+    <!-- build:css css/arcticweb-openlayer-map.css -->
     <link href="css/common.css" rel="stylesheet" type="text/css">
     <link href="css/map.css" rel="stylesheet" type="text/css">
     <link href="css/ice.css" rel="stylesheet" type="text/css">
@@ -35,30 +36,39 @@
     <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-cookies.js" type="text/javascript"></script>
     <script src="js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js" type="text/javascript"></script>
 
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/1.4.5/numeral.min.js"></script>
     <script src="js/cached/map/cdn.netdna/bootstrap/3.1.1/js/bootstrap.min.js" type="text/javascript"></script>
-    <script src="js/cached/map/cdn.cloudflare/openlayers/2.13.1/OpenLayers.js" type="text/javascript"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol.js" type="text/javascript"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol-debug.js" type="text/javascript"></script>-->
     <script src='js/cached/map/cdn.cloudflare/pouchdb/5.1.0/pouchdb.js'></script>
-    <!--script src='js/ext/pouch.authentication-0.5.1/pouchdb.authentication.js'></script>-->
 </head>
 
 <body>
 
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
-
-<div id="map"></div>
+<div class="menuDivider"></div>
+<div id="map" class="container-fluid" style="padding-left: 0; padding-right: 0; position: relative">
+    <div class="row">
+        <openlayer-parent class="map col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <openlayer-mouse-position></openlayer-mouse-position>
+            <route requires-permissions="Sailor"></route>
+            <vessel requires-authenticated></vessel>
+            <distance-to-nearest requires-authenticated></distance-to-nearest>
+            <distance-circles requires-authenticated></distance-circles>
+        </openlayer-parent>
+    </div>
+</div>
 
 <div id="hoveringBox"></div>
 
 <div id="messagePanel"></div>
 
-<div e-map-initialized>
-    <div x-ng-controller="YourVesselLayerControl" requires-permissions="Sailor"></div>
-    <div x-ng-controller="SARLayerControl"></div>
+<div>
+    <!--<div x-ng-include="'partials/settings.html'"></div>-->
 
-    <div x-ng-include="'partials/settings.html'"></div>
-
-    <div e-location-enabled="vessel">
+    <div e-location-enabled="vessels">
         <div class="controlContainer e-small-font">
             <div x-ng-include="'partials/vessel-control.html'"></div>
         </div>
@@ -77,13 +87,16 @@
         </div>
     </div>
 
+<!--
     <div e-location-enabled="ice">
         <div class="controlContainer e-small-font">
             <div x-ng-include="'partials/ice-control.html'"></div>
         </div>
         <div x-ng-include="'partials/satelliteImageInformation.html'"></div>
     </div>
+-->
 
+<!--
     <div class="controlContainer e-small-font">
         <div e-location-enabled="nwnm">
             <div x-ng-include="'partials/nwnm-control.html'"></div>
@@ -105,7 +118,9 @@
 
         <div x-ng-include="'partials/switch-base-map.html'"></div>
     </div>
+-->
 
+<!--
     <div id="zoomControlPanel" x-ng-controller="ZoomController" class="e-small-font">
         <div class="pull-right">
             <p>
@@ -132,36 +147,29 @@
             <b>Pointer coordinates:</b> <br/> <span id="coords"></span><span id="coords2"></span>
         </div>
     </div>
+-->
 </div>
 
 <!-- The main application script -->
-<!-- build:js js/arcticweb-map.js -->
-
-<script src="js/ext/ExtendedRenderers.js"></script>
+<!-- build:js js/arcticweb-openlayer-map.js -->
 
 <script src="js/ext/bloodhound.min.js"></script>
 
 <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
 <script src="js/ext/jquery-file-upload-9.5.7/js/jquery.iframe-transport.js"></script>
-<!-- The basic File Upload plugin -->
 <script src="js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload.js"></script>
-<!-- The File Upload processing plugin -->
 <script src="js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-process.js"></script>
-<!-- The File Upload validation plugin -->
 <script src="js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-validate.js"></script>
-<!-- The File Upload Angular JS module -->
 <script src="js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-angular.js"></script>
 
 <script src="js/ext/moment.min.js"></script>
 <script src="js/ext/bootstrap-datetimepicker.js"></script>
-<!--script src="js/ext/angular-slider-0.2.3.js"></script-->
 <script src="js/ext/angular-pouchdb-4.1.0.js"></script>
 
 <script src="js/ext/turf.min.js"></script>
 
 <script src="js/utils.js"></script>
 <script src="js/embryo.js"></script>
-<script src="js/layer/embryo-layer.js" type="text/javascript"></script>
 <script src="js/authentication.js" type="text/javascript"></script>
 <script src="js/menu.js" type="text/javascript"></script>
 
@@ -173,83 +181,26 @@
 <script src="js/service/route-service.js"></script>
 <script src="js/service/schedule-service.js"></script>
 <script src="js/service/greenpos-service.js"></script>
-<script src="js/service/vessel-service.js" type="text/javascript"></script>
 <script src="js/service/shape-service.js"></script>
-<script src="js/service/ice-service.js" type="text/javascript"></script>
-<script src="js/service/nwnm-service.js" type="text/javascript"></script>
-<script src="js/service/metoc-service.js" type="text/javascript"></script>
-<script src="js/service/weather-service.js" type="text/javascript"></script>
-<script src="js/service/tileset-service.js" type="text/javascript"></script>
-<script src="js/service/forecast-service.js" type="text/javascript"></script>
 <script src="js/service/select-area-service.js" type="text/javascript"></script>
 <script src="js/service/common-service.js" type="text/javascript"></script>
 <script src="components/vessel/route-model.js" type="text/javascript"></script>
-<script src="components/sar/sar-type-constant.js" type="text/javascript"></script>
-<script src="components/sar/sar-status-constant.js" type="text/javascript"></script>
-<script src="components/sar/operation-constant.js" type="text/javascript"></script>
-<script src="components/sar/sruType-constant.js" type="text/javascript"></script>
-<script src="components/sar/targetTypes-constant.js" type="text/javascript"></script>
-<script src="components/sar/search-pattern-constant.js" type="text/javascript"></script>
-<script src="components/sar/effortStatus-constant.js" type="text/javascript"></script>
-<script src="components/sar/side-constant.js" type="text/javascript"></script>
-<script src="components/sar/track-line-direction-constant.js" type="text/javascript"></script>
-<script src="components/sar/sar-model.js" type="text/javascript"></script>
-<script src="components/sar/live-pouch-service.js" type="text/javascript"></script>
-<script src="components/sar/user-pouch-service.js" type="text/javascript"></script>
-<script src="components/sar/time-elapsed-model.js" type="text/javascript"></script>
-<script src="components/sar/search-circle-model.js" type="text/javascript"></script>
-<script src="components/sar/sar-service.js" type="text/javascript"></script>
-<script src="components/sar/draw-subarea-predicate-model.js" type="text/javascript"></script>
-<script src="components/sar/draw-operation-predicate-model.js" type="text/javascript"></script>
-<script src="components/sar/draw-searchpattern-predicate-model.js" type="text/javascript"></script>
-<script src="components/sar/draw-log-predicate-model.js" type="text/javascript"></script>
-<script src="components/sar/draw-sarsubdoc-predicate-model.js" type="text/javascript"></script>
-
-<script src="js/map.js"></script>
-
-<script src="js/OLControl/ModifyRectangleFeature.js"></script>
 
 <script src="js/ext/arc.js"></script>
-<script src="js/layer/clustering.js"></script>
-<script src="js/layer/vessel-layer.js"></script>
-<script src="js/layer/ice-layer.js" type="text/javascript"></script>
-<script src="js/layer/inshore-ice-report-layer.js" type="text/javascript"></script>
-<script src="js/layer/historical-track-layer.js" type="text/javascript"></script>
-<script src="js/layer/route-layer.js" type="text/javascript"></script>
-<script src="js/layer/adt-layer.js" type="text/javascript"></script>
-<script src="js/layer/distance-layer.js" type="text/javascript"></script>
-<script src="js/layer/greenpos-marker-layer.js" type="text/javascript"></script>
-<script src="js/layer/satellite-image-layer.js" type="text/javascript"></script>
-<script src="js/layer/forecast-layer.js" type="text/javascript"></script>
-<script src="js/layer/nwnm-layer.js" type="text/javascript"></script>
-<script src="js/layer/world-map-layer.js" type="text/javascript"></script>
-<script src="js/layer/metoc-layer.js" type="text/javascript"></script>
-<script src="js/layer/sea-forecast-layer.js" type="text/javascript"></script>
-<script src="js/layer/select-area-layer.js" type="text/javascript"></script>
-<script src="js/sar/sar-layer.js" type="text/javascript"></script>
 
 <script src="components/comparison/attribute-model.js" type="text/javascript"></script>
 <script src="components/comparison/lteq-directive.js" type="text/javascript"></script>
 <script src="components/comparison/gteq-directive.js" type="text/javascript"></script>
 
-<script src="js/control/additional-information.js" type="text/javascript"></script>
+<script src="vessel/additional-information.js" type="text/javascript"></script>
+<script src="js/layer/clustering.js" type="text/javascript"></script>
 
 <script src="js/control/control.js"></script>
-<script src="js/control/vessel-control.js"></script>
-<script src="js/control/your-ship.js" type="text/javascript"></script>
+<script src="vessel/vessel-control.js"></script>
+<script src="vessel/your-ship.js" type="text/javascript"></script>
 <script src="js/control/greenpos-control.js" type="text/javascript"></script>
 <script src="js/control/ais-information.js"></script>
-<script src="js/control/ice-control.js" type="text/javascript"></script>
-<script src="js/control/ice-satellite-control.js"></script>
-<script src="js/control/nwnm-control.js" type="text/javascript"></script>
-<script src="js/control/weather-control.js" type="text/javascript"></script>
-<script src="js/control/forecast-control.js" type="text/javascript"></script>
-<script src="js/control/select-area-control.js"></script>
-<script src="components/sar/operation-filter.js" type="text/javascript"></script>
-<script src="components/sar/sar-status-filter.js" type="text/javascript"></script>
-<script src="components/sar/search-pattern-filter.js" type="text/javascript"></script>
-<script src="js/sar/sar-control.js"></script>
-<script src="js/sar/sar-edit.js" type="text/javascript"></script>
+<script src="select-area/select-area-control.js"></script>
 
 <script src="js/reporting/reporting-panel.js"></script>
 <script src="js/reporting/position.js"></script>
@@ -257,14 +208,33 @@
 <script src="js/reporting/decimal.js"></script>
 <script src="js/reporting/datetimepicker.js"></script>
 <script src="js/reporting/validation.js"></script>
-<script src="js/reporting/ship-information.js" type="text/javascript"></script>
-<script src="js/reporting/route-edit.js" type="text/javascript"></script>
-<script src="js/reporting/schedule.js" type="text/javascript"></script>
-<script src="js/reporting/route-upload.js" type="text/javascript"></script>
-<script src="js/reporting/greenpos.js" type="text/javascript"></script>
-<script src="js/control/vessel-actions.js" type="text/javascript"></script>
+<script src="vessel/report/ship-information.js" type="text/javascript"></script>
+<script src="vessel/report/route-edit.js" type="text/javascript"></script>
+<script src="vessel/report/schedule.js" type="text/javascript"></script>
+<script src="vessel/report/route-upload.js" type="text/javascript"></script>
+<script src="vessel/report/greenpos.js" type="text/javascript"></script>
+<script src="vessel/map/route-directive.js" type="text/javascript"></script>
+<script src="vessel/map/vessel-directive.js" type="text/javascript"></script>
+<script src="vessel/map/distance-to-nearest-directive.js" type="text/javascript"></script>
+<script src="vessel/map/distance-circles-directive.js" type="text/javascript"></script>
+<script src="vessel/vessel.module.js" type="text/javascript"></script>
+<script src="vessel/vessel.constants.js" type="text/javascript"></script>
+<script src="vessel/vessel-actions.js" type="text/javascript"></script>
+<script src="vessel/vessel-service.js" type="text/javascript"></script>
+<script src="vessel/vessel-service-factory.js" type="text/javascript"></script>
 
-<script src="js/mapapp.js" type="text/javascript"></script>
+
+<script src="components/openlayer/openlayer.module.js" type="text/javascript"></script>
+<script src="components/openlayer/openlayer-service.js" type="text/javascript"></script>
+<script src="components/openlayer/lonlat-filter.js" type="text/javascript"></script>
+<script src="components/openlayer/openlayer-mouse-position-directive.js" type="text/javascript"></script>
+<script src="components/openlayer/openlayer-parent-directive.js" type="text/javascript"></script>
+<script src="components/openlayer/position.js" type="text/javascript"></script>
+
+<script src="components/notification/notification.module.js" type="text/javascript"></script>
+<script src="components/notification/notification-service.js" type="text/javascript"></script>
+
+<script src="main-app.js" type="text/javascript"></script>
 <!-- endbuild -->
 </body>
 

@@ -47,6 +47,7 @@ module.exports = function(config) {
                 'src/main/webapp/js/service/*.js',
                 'src/main/webapp/js/control/additional-information.js',
 				'src/main/webapp/components/**/*-constant.js',
+				'src/main/webapp/components/**/*.module.js',
 			    'src/main/webapp/components/**/*-model.js',
 			    'src/main/webapp/components/**/*-directive.js',
 				'src/main/webapp/components/**/*-service.js',
@@ -56,7 +57,10 @@ module.exports = function(config) {
 
 
 		// list of files to exclude
-		exclude : ['src/main/webapp/js/ext/jquery.fileupload*.js'],
+		exclude : [
+			'src/main/webapp/js/ext/jquery.fileupload*.js',
+            'src/main/webapp/components/openlayer/*'
+        ],
 
 		// use dots reporter, as travis terminal does not support escaping
 		// sequences
@@ -82,7 +86,6 @@ module.exports = function(config) {
 		// possible values: config.LOG_DISABLE || config.LOG_ERROR ||
 		// config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
 		// CLI --log-level debug
-		// logLevel : config.LOG_DEBUG,
 		logLevel : config.LOG_INFO,
 
 		// enable / disable watching file and executing tests whenever any file
