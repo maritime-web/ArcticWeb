@@ -23,7 +23,7 @@ describe(
                 // for
                 // further tests
                 if (!tpl) {
-                    tpl = '<div><p><datetimepicker id="date" x-ng-model="obj.date"/></p><input class="dummy" type="text" value=""></input></div>';
+                    tpl = '<div><p><datetimepicker id="date" x-ng-model="obj.date"/></p></div>';
                 }
 
                 // inject allows you to use AngularJS dependency injection
@@ -63,20 +63,17 @@ describe(
                     expect(div.find("span").length).toEqual(2);
                     expect(div.find("input").length).toEqual(1);
                     expect(div.find("input").val()).toEqual("");
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").length).toEqual(1);
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").hasClass("bottom")).toBe(false);
+
+                    expect(elm.find("div.bootstrap-datetimepicker-widget").length).toBeDefined(false);
 
                 });
 
                 it('Date popup is opened correctly', function() {
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").length).toEqual(1);
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").hasClass("bottom")).toBe(false);
+                    var component = elm.find("span.input-group-addon");
 
-                    $(elm.find("span").get(0)).click();
+                    component.click();
 
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").length).toEqual(1);
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").hasClass("bottom")).toBe(true);
-                    expect($(document).find("div.bootstrap-datetimepicker-widget").css("display")).toEqual("block");
+                    expect(elm.find("div.bootstrap-datetimepicker-widget").hasClass("bootstrap-datetimepicker-widget")).toBe(true);
                 });
             });
 
@@ -88,14 +85,14 @@ describe(
                     expect(elm.find("input.input-sm").val()).toEqual("");
 
                     // open popup
-                    $(elm).find("span.input-group-addon").click();
+                    elm.find("span.input-group-addon").click();
                     expect($(elm).find("input.input-sm").val()).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/);
 
                     // closes popup
                     $(elm).find("div.input-group").blur();
                     var now = Date.now();
                     var minute = 3600000;
-                    //arrgghh why does below not work?
+
                     expect(scope.obj.date).not.toBe(null);
                     expect(Math.abs(adjustDateForUTC(scope.obj.date) - now) < minute).toBe(true);
                 });

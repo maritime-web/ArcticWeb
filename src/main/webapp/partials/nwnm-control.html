@@ -1,0 +1,136 @@
+<div x-ng-controller="NWNMControl">
+	<div e-left-bar accordion close-others="true" class="controlPanel2">
+		<div accordion-group heading="Message Filtering">
+			<table class="table">
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showOnlyActive" name="Active today"
+						id="ActiveFilter" /></td>
+					<td><label for="ActiveFilter">Show Active Now</label></td>
+				</tr>
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNW" name="NW"
+						id="NWFilter" /></td>
+					<td><label for="NWFilter">Navigational Warnings</label></td>
+				</tr>
+				<tr class="e-iceprovider">
+					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showNM" name="NM"
+						id="NMFilter" /></td>
+					<td><label for="NMFilter">Notices to Mariners</label></td>
+				</tr>
+			</table>
+			<table class="table">
+                <tr>
+                    <th colspan="2">
+                        Main Area
+                    </th>
+                </tr>
+				<tr x-ng-repeat="area in mainAreas" class="e-iceprovider">
+					<td><input type="radio" x-ng-change="stateChanged()" x-ng-model="state.showArea" x-ng-value="area.mrn" name="Areas"
+						id="Area_{{$index}}" /></td>
+					<td><label for="Area_{{$index}}">{{area.descs[0].name}}</label></td>
+				</tr>
+			</table>
+		</div>
+		<div accordion-group heading="Active Messages" e-left-bar-open-on-init>
+			<div x-ng-if="!messages || messages.length === 0">No active messages</div>
+			<table class="table table-condensed" x-ng-if="messages">
+				<tr>
+					<th>Date</th>
+					<th>Type</th>
+					<th>Area</th>
+				</tr>
+				<tr x-ng-repeat="warning in messages" style='cursor: pointer' x-ng-click="selectMsg(warning)">
+					<td>{{formatDate(warning.created)}}</td>
+					<td>{{warning.enctext}}</td>
+					<td>{{warning.areaHeading}}</td>
+				</tr>
+			</table>
+		</div>
+		<div accordion-group heading="Selected Message" is-open="selected.open" e-left-bar-content-change="{{selected.msg}}">
+
+            <div ng-if="selected.msg.originalInformation">&#10029;</div>
+            <message-id-badge msg="selected.msg" show-blank="true"></message-id-badge>
+			<p><strong>{{selected.msg.enctext}}</strong></p>
+
+			<table class="table table-condensed" x-ng-if="selected.msg">
+                <!-- Reference lines -->
+                <tr ng-if="selected.msg.references && selected.msg.references.length > 0">
+                    <th>References</th>
+                    <td>
+                        <div ng-repeat="ref in selected.msg.references">
+                            <span>{{ref.messageId}}</span>
+                            <span ng-switch="ref.type">
+                                    <span ng-switch-when="REPETITION">(repetition)</span>
+                                    <span ng-switch-when="REPETITION_NEW_TIME">(repetition with new time)</span>
+                                    <span ng-switch-when="CANCELLATION">(cancellation)</span>
+                                    <span ng-switch-when="UPDATE">(updated repetition)</span>
+                                </span>
+                            <span ng-if="ref.descs && ref.descs.length > 0 && ref.descs[0].description">
+                                    - {{ref.descs[0].description}}
+                                </span>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Details line -->
+                <tr ng-if="selected.msg.parts" ng-repeat="part in selected.msg.parts">
+                    <th>
+                            <span ng-if="$index == 0 || selected.msg.parts[$index].type != selected.msg.parts[$index - 1].type">
+                                {{part.type.toLowerCase()}}
+                            </span>
+                    </th>
+                    <td class="message-description">
+                        <div ng-if="part.descs">
+                            <p ng-if="part.descs[0].subject"><strong>{{part.descs[0].subject}}</strong></p>
+                            <div ng-if="part.descs[0].details" ng-bind-html="part.descs[0].details | toTrusted"></div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Attachments -->
+                <tr ng-if="selected.msg.attachments">
+                    <th>Attachments</th>
+                    <td>
+                        <span class="attachment-list" ng-repeat="att in selected.msg.attachments">
+                            <span class="glyphicon glyphicon-file"> </span>
+                            <a href="{{att.path}}" target="_blank" class="ng-binding">
+                                {{att.fileName}}
+                            </a>
+                        </span>
+                    </td>
+                </tr>
+
+                <!-- Charts line -->
+                <tr ng-if="selected.msg.charts.length > 0">
+                    <th>Charts</th>
+                    <td>
+                            <span ng-repeat="chart in selected.msg.charts">
+                                <span ng-if="!$first">, </span>
+                                {{chart.chartNumber}}
+                                <span ng-if="chart.internationalNumber">(INT {{chart.internationalNumber}})</span>
+                            </span>
+                    </td>
+                </tr>
+
+                <!-- Source line -->
+                <tr ng-if="selected.msg.descs[0].source">
+                    <td colspan="2" class="text-right">(<render-message-source msg="selected.msg"></render-message-source>)</td>
+                </tr>
+
+
+			</table>
+		</div>
+		<div accordion-group heading="Legends">
+			<table class="table table-condensed">
+				<tr>
+					<td style="vertical-align: middle;"><img src="img/nwnm/nm.png" style="width: 24px; height: 24px"></td>
+					<td style="vertical-align: middle;">Notices to Mariners</td>
+				</tr>
+				<tr>
+					<td style="vertical-align: middle;"><img src="img/nwnm/nw.png" style="width: 24px; height: 24px"></td>
+					<td style="vertical-align: middle;">Navigational Warnings</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

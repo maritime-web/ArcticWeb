@@ -1,8 +1,5 @@
 (function () {
 
-//    var msiLayer = new MsiLayer();
-//    addLayerToMap("msi", msiLayer, embryo.map);
-
     var module = angular.module('embryo.sar.views', ['embryo.lteq.directive', 'embryo.gteq.directive', 'embryo.sar.model', 'embryo.sar.service', 'embryo.common.service', 'ui.bootstrap.typeahead', 'embryo.datepicker', 'embryo.position', 'embryo.sar.userPouch']);
 
     function SarTypeData(group, text, img) {

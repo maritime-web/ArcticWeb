@@ -7,6 +7,7 @@ module.exports = function(config) {
 
 		// list of files / patterns to load in the browser
 		files : [
+		        'src/test/jsUnit/polyfills.js',
 		        'src/main/webapp/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js',
 		        'src/main/webapp/js/ext/cdn.cloudflare/openlayers/2.13.1/OpenLayers.js',
 		        'src/main/webapp/js/ext/cdn.cloudflare/jqueryui/1.9.1/jquery-ui.min.js',

@@ -1,4 +1,4 @@
-function MsiLayer() {
+function NWNMLayer() {
     this.init = function() {
         this.zoomLevels = [4, 6];
 
@@ -22,18 +22,25 @@ function MsiLayer() {
                 return -context.size() / 2;
             },
             size: function() {
-                return [16, 20, 24][that.zoomLevel];
+                // return [16, 20, 24][that.zoomLevel];
+                return [14, 17, 20][that.zoomLevel];
             },
             description: function(feature) {
-                return feature.cluster ? feature.cluster.length + ' warnings' : feature.data.description;
+                return feature.cluster ? feature.cluster.length + ' warnings' : feature.attributes.description;
+            },
+            fillColor: function(feature) {
+                return feature.attributes.mainType === 'NW' ? "#FFFFFF" : "#ad57a1";
+            },
+            extGraphic: function(feature) {
+                return feature.attributes.mainType === 'NW' ? 'img/nwnm/nw.png' : 'img/nwnm/nm.png';
             }
         };
 
-        this.layers.msi = new OpenLayers.Layer.Vector("MSI", {
+        this.layers.nwnm = new OpenLayers.Layer.Vector("NWNM", {
             styleMap: new OpenLayers.StyleMap({
                 "default": new OpenLayers.Style({
                     graphicOpacity: "${transparency}",
-                    externalGraphic : "img/msi.png",
+                    externalGraphic : "${extGraphic}",
                     graphicWidth : "${size}",
                     graphicHeight : "${size}",
                     graphicYOffset : "${offset}",
@@ -42,11 +49,11 @@ function MsiLayer() {
                     fontSize: "10px",
                     fontOpacity: "${labelTransparency}",
                     fontFamily: "Courier New, monospace",
-                    label : "${description}",
+                    // label : "${description}",
                     fontWeight: "bold",
                     labelOutlineWidth : 0,
                     labelYOffset: -20,
-                    fillColor: "#ad57a1",
+                    fillColor: "${fillColor}",
                     fillOpacity: "${polygonTransparency}",
                     strokeWidth: 3,
                     strokeColor: "#8f2f7b",
@@ -55,7 +62,7 @@ function MsiLayer() {
                 }, { context: context }),
                 "select": new OpenLayers.Style({
                     graphicOpacity: 1,
-                    externalGraphic : "img/msi.png",
+                    externalGraphic : "${extGraphic}",
                     graphicWidth : 24,
                     graphicHeight : 24,
                     graphicYOffset : -12,
@@ -70,84 +77,59 @@ function MsiLayer() {
                     fontOpacity: 1,
                     fontSize: "10px",
                     fontFamily: "Courier New, monospace",
-                    label : "${description}",
+                    // label : "${description}",
                     fill: true,
                     fillOpacity: 0.6,
                     strokeOpacity: 0.8
                 }, { context: context} )
 
-            }),
-            strategies: [
-                    new OpenLayers.Strategy.Cluster({
-                        distance: 25,
-                        threshold: 3
-                    })
-            ]
+            })
         });
 
-        this.selectableLayers = [this.layers.msi];
-        this.selectableAttribute = "msi";
+        this.selectableLayers = [this.layers.nwnm];
+        this.selectableAttribute = "nwnm";
     };
 
-    this.draw = function(data) {
-        this.layers.msi.removeAllFeatures();
+    this.draw = function(messages) {
+        this.layers.nwnm.removeAllFeatures();
 
         var features = [];
+        var geoJSONFormat = new OpenLayers.Format.GeoJSON();
 
-        for (var i in data) {
+        for (var i in messages) {
             var attr = {
                 id : i,
-                description: data[i].enctext,
-                type : "msi",
-                msi : data[i]
+                description: messages[i].enctext,
+                type : "nwnm",
+                mainType : messages[i].mainType,
+                nwnm : messages[i]
             };
 
-            switch (data[i].type) {
-                case "Point":
-                case "Points":
-                    for (var j in data[i].points) {
-                        var p = data[i].points[j];
-                        features.push(new OpenLayers.Feature.Vector(this.map.createPoint(p.longitude, p.latitude), attr));
+            angular.forEach(messages[i].jsonFeatures, function (geoJsonFeatureCollection) {
+                var featureCollection = geoJSONFormat.read(geoJsonFeatureCollection);
+                var geometryCollection = new OpenLayers.Geometry.Collection();
+                angular.forEach(featureCollection, function (featureVector) {
+                    featureVector.attributes = attr;
+                    featureVector.geometry.transform(new OpenLayers.Projection("EPSG:4326"), embryo.projection);
+
+                    var id = featureVector.geometry.id;
+                    if (!id.match(/OpenLayers_Geometry_Point/) && !id.match(/OpenLayers_Geometry_MultiPoint/) ) {
+                        geometryCollection.addComponent(featureVector.geometry);
                     }
-                    break;
-                case "Polygon":
-                    var points = [];
+                    features.push(featureVector);
+                });
 
-                    for (var j in data[i].points) {
-                        var p = data[i].points[j];
-                        points.push(this.map.createPoint(p.longitude, p.latitude));
-                    }
+                if (geometryCollection.components.length > 0) {
+                    var point = geometryCollection.getCentroid(true);
+                    var feature = new OpenLayers.Feature.Vector(point, attr);
+                    features.push(feature);
+                }
 
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.Polygon([new OpenLayers.Geometry.LinearRing(points)]), attr
-                    ));
-
-                    break;
-                case "Polyline":
-                    var points = [];
-
-                    for (var j in data[i].points) {
-                        var p = data[i].points[j];
-                        points.push(this.map.createPoint(p.longitude, p.latitude));
-                    }
-
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.LineString(points), attr
-                    ));
-
-/*
-                    features.push(new OpenLayers.Feature.Vector(
-                        new OpenLayers.Geometry.Curve([new OpenLayers.Geometry.LineString(points)]), attr
-                    ));
-*/
-
-                    break;
-            }
-
+            });
         }
 
-        this.layers.msi.addFeatures(features);
+        this.layers.nwnm.addFeatures(features);
     };
 }
 
-MsiLayer.prototype = new EmbryoLayer();
+NWNMLayer.prototype = new EmbryoLayer();
