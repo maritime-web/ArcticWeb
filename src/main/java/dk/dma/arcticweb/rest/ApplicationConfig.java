@@ -35,6 +35,7 @@ import dk.dma.embryo.vessel.json.RouteUploadRestService;
 import dk.dma.embryo.vessel.json.ScheduleRestService;
 import dk.dma.embryo.weather.json.WeatherRestService;
 import dk.dma.enav.services.nwnm.NwNmRestService;
+import dk.dma.enav.services.version.BuildVersionRestService;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -73,7 +74,9 @@ public class ApplicationConfig extends Application {
                 ForecastRestService.class,
                 FeedbackRestService.class, 
                 TileSetJsonService.class,
-                AreasOfInterestRestService.class));
+                AreasOfInterestRestService.class,
+                BuildVersionRestService.class
+        ));
 
         return set;
     }

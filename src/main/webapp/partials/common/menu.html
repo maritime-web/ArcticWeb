@@ -10,7 +10,7 @@
         <a class="navbar-brand" href="../"> <font color="#0080C0">Arctic</font><font color="#888888">Web</font></a>
 
     </div>
-    <div class="navbar-collapse collapse" id="navigationBar">
+    <div class="navbar-collapse collapse" ng-class="{'version-mismatch': versionConflict}" id="navigationBar">
         <ul class="nav navbar-nav navtabs" show-active>
             <li>
                 <a href="map.html#/vessel">
@@ -82,6 +82,12 @@
                 <a href="admin.html#/log">
                     <i class="fa fa-fire" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Log
+                </a>
+            </li>
+            <li ng-if="versionConflict">
+                <a href="version-mismatch.html" style=" color: white; font-weight: bold">
+                    <i class="fa fa-exclamation-triangle" aria-hidden="true" ></i>
+                    Version conflict
                 </a>
             </li>
         </ul>

@@ -1,7 +1,7 @@
 (function() {
     "use strict";
 
-    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'ui.bootstrap']);
+    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'ui.bootstrap', 'embryo.components.version']);
 
     indexApp.config([ '$routeProvider', function($routeProvider) {
         $routeProvider.when('/feedback', {

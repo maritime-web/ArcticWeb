@@ -29,7 +29,11 @@
 		<embryo-user.jar>user-${project.parent.version}.jar</embryo-user.jar>
 		<embryo-reporting.jar>reporting-${project.parent.version}.jar</embryo-reporting.jar>
 		<embryo-tiles.jar>map-tiles-${project.parent.version}.jar</embryo-tiles.jar>
-	</properties>
+
+        <!-- Timestamp used to check wether client and server runs the same version -->
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>dd-MM-yyyy HH:mm 'UTC'</maven.build.timestamp.format>
+    </properties>
 
 	<dependencyManagement>
 		<dependencies>
@@ -126,6 +130,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>dk.dma.enav.services</groupId>
+			<artifactId>version</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>dk.dma.enav</groupId>
 			<artifactId>enav-model</artifactId>
 		</dependency>
@@ -207,6 +217,7 @@
 				<filtering>true</filtering>
 				<includes>
 					<include>**/persistence.xml</include>
+					<include>default-configuration.properties</include>
 				</includes>
 			</resource>
 			<resource>
@@ -453,6 +464,9 @@
 							<goal>grunt</goal>
 						</goals>
 						<configuration>
+                            <environmentVariables>
+                                <version>${timestamp}</version>
+                            </environmentVariables>
 							<arguments>build</arguments>
 						</configuration>
 					</execution>

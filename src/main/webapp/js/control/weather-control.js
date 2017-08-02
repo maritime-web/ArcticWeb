@@ -122,9 +122,11 @@ $(function() {
                 var shape = shapes[index];
                 for ( var j in shape.fragments) {
                     var fragment = shape.fragments[j];
-                    for ( var k in weather.forecast.districts) {
-                        if (fragment.description.name == weather.forecast.districts[k].name) {
-                            fragment.district = weather.forecast.districts[k];
+                    if (weather.forecast) {
+                        for ( var k in weather.forecast.districts) {
+                            if (fragment.description.name == weather.forecast.districts[k].name) {
+                                fragment.district = weather.forecast.districts[k];
+                            }
                         }
                     }
                 }

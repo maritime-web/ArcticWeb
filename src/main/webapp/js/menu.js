@@ -9,7 +9,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
 (function() {
     "use strict";
 
-    var menuModule = angular.module('embryo.menu', [ 'ui.bootstrap', 'embryo.authentication' ]);
+    var menuModule = angular.module('embryo.menu', [ 'ui.bootstrap', 'embryo.authentication', 'embryo.components.version']);
     menuModule.directive('showActive', [ '$location', function($location) {
         return {
             restrict : 'A',
@@ -31,7 +31,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
             }
         };
     } ]);
-    
+
     function templateFn(expr) {
         return function(element, attr) {
             var ngIf = attr.ngIf;
@@ -72,14 +72,24 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
             }
         };
     } ]);
-    
+
     var embryoAuthenticated = false;
 
     embryo.authenticated(function() {
         embryoAuthenticated = true;
     });
-    
-    embryo.MenuCtrl = function($scope, Subject, $location) {
+
+    embryo.MenuCtrl = function($scope, Subject, $location, VersionService) {
+        var clientVersion = '##timestamp##';
+        $scope.versionConflict = false;
+
+        VersionService.serverVersion()
+            .success(function (serverVersion) {
+                console.log('clientVersion: ' + clientVersion);
+                console.log('serverVersion: ' + serverVersion);
+                $scope.versionConflict = clientVersion !== serverVersion;
+            });
+
         $scope.$watch(function() {
             return $location.absUrl();
         }, function(url) {

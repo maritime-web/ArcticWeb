@@ -1,7 +1,7 @@
 	(function() {
 	    "use strict";
 	    var app = angular.module('embryo.administration', [ 'ui.bootstrap', 'ngRoute', 'embryo.administration.log',
-	            'embryo.administration.users', 'embryo.menu']);
+	            'embryo.administration.users', 'embryo.menu', 'embryo.components.version']);
 	
 	    app.config([ '$routeProvider', function($routeProvider) {
 	        $routeProvider.when('/log', {

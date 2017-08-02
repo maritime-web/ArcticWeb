@@ -177,3 +177,7 @@ div.date.ng-invalid input, input.ng-invalid {
     transform: rotate(-45deg);
     z-index: 9999;
 }
+
+.version-mismatch {
+    background-color: red;
+}

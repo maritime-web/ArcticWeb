@@ -2,6 +2,7 @@
     "use strict";
     angular.module('embryo.mapapp', [
         /* Shared modules */
+        'embryo.components.version',
         'embryo.map',
         'embryo.menu',
         'embryo.authentication',

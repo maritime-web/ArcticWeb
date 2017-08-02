@@ -284,6 +284,16 @@ module.exports = function (grunt) {
                         to: '//cdn.firebase.com/'
                     },
                 ]
+            },
+            version: {
+                src: ['<%= proj.build %>/js/*.js'],
+                overwrite: true,                 // overwrite matched source files
+                replacements: [
+                    {
+                        from: '##timestamp##', // string replacement
+                        to: process.env.version
+                    }
+                ]
             }
         },
         cdnify: {
@@ -435,7 +445,7 @@ module.exports = function (grunt) {
     //   'copy:gen2Build', 'copy:toTarget', 'appcache:map', 'appcache:front']);
 
     grunt.registerTask('build', [ 'useminPrepare', 'copy:unMod2Build', 'replace:run', 'concat', 'usemin',
-        'copy:gen2Build', 'appcache:map', 'appcache:front', 'replace:run', 'copy:toTarget']);
+        'copy:gen2Build', 'appcache:map', 'appcache:front', 'replace:run', 'replace:version', 'copy:toTarget']);
 
     // 'clean:dist',
     // 'useminPrepare',
