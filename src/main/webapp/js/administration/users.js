@@ -2,7 +2,8 @@ $(function() {
     "use strict";
 
     angular.module('embryo.administration.users', [ 'embryo.userService', 'ui.bootstrap.modal',
-            'ui.bootstrap.tpls', 'embryo.authentication' ]);
+            'ui.bootstrap.tpls', 'embryo.authentication' ])
+        .controller('UserEmailController', UserEmailController);
 
     embryo.UsersCtrl = function($scope, UserService, $modal) {
         var editUser;
@@ -136,6 +137,22 @@ $(function() {
             });
         }
 
+        $scope.showEmails = function () {
+            var emails = "";
+            angular.forEach($scope.users, function (user) {
+                emails += user.email+',';
+            });
+            $modal.open({
+                controller : 'UserEmailController',
+                templateUrl : "emailAdresses.html",
+                resolve : {
+                    emails : function() {
+                        return emails;
+                    }
+                }
+            });
+        };
+
         $scope.submitEdit = function() {
             function save() {
                 $scope.message = "Saving " + $scope.editUser.login + " ...";
@@ -193,6 +210,11 @@ $(function() {
         $scope.title = title;
         $scope.messages = messages;
     };
+
+    UserEmailController.$inject = ['$scope', '$modalInstance', 'emails'];
+    function UserEmailController ($scope, $modalInstance, emails) {
+        $scope.emails = emails;
+    }
 
     function fixScrollables() {
         $(".scrollable").each(function(elem) {
