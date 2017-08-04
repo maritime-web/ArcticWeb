@@ -6,12 +6,13 @@
     <groupId>dk.dma.enav.arcticweb</groupId>
 	<packaging>war</packaging>
 	<name>Arctic Web Application</name>
-	<version>2.6.7-SNAPSHOT</version>
+	<!-- static version number. Release versions don't get pushed to VCS -->
+	<version>1.0-Developer-SNAPSHOT</version>
 
 	<parent>
         <groupId>dk.dma.enav.services</groupId>
 		<artifactId>parent</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0-Developer-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -155,7 +156,7 @@
 		<dependency>
 			<groupId>dk.dma.arcticweb</groupId>
 			<artifactId>arcticweb-usermanual</artifactId>
-			<version>2.6.7-SNAPSHOT</version>
+			<version>1.0-Developer-SNAPSHOT</version>
 			<type>war</type>
 		</dependency>
 
