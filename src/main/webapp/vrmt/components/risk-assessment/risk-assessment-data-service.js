@@ -134,7 +134,7 @@
         }
 
         function initializePouch() {
-            var dbName = Subject.getDetails().userName;
+            var dbName = 'vrmt_' + Subject.getDetails().shipMmsi;
             console.log("Pouch DB name: " + dbName);
             var local = PouchDBFactory.createLocalPouch(dbName);
             var remote = PouchDBFactory.createRemotePouch(dbName);
