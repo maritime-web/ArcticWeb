@@ -9,7 +9,8 @@ function SeaForecastLayer() {
             fillColor: function (feature) {
                 //#ff0000
                 //#f2dede
-                return feature.attributes.district.warnings ? "#ff0000" : "transparent";
+                var attr = feature.attributes;
+                return attr.district && attr.district.warnings ? "#ff0000" : "transparent";
             },
             transparency: function () {
                 return that.active ? 0.5 : 0.25;
