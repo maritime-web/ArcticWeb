@@ -345,8 +345,9 @@
             'ScheduleService',
             'RouteService',
             'VesselInformation',
-            '$timeout',
-            function($scope, ScheduleService, RouteService, VesselInformation, $timeout) {
+            'NotifyService',
+            'VesselEvents',
+            function($scope, ScheduleService, RouteService, VesselInformation, NotifyService, VesselEvents) {
                 $scope.state = {
                     collapse : false,
                     viewAll : true
@@ -397,13 +398,7 @@
                         this.doShow = false;
                     },
                     hideAll : function() {
-                        function featureFilter(feature) {
-                            if (feature.attributes.featureType === 'route') {
-                                return !feature.attributes.active || !feature.attributes.own;
-                            }
-                            return true;
-                        }
-                        return true;//$scope.routeLayer.hideFeatures(featureFilter);
+                        return true;
 
                     }
                 };
@@ -412,7 +407,7 @@
                 $scope.close = function($event) {
                     $event.preventDefault();
                     $scope.provider.close();
-                }
+                };
 
                 $scope.isActive = function(voyage) {
                     if (!voyage || !voyage.route || !voyage.route.id) {
@@ -476,8 +471,7 @@
 
                     for ( var index = 0; index < $scope.voyages.length; index++) {
                         var voyage = $scope.voyages[index];
-                        if (voyage.showRoute && voyage.showRoute.value
-                        ){//&& !$scope.routeLayer.containsVoyageRoute(voyage)) {
+                        if (voyage.showRoute && voyage.showRoute.value) {
                             if (voyage.route) {
                                 if ($scope.mmsi != embryo.authentication.shipMmsi
                                         || voyage.route.id != $scope.activeRouteId) {
@@ -500,25 +494,13 @@
                                 route.own = $scope.mmsi == embryo.authentication.shipMmsi;
                                 route.active = route.id == $scope.activeRouteId;
                                 routesToDraw.push(route);
-                                // $scope.routeLayer.draw(routesToDraw);
-                                // $scope.routeLayer.zoomToExtent();
+                                NotifyService.notify(VesselEvents.ShowRoutes, routesToDraw);
                             }
                         });
                     } else {
-                        // $scope.routeLayer.draw(routesToDraw);
-                        // $scope.routeLayer.zoomToExtent();
+                        NotifyService.notify(VesselEvents.ShowRoutes, routesToDraw);
                     }
                 };
-
-                $scope.viewRoute = function(voyage) {
-                    $scope.state.collapse = true;
-                    RouteService.getRoute(voyage.route.id, function(route) {
-                        var routeType = embryo.route.service.getRouteType($scope.mmsi, voyage.route.id);
-                        // $scope.routeLayer.draw(route, routeType);
-                        // $scope.routeLayer.zoomToExtent();
-                    });
-                };
-
             } ]);
 
     // This is where we implement the "infinite scrolling" part for large

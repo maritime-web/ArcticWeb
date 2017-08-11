@@ -53,7 +53,8 @@
     <div class="row">
         <openlayer-parent class="map col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <openlayer-mouse-position></openlayer-mouse-position>
-            <route requires-permissions="Sailor"></route>
+            <map-position></map-position>
+            <route requires-authenticated></route>
             <vessel requires-authenticated></vessel>
             <distance-to-nearest requires-authenticated></distance-to-nearest>
             <distance-circles requires-authenticated></distance-circles>
@@ -70,20 +71,20 @@
 
     <div e-location-enabled="vessels">
         <div class="controlContainer e-small-font">
-            <div x-ng-include="'partials/vessel-control.html'"></div>
+            <div x-ng-include="'vessel/vessel-control.html'"></div>
         </div>
 
-        <div x-ng-include="'partials/ais-information.html'"></div>
-        <div x-ng-include="'partials/vessel-information-view.html'"></div>
-        <div x-ng-include="'partials/schedule-view.html'"></div>
-        <div x-ng-include="'partials/greenpos-list.html'" requires-permissions="Reporting,Administration"></div>
+        <div x-ng-include="'vessel/ais-information.html'"></div>
+        <div x-ng-include="'vessel/vessel-information-view.html'"></div>
+        <div x-ng-include="'vessel/schedule-view.html'"></div>
+        <div x-ng-include="'vessel/greenpos-list.html'" requires-permissions="Reporting,Administration"></div>
 
         <div requires-permissions="Sailor">
-            <div x-ng-include="'partials/vessel-information-edit.html'"></div>
-            <div x-ng-include="'partials/schedule.html'"></div>
-            <div x-ng-include="'partials/route-upload.html'"></div>
-            <div x-ng-include="'partials/route-edit.html'"></div>
-            <div x-ng-include="'partials/greenpos-report.html'"></div>
+            <div x-ng-include="'vessel/vessel-information-edit.html'"></div>
+            <div x-ng-include="'vessel/schedule.html'"></div>
+            <div x-ng-include="'vessel/route-upload.html'"></div>
+            <div x-ng-include="'vessel/route-edit.html'"></div>
+            <div x-ng-include="'vessel/greenpos-report.html'"></div>
         </div>
     </div>
 
@@ -213,6 +214,7 @@
 <script src="vessel/report/schedule.js" type="text/javascript"></script>
 <script src="vessel/report/route-upload.js" type="text/javascript"></script>
 <script src="vessel/report/greenpos.js" type="text/javascript"></script>
+<script src="vessel/greenpos-control.js" type="text/javascript"></script>
 <script src="vessel/map/route-directive.js" type="text/javascript"></script>
 <script src="vessel/map/vessel-directive.js" type="text/javascript"></script>
 <script src="vessel/map/distance-to-nearest-directive.js" type="text/javascript"></script>
@@ -223,12 +225,13 @@
 <script src="vessel/vessel-service.js" type="text/javascript"></script>
 <script src="vessel/vessel-service-factory.js" type="text/javascript"></script>
 
-
 <script src="components/openlayer/openlayer.module.js" type="text/javascript"></script>
+<script src="components/openlayer/openlayer.constants.js" type="text/javascript"></script>
 <script src="components/openlayer/openlayer-service.js" type="text/javascript"></script>
 <script src="components/openlayer/lonlat-filter.js" type="text/javascript"></script>
 <script src="components/openlayer/openlayer-mouse-position-directive.js" type="text/javascript"></script>
 <script src="components/openlayer/openlayer-parent-directive.js" type="text/javascript"></script>
+<script src="components/openlayer/map-position-directive.js" type="text/javascript"></script>
 <script src="components/openlayer/position.js" type="text/javascript"></script>
 
 <script src="components/notification/notification.module.js" type="text/javascript"></script>

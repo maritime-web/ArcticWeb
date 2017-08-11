@@ -87,7 +87,7 @@
         }, true);
 
         $scope.activeVoyage = function() {
-            return $scope.vesselDetails.additionalInformation.routeId == $scope.routeId;
+            return $scope.vesselDetails && $scope.vesselDetails.additionalInformation.routeId == $scope.routeId;
         };
 
         $scope.remove = function(index) {

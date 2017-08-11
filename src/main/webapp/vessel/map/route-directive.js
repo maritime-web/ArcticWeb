@@ -7,8 +7,9 @@
         .module('embryo.vessel.map')
         .directive('route', route);
 
-    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents'];
-    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents) {
+    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents', 'OpenlayerEvents'];
+
+    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents, OpenlayerEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -27,37 +28,61 @@
             var selectedRouteSource = new ol.source.Vector();
             selectedRouteLayer = new ol.layer.Vector({source: selectedRouteSource});
 
+            var myRouteOptions = {
+                source: myRouteSource,
+                routeColor: '#FF0000',
+                arrowImg: 'img/arrow_red_route.svg'
+            };
+
+            var selectedRouteOpteions = {
+                source: selectedRouteSource,
+                routeColor: '#3E7D1D',
+                arrowImg: 'img/arrow_green_route.svg'
+            };
+
             var myMmsi = Subject.getDetails().shipMmsi;
 
-            VesselService.subscribe(myMmsi, function (error, vesselDetails) {
-                if (!error) {
-
-                    if (vesselDetails && vesselDetails.additionalInformation.routeId) {
-                        RouteService.getRoute(vesselDetails.additionalInformation.routeId, function(route) {
-                            addOrReplaceRoute(route, true);
-                            myRouteLayer.setVisible(true);
-                        });
-                    } else {
-                        myRouteLayer.setVisible(false);
+            if (myMmsi) {
+                VesselService.subscribe(myMmsi, function (error, vesselDetails) {
+                    if (!error) {
+                        if (vesselDetails && vesselDetails.additionalInformation.routeId) {
+                            RouteService.getRoute(vesselDetails.additionalInformation.routeId, function (route) {
+                                myRouteOptions.source.clear();
+                                addRoute(route, myRouteOptions);
+                                myRouteLayer.setVisible(true);
+                            });
+                        } else {
+                            myRouteLayer.setVisible(false);
+                        }
                     }
-                }
-            });
+                });
+            }
 
             NotifyService.subscribe(scope, VesselEvents.HideRoute, hideSelected);
+
             function hideSelected() {
                 selectedRouteLayer.setVisible(false);
             }
 
             NotifyService.subscribe(scope, VesselEvents.ShowRoute, function (event, routeId) {
-                RouteService.getRoute(routeId, function(route) {
-                    addOrReplaceRoute(route, false);
+                RouteService.getRoute(routeId, function (route) {
+                    selectedRouteOpteions.source.clear();
+                    addRoute(route, selectedRouteOpteions);
                     selectedRouteLayer.setVisible(true);
                 });
             });
 
-            function addOrReplaceRoute(route, isMyRoute) {
-                var source = isMyRoute ? myRouteSource : selectedRouteSource;
-                source.clear();
+            NotifyService.subscribe(scope, VesselEvents.ShowRoutes, function (event, routes) {
+                selectedRouteOpteions.source.clear();
+                routes.forEach(function (r) {
+                    addRoute(r, selectedRouteOpteions);
+                });
+                selectedRouteLayer.setVisible(true);
+                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, selectedRouteLayer)
+            });
+
+            function addRoute(route, options) {
+                var source = options.source;
                 source.addFeature(createRouteFeature());
 
                 function createRouteFeature() {
@@ -73,10 +98,10 @@
                     });
 
                     feature.setGeometry(line);
-                    feature.set('routeColor', isMyRoute ? '#FF0000' : '#3E7D1D', true);
-                    feature.set('arrowImg', isMyRoute ? 'img/arrow_red_route.svg' : 'img/arrow_green_route.svg', true);
+                    feature.set('routeColor', options.routeColor, true);
+                    feature.set('arrowImg', options.arrowImg, true);
                     feature.setStyle(styleFunction);
-
+                    feature.setId(route.id);
                     return feature;
                 }
 
@@ -96,15 +121,15 @@
                     })
                 ];
 
-                geometry.forEachSegment(function(start, end) {
+                geometry.forEachSegment(function (start, end) {
                     var dx = end[0] - start[0];
                     var dy = end[1] - start[1];
                     var rotation = Math.atan2(dy, dx);
 
                     var a = dy / dx;
-                    var b = start[1] - a*start[0];
-                    var middle = [start[0] + dx/2.0];
-                    middle[1] = a*middle[0] + b;
+                    var b = start[1] - a * start[0];
+                    var middle = [start[0] + dx / 2.0];
+                    middle[1] = a * middle[0] + b;
 
                     // arrows
                     styles.push(new ol.style.Style({

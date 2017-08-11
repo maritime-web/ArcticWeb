@@ -87,7 +87,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
             .success(function (serverVersion) {
                 console.log('clientVersion: ' + clientVersion);
                 console.log('serverVersion: ' + serverVersion);
-                $scope.versionConflict = clientVersion !== serverVersion;
+                $scope.versionConflict = clientVersion !== serverVersion && clientVersion !== '##timestamp##';
             });
 
         $scope.$watch(function() {

@@ -12,6 +12,7 @@
             ShowDistanceCircles: 'ShowDistanceCircles',
             HideDistanceCircles: 'HideDistanceCircles',
             ShowRoute: 'ShowRoute',
+            ShowRoutes: 'ShowRoutes',
             HideRoute: 'HideRoute'
         });
 })();

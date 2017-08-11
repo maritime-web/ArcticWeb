@@ -24,6 +24,14 @@
                     getLatest : function () {
                         return this.latestVessels;
                     },
+                    getVessel: function (mmsi) {
+                        if (this.latestVessels) {
+                            return this.latestVessels.find(function (v) {
+                                return v.mmsi === mmsi;
+                            })
+                        }
+                        return null;
+                    },
                     list : function(success, error) {
                         var messageId = embryo.messagePanel.show({
                             text: "Loading vessels ..."
