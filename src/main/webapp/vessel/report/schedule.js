@@ -386,7 +386,7 @@
                     },
                     show : function(vesselOverview, vesselDetails) {
                         this.doShow = true;
-                        $scope.state.collapse = false;
+                        $scope.state.collapse = falsen;
                         $scope.mmsi = vesselDetails.mmsi;
                         $scope.activeRouteId = vesselDetails.additionalInformation.routeId;
                         loadSchedule();

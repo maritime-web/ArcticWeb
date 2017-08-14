@@ -1,5 +1,3 @@
-var greenposScope;
-
 (function () {
     "use strict";
 
@@ -37,21 +35,19 @@ var greenposScope;
         };
     });
 
-    var layer = null;
-
     embryo.GreenPosCtrl = function ($scope, ScheduleService, GreenposService, VesselService, $timeout, RouteService, VesselInformation) {
         $scope.deactivate = {
             value: false
-        }
+        };
 
         $scope.inclWps = {
             value: true
-        }
+        };
 
 
         $scope.report = {
             type: "PR"
-        }
+        };
 
         $scope.recipients = {
             coastalcontrol: 'Coastal Control',
@@ -264,7 +260,7 @@ var greenposScope;
                 $scope.alertMessages = null;
                 $scope.reportAcknowledgement = null;
             }
-        }
+        };
 
         $scope.close = function ($event, greenPosForm) {
             $event.preventDefault();
@@ -272,7 +268,7 @@ var greenposScope;
             if (greenPosForm) {
                 greenPosForm.$setPristine();
             }
-        }
+        };
 
         VesselInformation.addInformationProvider($scope.provider);
 
@@ -400,7 +396,7 @@ var greenposScope;
             $scope.close = function ($event) {
                 $event.preventDefault();
                 $scope.provider.close();
-            }
+            };
 
             $scope.formatDateTime = function (timeInMillis) {
                 return formatTime(timeInMillis);
@@ -417,7 +413,7 @@ var greenposScope;
                     case 'greenpos':
                         return 'Greenpos';
                 }
-                ;
+
                 return '';
             };
 
