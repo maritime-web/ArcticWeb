@@ -6,7 +6,8 @@
         .service('OpenlayerService', OpenlayerService);
 
     function OpenlayerService() {
-
+        this.minResolution = 5;
+        this.maxResolution = 18500;
         var projMercator = 'EPSG:3857';
         var proj4326 = 'EPSG:4326';
 
@@ -29,5 +30,9 @@
         this.toLonLat = function (xy) {
             return xy ? ol.proj.transform(xy, projMercator, proj4326) : null;
         };
+
+        this.getArcticCenter = function () {
+            return ol.proj.fromLonLat([-65, 70], undefined);
+        }
     }
 })();

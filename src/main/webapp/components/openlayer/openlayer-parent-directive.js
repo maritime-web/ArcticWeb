@@ -22,9 +22,9 @@
          */
         .directive('openlayerParent', openlayerParent);
 
-    openlayerParent.$inject = ['$q', '$timeout'];
+    openlayerParent.$inject = ['$q', '$timeout', 'OpenlayerService'];
 
-    function openlayerParent($q, $timeout) {
+    function openlayerParent($q, $timeout, OpenlayerService) {
         return {
             restrict: 'EA',
             replace: true,
@@ -71,9 +71,13 @@
                     ]
                 })];
                 var view = new ol.View({
-                    zoom: 6,
-                    minZoom: 4,
-                    maxZoom: 16,
+                    // zoom: 6,
+                    // minZoom: 3,
+                    // maxZoom: 16,
+                    resolution: 4000,
+                    minResolution: OpenlayerService.minResolution,
+                    maxResolution: OpenlayerService.maxResolution,
+                    zoomFactor: 1.4,
                     center: ol.proj.fromLonLat([-44, 69], undefined),
                     extent: arcticExtent
                 });

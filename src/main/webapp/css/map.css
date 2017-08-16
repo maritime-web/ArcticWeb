@@ -310,11 +310,11 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
 
 .map-mouse-position {
     position: absolute;
-    right: 240px;
+    right: 100px;
     top: 10px;
     border-radius: 4px;
     padding: 4px;
-    width: 160px;
+    width: 130px;
     height: 21px;
     text-align: center;
     font-size: 10px;
@@ -342,6 +342,13 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
 .ol-zoom {
     left: auto;
     right: 0.5em;
+    top: 10px;
+    background-color: rgba(0, 60, 136, 0.5);
+    padding: 0 0 0 0;
+}
+
+.ol-control button {
+    background-color: #337ab7
 }
 
 .layer-switcher {

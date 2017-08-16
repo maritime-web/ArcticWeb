@@ -16,16 +16,34 @@
         };
 
         function link(scope, element, attrs, ctrl) {
+
+            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomAndCenter, centerAndZoom);
+            function centerAndZoom(e, data) {
+                var olScope = ctrl.getOpenlayersScope();
+                olScope.getMap().then(function (map) {
+                    var view = map.getView();
+                    view.setResolution(data.resolution);
+                    view.setCenter(data.center);
+                })
+            }
+
             NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomToLayer, zoomToLayer);
             function zoomToLayer(e, layer) {
-                console.log('Layer Extent');
-                console.log(layer.getSource().getExtent());
-
                 fitExtent(layer.getSource().getExtent());
             }
 
-            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerPanToFeature, panToFeature);
+            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomToFeature, zoomToFeature);
+            function zoomToFeature(e, data) {
+                var olScope = ctrl.getOpenlayersScope();
+                olScope.getMap().then(function (map) {
+                    var feature = findFeature(map, data.id);
+                    var view = map.getView();
+                    view.setResolution(data.resolution);
+                    view.setCenter(feature.getGeometry().getFirstCoordinate());
+                })
+            }
 
+            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerPanToFeature, panToFeature);
             function panToFeature(e, featureId) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -53,6 +71,19 @@
                         return res;
                     }
                 })
+            }
+
+            function findFeature(map, featureId) {
+                var res = null;
+                map.getLayers().forEach(function (layer) {
+                    if (layer instanceof ol.layer.Vector) {
+                        var candidate = layer.getSource().getFeatureById(featureId);
+                        if (candidate) {
+                            res = candidate;
+                        }
+                    }
+                });
+                return res;
             }
 
             function fitExtent(extent) {

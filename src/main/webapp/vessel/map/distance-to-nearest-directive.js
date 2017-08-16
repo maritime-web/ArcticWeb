@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('distanceToNearest', distanceToNearest);
 
-    distanceToNearest.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'Position'];
+    distanceToNearest.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'Position', 'OpenlayerEvents'];
 
-    function distanceToNearest(OpenlayerService, NotifyService, VesselEvents, Position) {
+    function distanceToNearest(OpenlayerService, NotifyService, VesselEvents, Position, OpenlayerEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -30,6 +30,8 @@
                 allVessels = vesselInfo.vessels;
                 replaceDistanceFeatures();
                 distanceLayer.setVisible(true);
+
+                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, distanceLayer);
             }
 
             function hideNearest() {
@@ -47,13 +49,10 @@
                     var source = distanceLayer.getSource();
                     source.clear();
 
-                    olScope.getMap().then(function (map) {
-                        var zoom = map.getView().getZoom();
-                        createDistanceFeatures(zoom);
-                    });
+                    createDistanceFeatures();
                 }
 
-                function createDistanceFeatures(zoom) {
+                function createDistanceFeatures() {
                     var vessels = [];
                     sortVesselsByDistanceInMinutes();
                     addNearestFourToLayer();

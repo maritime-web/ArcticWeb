@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('distanceCircles', distanceCircles);
 
-    distanceCircles.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'VesselService'];
+    distanceCircles.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'VesselService', 'OpenlayerEvents'];
 
-    function distanceCircles(OpenlayerService, NotifyService, VesselEvents, VesselService) {
+    function distanceCircles(OpenlayerService, NotifyService, VesselEvents, VesselService, OpenlayerEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -31,6 +31,8 @@
                 }
                 replaceDistanceFeatures();
                 circleLayer.setVisible(true);
+                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, circleLayer);
+
             }
 
             function hideNearest(e, vessel) {

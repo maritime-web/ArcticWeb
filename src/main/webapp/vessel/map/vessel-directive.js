@@ -128,18 +128,19 @@
                 }
 
                 var clusterSizes = [
-                    {zoom: 1, size: 22.5},
-                    {zoom: 2, size: 12.5},
-                    {zoom: 3, size: 7.5},
-                    {zoom: 4, size: 2.5},
-                    {zoom: 5, size: 1.7},
-                    {zoom: 6, size: 1.00},
-                    {zoom: 7, size: 0.50},
-                    {zoom: 8, size: 0.3},
-                    {zoom: 9, size: 0.15},
-                    {zoom: 10, size: 0.075},
-                    {zoom: 11, size: 0.004},
-                    {zoom: 12, size: 0.002},
+                    {zoom: 0, size: 4.5},
+                    {zoom: 1, size: 4.5},
+                    {zoom: 2, size: 4.1},
+                    {zoom: 3, size: 3.9},
+                    {zoom: 4, size: 3.5},
+                    {zoom: 5, size: 2.7},
+                    {zoom: 6, size: 1.1},
+                    {zoom: 7, size: 0.60},
+                    {zoom: 8, size: 0.4},
+                    {zoom: 9, size: 0.2},
+                    {zoom: 10, size: 0.1},
+                    {zoom: 11, size: 0.05},
+                    {zoom: 12, size: 0.025},
                     {zoom: 13, size: 0.005},
                     {zoom: 14, size: 0.0025}
                 ];
@@ -172,6 +173,17 @@
                         }
                     });
 
+                    var vesselScales = [
+                        {resolution: 1900, scale: 1.0},
+                        {resolution: 4000, scale: 0.9},
+                        {resolution: 6000, scale: 0.85},
+                        {resolution: 8000, scale: 0.75},
+                        {resolution: 12000, scale: 0.65},
+                        {resolution: 14000, scale: 0.6},
+                        {resolution: 16000, scale: 0.55},
+                        {resolution: 18500, scale: 0.5}
+                    ];
+
                     function createVesselFeature(vessel) {
                         var lat = vessel.y;
                         var lon = vessel.x;
@@ -182,15 +194,25 @@
                         vesselFeature.set("vessel", vessel, true);
 
                         var vesselStyleFunction = function (feature, resolution) {
-                            var vesselScale = 7.2111600770441066E-9 * resolution*resolution - 1.2171461369204691E-4*resolution + 1.0002434003827438;
-                            var awScale = 3.6055800385220533E-9 * resolution*resolution - 6.0857306846023454E-5*resolution + 0.45012170019137193;
+
+                            var vesselScale = getVesselScale();
                             var vessel = feature.get('vessel');
                             var styles = [];
+
+                            function getVesselScale() {
+                                for (var index in vesselScales) {
+                                    if (vesselScales[index].resolution >= resolution) {
+                                        return vesselScales[index].scale;
+                                    }
+                                }
+
+                                return vesselScales[vesselScales.length - 1].scale;
+                            }
 
                             var props = imageAndTypeTextForVessel(vessel);
                             styles.push(new ol.style.Style({
                                 image: new ol.style.Icon(({
-                                    anchor: [0.85, 0.5],
+                                    anchor: [0.5, 0.5],
                                     opacity: 0.85,
                                     src: 'img/' + props.name,
                                     rotation: (vessel.angle - 90) * (Math.PI / 180),
@@ -201,12 +223,12 @@
                             if (vessel.inAW) {
                                 styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
-                                        anchor: [0.55, 1.5],
+                                        anchor: [0.5, 1.25],
                                         anchorOrigin: 'bottom-left',
                                         opacity: 0.85,
                                         src: 'img/aw-logo.png',
                                         rotation: 0,
-                                        scale: awScale
+                                        scale: vesselScale * 0.4
                                     }))
                                 }));
                             }
@@ -214,7 +236,7 @@
                             if (Number(vessel.mmsi) === Number(clickedMmsi)) {
                                 styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
-                                        anchor: [0.7, 0.5],
+                                        anchor: [0.5, 0.5],
                                         opacity: 1.0,
                                         src: 'img/selection.png',
                                         rotation: (vessel.angle - 90) * (Math.PI / 180),
@@ -226,11 +248,11 @@
                             if (Number(vessel.mmsi) === Number(myMmsi)) {
                                 styles.push(new ol.style.Style({
                                     image: new ol.style.Icon(({
-                                        anchor: [0.50, 0.65],
+                                        anchor: [0.5, 0.5],
                                         opacity: 0.85,
                                         src: 'img/green_marker.png',
                                         rotation: 0,
-                                        scale: vesselScale * 1.2
+                                        scale: vesselScale * 1.0
                                     }))
                                 }));
                             }

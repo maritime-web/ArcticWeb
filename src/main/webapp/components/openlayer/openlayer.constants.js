@@ -3,7 +3,9 @@
 
     angular.module('embryo.components.openlayer').constant('OpenlayerEvents', {
         OpenlayerPanToFeature: 'OpenlayerPanToFeature',
-        OpenlayerZoomToLayer: 'OpenlayerZoomToLayer'
+        OpenlayerZoomToFeature: 'OpenlayerZoomToFeature',
+        OpenlayerZoomToLayer: 'OpenlayerZoomToLayer',
+        OpenlayerZoomAndCenter: 'OpenlayerZoomAndCenter'
     });
 
 })();

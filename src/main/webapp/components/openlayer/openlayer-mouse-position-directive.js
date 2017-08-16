@@ -15,7 +15,7 @@
             restrict: 'E',
             replace: true,
             require: '^openlayerParent',
-            template: "<div class='map-mouse-position'>{{currentPos | lonlat:{ decimals : 2, pp: true }  }}</div>",
+            template: "<div class='visible-lg-block visible-md-block map-mouse-position'>{{currentPos | lonlat:{ decimals : 2, pp: true }  }}</div>",
             scope: {},
             link: function (scope, element, attrs, ctrl) {
                 var olScope = ctrl.getOpenlayersScope();
