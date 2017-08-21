@@ -138,7 +138,8 @@
                             src: arrowImg,
                             anchor: [0.75, 0.5],
                             rotateWithView: true,
-                            rotation: -rotation
+                            rotation: -rotation,
+                            imgSize: [10, 10]
                         })
                     }));
                 });

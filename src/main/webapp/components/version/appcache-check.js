@@ -11,24 +11,31 @@
             console.log(e.type.toUpperCase());
         }
 
+        function swapAndReload() {
+            console.log('APPCACHE SWAPPING');
+            appCache.swapCache();
+            console.log('RELOADING PAGE');
+            window.location.reload();
+        }
+
         if (appCache) {
             console.log('APPCACHE STATUS');
             console.log(getStatus());
-            if (appCache.status !== appCache.UNCACHED) {
+            if (appCache.status === appCache.IDLE) {
                 console.log('INITIATE CHECK FOR NEW UPDATE');
                 appCache.update();
+            }
+            if (appCache.status === appCache.UPDATEREADY) {
+                // Browser downloaded a new app cache.
+                swapAndReload();
             }
 
             // Fired when the manifest resources have been newly redownloaded.
             appCache.addEventListener('updateready', function (e) {
                 handleCacheEvent(e);
-                console.log(appCache.status === appCache.UPDATEREADY);
                 if (appCache.status === appCache.UPDATEREADY) {
                     // Browser downloaded a new app cache.
-                    console.log('APPCACHE SWAPPING');
-                    appCache.swapCache();
-                    console.log('RELOADING PAGE');
-                    window.location.reload();
+                    swapAndReload();
                 }
             });
 
@@ -40,7 +47,11 @@
             });
 
             // Fired after the first cache of the manifest.
-            appCache.addEventListener('cached', handleCacheEvent, false);
+            appCache.addEventListener('cached', function (e) {
+                handleCacheEvent(e);
+                console.log('CACHED FIRST TIME INITIATE CHECK FOR NEW UPDATE');
+                appCache.update();
+            });
 
             // Checking for an update. Always the first event fired in the sequence.
             appCache.addEventListener('checking', handleCacheEvent, false);

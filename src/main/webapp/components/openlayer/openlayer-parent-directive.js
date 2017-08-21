@@ -59,6 +59,8 @@
 
                 var coords = [ol.proj.fromLonLat([-180, -90], undefined), ol.proj.fromLonLat([180, 90], undefined)];
                 var arcticExtent = ol.extent.boundingExtent(coords);
+                var defaultOsmUrl = 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                var osmUrl = embryo.authentication.osm ? embryo.authentication.osm.replace('$', '') : defaultOsmUrl;
                 var layers = [new ol.layer.Group({
                     'title': 'Base maps',
                     layers: [
@@ -66,7 +68,7 @@
                             title: 'OpenStreetMap',
                             type: 'base',
                             visible: true,
-                            source: new ol.source.OSM()
+                            source: new ol.source.OSM({url: osmUrl})
                         })
                     ]
                 })];

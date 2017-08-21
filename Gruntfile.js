@@ -268,6 +268,14 @@ module.exports = function (grunt) {
                         to: '//netdna.bootstrapcdn.com'
                     },
                     {
+                        from: '/js/cached/openlayer-map/cdn.cloudflare', // string replacement
+                        to: '//cdnjs.cloudflare.com/ajax/libs'
+                    },
+                    {
+                        from: 'js/cached/openlayer-map/cdn.cloudflare', // string replacement
+                        to: '//cdnjs.cloudflare.com/ajax/libs'
+                    },
+                    {
                         from: '/css/cached/cdn.netdna', // string replacement
                         to: '//netdna.bootstrapcdn.com'
                     },
@@ -341,6 +349,38 @@ module.exports = function (grunt) {
                         'src/main/webapp/img/**/*.png',
                         'src/main/webapp/img/**/*.jpg',
                         'src/main/webapp/img/**/*.gif',
+                        '!src/main/webapp/img/front/**/*', // except the 'img/front/' subtree
+                        '!src/main/webapp/img/ext/**/*', // except the 'img/front/' subtree
+                        '!src/main/webapp/img/unused/**/*', // except the 'img/front/' subtree
+                        '!**/README.MD'
+                    ]
+                },
+                network: "*"
+            },
+            mapOpenlayer: {
+                dest: 'target/build/map-openlayer.appcache',
+                cache: {
+                    literals: [//as is in the "CACHE:" section
+                        'openlayer-map.html',
+                        'css/arcticweb-openlayer-map.css',
+                        'css/arcticweb-openlayer-map-ext-lib.css',
+                        'js/arcticweb-openlayer-map.js',
+                        'css/cached/cdn.netdna/font-awesome/4.3.0/fonts/fontawesome-webfont.woff2?v=4.3.0',
+                        'rest/shapefile/static/multiple/static.world_merc?delta=true&exponent=2'
+                    ],
+                    patterns: [
+                        'src/main/webapp/css/cached/**',
+                        'src/main/webapp/js/cached/common/**',
+                        'src/main/webapp/js/cached/openlayer-map/**',
+                        'src/main/webapp/js/cached/map/cdn.cloudflare/jqueryui/**',
+                        'src/main/webapp/js/cached/map/cdn.cloudflare/pouchdb/**',
+                        'src/main/webapp/js/cached/map/cdn.cloudflare/bootstrap/**',
+                        'src/main/webapp/partials/common/*.html',
+                        'src/main/webapp/vessel/**/*.html',
+                        'src/main/webapp/img/**/*.png',
+                        'src/main/webapp/img/**/*.jpg',
+                        'src/main/webapp/img/**/*.gif',
+                        'src/main/webapp/img/**/*.svg',
                         '!src/main/webapp/img/front/**/*', // except the 'img/front/' subtree
                         '!src/main/webapp/img/ext/**/*', // except the 'img/front/' subtree
                         '!src/main/webapp/img/unused/**/*', // except the 'img/front/' subtree
@@ -445,7 +485,7 @@ module.exports = function (grunt) {
     //   'copy:gen2Build', 'copy:toTarget', 'appcache:map', 'appcache:front']);
 
     grunt.registerTask('build', [ 'useminPrepare', 'copy:unMod2Build', 'replace:run', 'concat', 'usemin',
-        'copy:gen2Build', 'appcache:map', 'appcache:front', 'replace:run', 'replace:version', 'copy:toTarget']);
+        'copy:gen2Build', 'appcache:map', 'appcache:front', 'appcache:mapOpenlayer', 'replace:run', 'replace:version', 'copy:toTarget']);
 
     // 'clean:dist',
     // 'useminPrepare',
