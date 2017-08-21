@@ -60,7 +60,7 @@
                 var coords = [ol.proj.fromLonLat([-180, -90], undefined), ol.proj.fromLonLat([180, 90], undefined)];
                 var arcticExtent = ol.extent.boundingExtent(coords);
                 var defaultOsmUrl = 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-                var osmUrl = embryo.authentication.osm ? embryo.authentication.osm.replace('$', '') : defaultOsmUrl;
+                var osmUrl = embryo.authentication.osm ? embryo.authentication.osm.replace(/\$/g, '') : defaultOsmUrl;
                 var layers = [new ol.layer.Group({
                     'title': 'Base maps',
                     layers: [
@@ -73,9 +73,6 @@
                     ]
                 })];
                 var view = new ol.View({
-                    // zoom: 6,
-                    // minZoom: 3,
-                    // maxZoom: 16,
                     resolution: 4000,
                     minResolution: OpenlayerService.minResolution,
                     maxResolution: OpenlayerService.maxResolution,

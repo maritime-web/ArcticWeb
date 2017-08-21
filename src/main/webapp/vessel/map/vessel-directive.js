@@ -174,14 +174,17 @@
                     });
 
                     var vesselScales = [
-                        {resolution: 1900, scale: 1.0},
-                        {resolution: 4000, scale: 0.9},
-                        {resolution: 6000, scale: 0.85},
-                        {resolution: 8000, scale: 0.75},
-                        {resolution: 12000, scale: 0.65},
-                        {resolution: 14000, scale: 0.6},
-                        {resolution: 16000, scale: 0.55},
-                        {resolution: 18500, scale: 0.5}
+                        {resolution: 200, scale: 1.0},
+                        {resolution: 500, scale: 0.95},
+                        {resolution: 800, scale: 0.9},
+                        {resolution: 1200, scale: 0.85},
+                        {resolution: 1900, scale: 0.75},
+                        {resolution: 4000, scale: 0.7},
+                        {resolution: 6000, scale: 0.65},
+                        {resolution: 8000, scale: 0.6},
+                        {resolution: 14000, scale: 0.55},
+                        {resolution: 16000, scale: 0.5},
+                        {resolution: 18500, scale: 0.45}
                     ];
 
                     function createVesselFeature(vessel) {

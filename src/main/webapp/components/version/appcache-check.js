@@ -60,7 +60,9 @@
             appCache.addEventListener('downloading', handleCacheEvent, false);
 
             // Fired after the first download of the manifest.
-            appCache.addEventListener('noupdate', handleCacheEvent, false);
+            appCache.addEventListener('noupdate', function (e) {
+                handleCacheEvent(e);
+            });
 
             // Fired if the manifest file returns a 404 or 410.
             // This results in the application cache being deleted.
