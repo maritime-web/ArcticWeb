@@ -195,6 +195,15 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                 }).error(error);
             };
 
+            this.changePassword = function (newPassword, otherUserName) {
+                var username = otherUserName || this.getDetails().userName;
+                var data = {
+                    username: username,
+                    password: newPassword
+                };
+                return $http.post(embryo.baseUrl + "rest/authentication//change-password-direct", data);
+            };
+
             this.authenticationChanged = function (callback) {
                 embryo.authenticationChanged(callback);
             };
@@ -315,10 +324,12 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                                 childScope.$destroy();
                                 childScope = null;
                             }
+/*
                             if (block) {
                                 $animate.leave(getBlockElements(block));
                                 block = null;
                             }
+*/
                         }
                     });
                 }

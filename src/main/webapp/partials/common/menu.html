@@ -111,9 +111,10 @@
                     {{authentication.userName}}
                     <span class="caret"></span>
                 </a>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" x-ng-controller="ResetPasswordController as resetPasswd">
                     <li><a tabindex="-1" href="docs/" target="_blank">Manual as HTML (10 MB)</a></li>
                     <li class="divider"></li>
+                    <li><a tabindex="-1" href="#" x-ng-click="resetPasswd.changePasswordDialog($event)">Change Password</a></li>
                     <li><a tabindex="-1" href="#" x-ng-click="logout($event)">Log Out</a></li>
                 </ul>
             </li>

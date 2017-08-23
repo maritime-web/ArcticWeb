@@ -1,10 +1,13 @@
 	(function() {
 	    "use strict";
 	    var app = angular.module('embryo.administration', [ 'ui.bootstrap', 'ngRoute', 'embryo.administration.log',
-	            'embryo.administration.users', 'embryo.menu', 'embryo.components.version']);
+	            'embryo.administration.users', 'embryo.menu', 'embryo.components.version', 'embryo.user', 'angular-growl']);
 	
-	    app.config([ '$routeProvider', function($routeProvider) {
-	        $routeProvider.when('/log', {
+	    app.config([ '$routeProvider', 'growlProvider', function($routeProvider, growlProvider) {
+            growlProvider.globalTimeToLive(10000);
+            growlProvider.globalPosition('bottom-left');
+
+            $routeProvider.when('/log', {
 	            templateUrl : 'partials/admin/log.html',
 	            resolve: embryo.security.routeSecurityResolver(embryo.security.permissions.admin)
 	        }).when('/users', {

@@ -13,6 +13,7 @@
     <link href="css/admin.css" rel="stylesheet">
     <link href="css/users.css" rel="stylesheet">
     <link href="css/log.css" rel="stylesheet">
+    <link rel="stylesheet" href="libs/growl2-lib/angular-growl.min.css" />
     <!-- endbuild -->
 
     <script src="js/cached/common/cdn.cloudflare/jquery/1.11.0/jquery.min.js"></script>
@@ -24,6 +25,8 @@
     <script src="js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js"></script>
 
     <!-- build:js js/arcticweb-administration.js -->
+    <script src="libs/growl2-lib/angular-growl.min.js" defer="defer"></script>
+
     <script src="js/ext/moment.min.js" defer="defer"></script>
     <script src="js/ext/bootstrap-datetimepicker.js" defer="defer"></script>
     <script src="js/embryo.js" defer="defer" type="text/javascript"></script>
@@ -40,21 +43,36 @@
     <script src="js/adminapp.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version-service.js" defer="defer" type="text/javascript"></script>
+
+    <script src="user/user.module.js" defer type="text/javascript"></script>
+    <script src="user/reset-password-control.js" defer type="text/javascript"></script>
+
     <!-- endbuild -->
 
 </head>
 
 <body>
+<div growl></div>
+
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
+<div x-ng-include="'user/reset-password-modal.html'"></div>
 
 <div class="menuDivider"></div>
 
-<div class="container">
-    <div x-ng-view></div>
-    <div id="push"></div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1 col-md-12">
+
+            <div x-ng-view></div>
+            <div id="push"></div>
+        </div>
+    </div>
 </div>
-<div x-ng-include="'partials/common/footer.html'"></div>
+
+<div class="clearfix">
+    <div x-ng-include="'partials/common/footer.html'"></div>
+</div>
 
 </body>
 

@@ -108,6 +108,9 @@ embryo.messagePanel = {
             return "<div id=" + id + "><div class='alert alert-success alert-dismissible e-small-font' style=display:inline-block data-dismiss='alert'>" + msg.text
                     + "</div></div>";
         default:
+            setTimeout(function() {
+                embryo.messagePanel.remove(id);
+            }, 10000);
             return "<div id=" + id + "><div class='alert alert-warning alert-dismissible e-small-font' style=display:inline-block data-dismiss='alert'>" + msg.text + "</div></div>";
         }
     },

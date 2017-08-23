@@ -27,10 +27,13 @@
     <script src="js/menu.js" defer="defer"></script>
     <script src="components/version/version.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version-service.js" defer="defer" type="text/javascript"></script>
+    <script src="user/user.module.js" defer type="text/javascript"></script>
+    <script src="user/reset-password-control.js" defer type="text/javascript"></script>
+
     <!-- endbuild -->
 
     <script type="text/javascript">
-        var app = angular.module('embryo.testdata', [ 'embryo.menu' ]);
+        var app = angular.module('embryo.testdata', [ 'embryo.menu', 'embryo.user' ]);
 
         app.controller('TestDataController', function ($scope, $http) {
             $scope.message = null;
@@ -70,6 +73,8 @@
 <body>
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
+<div x-ng-include="'user/reset-password-modal.html'"></div>
+
 <div class="menuDivider"></div>
 <!-- ============================================= -->
 

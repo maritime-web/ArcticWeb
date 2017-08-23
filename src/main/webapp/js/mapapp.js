@@ -6,6 +6,7 @@
         'embryo.map',
         'embryo.menu',
         'embryo.authentication',
+        'embryo.user',
         'embryo.zoom',
 
         /* Feature areas */

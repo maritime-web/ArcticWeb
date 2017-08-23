@@ -4,6 +4,7 @@
         /* Shared modules */
         'embryo.menu',
         'embryo.authentication',
+        'embryo.user',
         'embryo.components.openlayer',
         'embryo.components.notification',
         'embryo.control',

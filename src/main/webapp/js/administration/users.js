@@ -6,18 +6,20 @@ $(function() {
         .controller('UserEmailController', UserEmailController);
 
     embryo.UsersCtrl = function($scope, UserService, $modal) {
+        var vm = this;
+
         var editUser;
         var userList = [];
-        $scope.users = userList;
-        $scope.message = null; 
-        $scope.alertMessages = null;
+        vm.users = userList;
+        vm.message = null;
+        vm.alertMessages = null;
 
         function loadUsers() {
             UserService.userList(function(users) {
                 userList = users;
-                $scope.users = users;
+                vm.users = users;
             }, function(error) {
-                $scope.alertMessages = error;
+                vm.alertMessages = error;
             });
         }
 
@@ -30,17 +32,17 @@ $(function() {
                         value: filters[index]
                     });
                 }
-                $scope.sourceFilters = filters;
+                vm.sourceFilters = filters;
             }, function (error) {
-                $scope.alertMessages = error;
+                vm.alertMessages = error;
             });
         }
 
         function loadRolesCount() {
             UserService.rolesCount(function(rolesCount) {
-                $scope.rolesCount = rolesCount;
+                vm.rolesCount = rolesCount;
             }, function(error) {
-                $scope.alertMessages = error;
+                vm.alertMessages = error;
             });
         }
 
@@ -49,7 +51,7 @@ $(function() {
         loadRolesCount();
 
 
-        $scope.roleText = function(logicalName) {
+        vm.roleText = function(logicalName) {
             if (logicalName == "Reporting") {
                 return "Reporting Authority";
             }
@@ -64,14 +66,14 @@ $(function() {
             return ((value.indexOf(searchStr) == 0) || (value.indexOf(" " + searchStr) >= 0));
         }
 
-        $scope.search = function() {
-            if ($scope.searchString == null || $scope.searchString == "") {
-                $scope.users = userList;
+        vm.search = function() {
+            if (vm.searchString == null || vm.searchString == "") {
+                vm.users = userList;
                 return;
             }
 
             var users = [];
-            var searchStr = $scope.searchString.toLowerCase();
+            var searchStr = vm.searchString.toLowerCase();
 
             for ( var index in userList) {
                 var user = userList[index];
@@ -79,46 +81,46 @@ $(function() {
                     users.push(user);
                 }
             }
-            $scope.users = users;
+            vm.users = users;
         };
 
-        $scope.edit = function($event, user) {
+        vm.edit = function($event, user) {
             $event.preventDefault();
             
             editUser = user;
-            $scope.message = null;
-            $scope.alertMessages = null;
-            $scope.editUser = {
+            vm.message = null;
+            vm.alertMessages = null;
+            vm.editUser = {
             	login 			: user.login,
                 email 			: user.email,
                 role 			: user.role,
                 shipMmsi 		: user.shipMmsi,
                 aisFilterName: user.aisFilterName
             };
-            $scope.action = "Edit";
+            vm.action = "Edit";
             $("#cLogin").focus();
         };
 
-        $scope.create = function() {
-            $scope.message = null;
-            $scope.alertMessages = null;
-            $scope.editUser = {};
-            $scope.action = "Create";
+        vm.create = function() {
+            vm.message = null;
+            vm.alertMessages = null;
+            vm.editUser = {};
+            vm.action = "Create";
             $("#cLogin").focus();
         };
 
-        $scope.submitCreate = function() {
-            $scope.message = "Saving " + $scope.editUser.login + " ...";
-            $scope.alertMessages = null;
+        vm.submitCreate = function() {
+            vm.message = "Saving " + vm.editUser.login + " ...";
+            vm.alertMessages = null;
             
-            UserService.create($scope.editUser, function() {
-                $scope.message = "User " + $scope.editUser.login + " created.";
-                $scope.action = "Edit";
+            UserService.create(vm.editUser, function() {
+                vm.message = "User " + vm.editUser.login + " created.";
+                vm.action = "Edit";
                 loadUsers();
                 loadRolesCount();
             }, function(error) {
-                $scope.message = null;
-                $scope.alertMessages = error;
+                vm.message = null;
+                vm.alertMessages = error;
             });
         };
 
@@ -137,9 +139,9 @@ $(function() {
             });
         }
 
-        $scope.showEmails = function () {
+        vm.showEmails = function () {
             var emails = "";
-            angular.forEach($scope.users, function (user) {
+            angular.forEach(vm.users, function (user) {
                 emails += user.email+',';
             });
             $modal.open({
@@ -153,33 +155,33 @@ $(function() {
             });
         };
 
-        $scope.submitEdit = function() {
+        vm.submitEdit = function() {
             function save() {
-                $scope.message = "Saving " + $scope.editUser.login + " ...";
-                $scope.alertMessages = null;
-                UserService.edit($scope.editUser, function() {
-                    $scope.message = "User " + $scope.editUser.login + " saved.";
-                    $scope.action = null;
+                vm.message = "Saving " + vm.editUser.login + " ...";
+                vm.alertMessages = null;
+                UserService.edit(vm.editUser, function() {
+                    vm.message = "User " + vm.editUser.login + " saved.";
+                    vm.action = null;
                     loadUsers();
                     loadRolesCount();
                 }, function(error) {
-                    $scope.message = null;
-                    $scope.alertMessages = error;
+                    vm.message = null;
+                    vm.alertMessages = error;
                 });
             }
             var warnings = [];
-            if (editUser.role != $scope.editUser.role) {
-                var msg = "You are about to change the role from " + editUser.role + " to " + $scope.editUser.role
+            if (editUser.role != vm.editUser.role) {
+                var msg = "You are about to change the role from " + editUser.role + " to " + vm.editUser.role
                         + ". ";
                 if (editUser.role == 'Sailor') {
                     msg += "All information related to vessel with MMSI " + editUser.shipMmsi + " will be deleted.";
                 }
                 warnings.push(msg);
             }
-            if (editUser.role == 'Sailor' && $scope.editUser.role == 'Sailor'
-                    && editUser.shipMmsi != $scope.editUser.shipMmsi) {
+            if (editUser.role == 'Sailor' && vm.editUser.role == 'Sailor'
+                    && editUser.shipMmsi != vm.editUser.shipMmsi) {
                 warnings.push("You are about to change the MMSI from " + editUser.shipMmsi + " to "
-                        + $scope.editUser.shipMmsi);
+                        + vm.editUser.shipMmsi);
             }
             if (warnings.length > 0) {
                 warnings.push("Please confirm changes");
@@ -189,18 +191,18 @@ $(function() {
             }
         };
 
-        $scope.del = function($event, user) {
+        vm.del = function($event, user) {
             $event.preventDefault();
 
             var messages = [ "This will delete user " + user.login + (user.shipMmsi ? " / " + user.shipMmsi : "") ];
             showModal("Delete User", messages).result.then(function() {
-                $scope.message = "Deleting " + user.login + " ...";
+                vm.message = "Deleting " + user.login + " ...";
                 UserService.deleteUser(user.login, function() {
-                    $scope.message = "User " + user.login + " deleted.";
+                    vm.message = "User " + user.login + " deleted.";
                     loadUsers();
                 }, function(error) {
-                    $scope.message = null;
-                    $scope.alertMessages = error;
+                    vm.message = null;
+                    vm.alertMessages = error;
                 });
             });
         };
