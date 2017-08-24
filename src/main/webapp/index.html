@@ -16,6 +16,7 @@
     <!-- build:css css/arcticweb-front.css -->
     <link href="css/common.css" rel="stylesheet">
     <link href="css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="libs/growl2-lib/angular-growl.min.css" />
     <!-- endbuild -->
 
     <script src="js/cached/common/cdn.cloudflare/jquery/1.11.0/jquery.min.js"></script>
@@ -30,6 +31,7 @@
     <![endif]-->
 
     <!-- build:js js/arcticweb-front.js -->
+    <script src="libs/growl2-lib/angular-growl.min.js" defer="defer"></script>
     <script src="js/utils.js" defer="defer"></script>
     <script src="js/embryo.js" defer="defer"></script>
     <script src="js/authentication.js" defer="defer" type="text/javascript"></script>
@@ -48,6 +50,8 @@
 </head>
 
 <body>
+<div growl></div>
+
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div class="menuDivider"></div>

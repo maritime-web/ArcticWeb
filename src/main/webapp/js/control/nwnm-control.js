@@ -60,7 +60,7 @@ $(function() {
             }
 
             function areaFilter(msg) {
-                return msg.mainArea.mrn === $scope.state.showArea || !msg.mainArea.mrn;
+                return (msg.mainArea && msg.mainArea.mrn === $scope.state.showArea) || !msg.mainArea || !msg.mainArea.mrn;
             }
         }
 
@@ -104,12 +104,18 @@ $(function() {
                 var area = null;
                 if (m.areas && m.areas.length > 0) {
                     area = m.areas[0];
+
                     while (area.parent) {
                         area = area.parent;
                     }
                 }
+
                 return area;
             }).filter(function (area) {
+                if (!area) {
+                    return false;
+                }
+
                 var mrn = area.mrn;
                 if (mrns.has(mrn)) {
                     return false;
@@ -141,6 +147,11 @@ $(function() {
         };
 
         $scope.selectMsg = function(msg) {
+            if (!msg.mainArea || !msg.jsonFeatures || !msg.jsonFeatures.length > 0) {//Not shown on map
+                $scope.selected.open = !!msg;
+                $scope.selected.msg = msg;
+            }
+
             centerMapOn(msg);
             nwnmLayer.select(msg);
         };

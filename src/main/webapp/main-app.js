@@ -26,8 +26,14 @@
         'embryo.areaselect.control',
 
         /* 3rd-party modules */
-        'ui.bootstrap'
+        'ui.bootstrap',
+        'angular-growl'
     ]);
+
+    angular.module('embryo.main.app').config(['growlProvider', function (growlProvider) {
+        growlProvider.globalTimeToLive(10000);
+        growlProvider.globalPosition('bottom-left');
+    }]);
 
     angular.element(document).ready(function () {
         angular.bootstrap(document, [ 'embryo.main.app' ]);

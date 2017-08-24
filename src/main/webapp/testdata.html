@@ -21,6 +21,7 @@
     <script src="js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js"></script>
 
     <!-- build:js js/arcticweb-testdata.js -->
+    <script src="libs/growl2-lib/angular-growl.min.js" defer="defer"></script>
     <script src="js/utils.js" defer="defer"></script>
     <script src="js/embryo.js" defer="defer"></script>
     <script src="js/authentication.js" defer="defer" type="text/javascript"></script>
@@ -33,7 +34,12 @@
     <!-- endbuild -->
 
     <script type="text/javascript">
-        var app = angular.module('embryo.testdata', [ 'embryo.menu', 'embryo.user' ]);
+        var app = angular.module('embryo.testdata', [ 'embryo.menu', 'embryo.user', 'angular-growl' ]);
+
+        app.config(['growlProvider', function (growlProvider) {
+            growlProvider.globalTimeToLive(10000);
+            growlProvider.globalPosition('bottom-left');
+        }]);
 
         app.controller('TestDataController', function ($scope, $http) {
             $scope.message = null;
@@ -51,7 +57,7 @@
                     $scope.alertMessage = embryo.ErrorService.extractError(data, status, config);
                     sessionStorage.clear();
                 });
-            }
+            };
 
             $scope.replicateAis = function () {
                 $scope.message = null;

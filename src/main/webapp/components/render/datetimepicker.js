@@ -6,7 +6,7 @@
 
     var module = angular.module('embryo.datepicker', []);
 
-    module.directive('datetimepicker', function() {
+    module.directive('datetimepicker', ['$document', function($document) {
         return {
             require : '^ngModel',
             restrict : 'E',
@@ -68,6 +68,26 @@
 
 
                 /**
+                 * When click occur outside hide the date picker
+                 */
+                var onDocumentClick = function (event) {
+                    var isSelfOrChild = element.find(event.target).length > 0 || element.html() == angular.element(event.target).html();
+
+                    if (!isSelfOrChild) {
+                        console.warn('Should hide now');
+                        scope.$apply(picker.hide());
+                    }
+                };
+                $document.on("click", onDocumentClick);
+
+                var offHandle = function () {
+                    $document.off("click", onDocumentClick);
+                };
+                element.on('$destroy', offHandle);
+
+
+
+                /**
                  * When input is clicked hide the date picker
                  */
                 element.find("input").on('click', function () {
@@ -108,6 +128,6 @@
                 });
             }
         };
-    });
+    }]);
 
 }());
