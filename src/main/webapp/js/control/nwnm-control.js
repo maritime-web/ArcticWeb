@@ -79,6 +79,7 @@ $(function() {
 
         function onStateChange() {
             $scope.mainAreas = extractMainAreas();
+
             if (!$scope.state.showArea) {
                 $scope.state.showArea = $scope.mainAreas[0].mrn;
             }
@@ -95,6 +96,11 @@ $(function() {
             areaCenters["urn:mrn:iho:country:fo"] = {longitude: -6, latitude: 62, zoom: 8};
 
             var arg = areaCenters[showArea];
+            if (!arg) {
+                console.log("Don't know center for " + showArea);
+                arg = {longitude: 11, latitude: 55, zoom: 2};
+            }
+
             embryo.map.setCenter(arg.longitude, arg.latitude, arg.zoom);
         }
 
@@ -109,10 +115,9 @@ $(function() {
                         area = area.parent;
                     }
                 }
-
                 return area;
             }).filter(function (area) {
-                if (!area) {
+                if (!area || !area.mrn) {
                     return false;
                 }
 
