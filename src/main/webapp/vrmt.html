@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" x-ng-app="vrmt" id="ng-app" manifest="map.appcache" type="text/cache-manifest">
+<html lang="en" x-ng-app="vrmt" id="ng-app">
 <head>
     <meta charset="utf-8"/>
     <title>ArcticWeb</title>
@@ -29,7 +29,6 @@
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.18.2/ol.css" type="text/css">
-    <!--<script src="js/ext/moment.min.js"></script>-->
     <script src="js/ext/turf.min.js"></script>
 
     <!-- build:css css/arcticweb-vrmt.css -->
@@ -88,6 +87,9 @@
     <script src="vrmt/location/add-assessment-location-controller.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version-service.js" defer="defer" type="text/javascript"></script>
+    <script src="user/user.module.js" defer type="text/javascript"></script>
+    <script src="user/reset-password-control.js" defer type="text/javascript"></script>
+
     <!-- endbuild -->
 
     <!-- appcache check deliberately placed outside the above build block to avoid caching -->
@@ -99,6 +101,7 @@
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'vrmt/location/add-assessment-location.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
+<div x-ng-include="'user/reset-password-modal.html'"></div>
 <div class="menuDivider"></div>
 <div growl></div>
 <div class="container-fluid" ng-controller="AppController as app">
