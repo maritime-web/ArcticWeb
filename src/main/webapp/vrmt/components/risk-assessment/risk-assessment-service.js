@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .service('RiskAssessmentService', RiskAssessmentService);
 
-    RiskAssessmentService.$inject = ['$q', 'RiskAssessmentDataService', 'NotifyService', 'Events'];
+    RiskAssessmentService.$inject = ['$q', 'RiskAssessmentDataService', 'NotifyService', 'Events', 'RouteFactory'];
 
-    function RiskAssessmentService($q, RiskAssessmentDataService, NotifyService, Events) {
+    function RiskAssessmentService($q, RiskAssessmentDataService, NotifyService, Events, RouteFactory) {
 
         this.getCurrentAssessment = getCurrentAssessment;
         this.startNewAssessment = startNewAssessment;
@@ -53,7 +53,7 @@
                     }
 
                     function assertThatRouteIsAssessable() {
-                        var currentRoute = new embryo.vrmt.Route(data.currentRoute);
+                        var currentRoute = RouteFactory.create(data.currentRoute);
                         if (currentRoute.isCompleted()) {
                             throw new Error("Can not start a new assessment since the route is already completed");
                         }
@@ -144,7 +144,6 @@
                         if (data.currentAssessment) {
                             data.currentAssessment = new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
                             data.currentAssessment.updateLocationAssessment(locationId, scores, note);
-
                             return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
                                 .then(function () {
                                     return $q.when(data.currentAssessment.getLocationAssessment(locationId));
@@ -193,8 +192,8 @@
             return RiskAssessmentDataService.getAssessmentData(route.id)
                 .then(function (data) {
                     if (data.currentRoute) {
-                        var currentRoute = new embryo.vrmt.Route(data.currentRoute);
-                        var newRouteVersion = new embryo.vrmt.Route(route);
+                        var currentRoute = RouteFactory.create(data.currentRoute);
+                        var newRouteVersion = RouteFactory.create(route);
                         var isChanged = !currentRoute.equals(newRouteVersion);
 
                         if (isChanged) {
@@ -221,7 +220,7 @@
 
             function createDefaultRouteLocationsIfNotPresent(data) {
                 var result = [];
-                var route = new embryo.vrmt.Route(data.currentRoute);
+                var route = RouteFactory.create(data.currentRoute);
 
                 var firstWp = route.wps[0];
                 var found = data.routeLocations.find(function (loc) {
@@ -272,7 +271,7 @@
             var routeLocation = new RouteLocation(locationAttributes);
             routeLocation.id = data.routeLocationSequence++;
             routeLocation.routeId = data.currentRoute.id;
-            routeLocation.eta = new embryo.vrmt.Route(data.currentRoute).getTimeAtPosition(routeLocation.asPosition());
+            routeLocation.eta = RouteFactory.create(data.currentRoute).getTimeAtPosition(routeLocation.asPosition());
             return routeLocation;
         }
 

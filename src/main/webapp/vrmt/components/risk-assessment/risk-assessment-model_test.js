@@ -89,8 +89,18 @@ describe('Risk Assessment Classes', function () {
     });
 
     describe('Route', function () {
+        var RouteFactory, Position;
+        beforeEach(module('vrmt.model'));
+        beforeEach(module('embryo.geo.services'));
+        beforeEach(module('embryo.components.openlayer'));
+        beforeEach(inject(function (_RouteFactory_, _Position_) {
+            RouteFactory = _RouteFactory_;
+            Position = _Position_;
+        }));
+
+        
         describe('getTimeAtPosition', function () {
-            it('should throw exception if given point is more than 10 miles from the rute', function () {
+            it('should throw exception if given point is more than 10 miles from the route', function () {
                 var route = {
                     etaDep: new Date(2016, 3, 30),
                     wps: [
@@ -100,12 +110,13 @@ describe('Risk Assessment Classes', function () {
                     ]
                 };
 
-                var cut = new embryo.vrmt.Route(route);
+                var cut = RouteFactory.create(route);
 
                 expect(function () {
-                    return cut.getTimeAtPosition(new embryo.geo.Position(72, -25));
+                    return cut.getTimeAtPosition(Position.create(72, -25));
                 }).toThrow();
             });
+
 
             it('should calculate time at a given position', function () {
                 var routeData = Object.assign({}, routeThuleQaarnaaq);
@@ -113,24 +124,11 @@ describe('Risk Assessment Classes', function () {
                 routeData.wps = routeData.wps.slice(0, 2);//
 
                 var lastWayPoint = routeData.wps[routeData.wps.length - 1];
-                var destinationPosition = new embryo.geo.Position(lastWayPoint.longitude, lastWayPoint.latitude);
+                var destinationPosition = Position.create(lastWayPoint.longitude, lastWayPoint.latitude);
 
-                var cut = new embryo.vrmt.Route(routeData);
+                var cut = RouteFactory.create(routeData);
 
                 expect(cut.getTimeAtPosition(destinationPosition).hours()).toEqual(moment(lastWayPoint.eta).hours());
-            });
-
-            it('should test arc', function () {
-                var p1 = {x: -20, y: 62};
-                var p2 = {x: -29, y: 64};
-                var generator = new arc.GreatCircle(p1, p2);
-                var line = generator.Arc(8).json();
-                // console.log(line.geometry.coordinates);
-                // var coords = line.geometry.coordinates;
-                // for(var i = 0; i < coords.length; i+=2) {
-                //     console.log(coords[i]);
-                //     console.log(coords[i+1]);
-                // }
             });
 
             it('should verify that Object.assign can be used for decorators', function () {
@@ -162,42 +160,11 @@ describe('Risk Assessment Classes', function () {
                 expect(aDate.minutes()).toEqual(30);
             });
 
-            it('should something correctly', function () {
-                console.log("Compare turf and ol");
-                var route = [[[31.9, -71.1], [35.9, -71.1]]];
-
-                var point = [31.886914, -71.162306];
-                var turfPoint = turf.point(point);
-                var turfLinestring = turf.linestring(route);
-                var turfClosestPoint = turf.pointOnLine(turfLinestring, point);
-                console.log(turfClosestPoint);
-
-                var turfDist = embryo.geo.Converter.metersToNm(turf.distance(turfClosestPoint, turfPoint)*1000);
-                console.log(turfDist);
-
-                var line = new ol.geom.LineString([], "XY");
-                route.forEach(function (p) {
-                    var mercatorCoord = ol.proj.fromLonLat(p, undefined);
-                    line.appendCoordinate(mercatorCoord);
-                });
-
-                var olPoint = ol.proj.fromLonLat(point, undefined);
-                var closestPoint = line.getClosestPoint(olPoint);
-                var closestPointLonLat = ol.proj.toLonLat(closestPoint, undefined);
-                console.log(closestPoint);
-                var rhumbDist = CoordinateSystem.CARTESIAN.distanceBetween(point[0], point[1], closestPointLonLat[1], closestPointLonLat[0]);
-
-                console.log(rhumbDist);
-
-
-
-            });
-
         });
 
         describe('serialize', function () {
             it('should not include legs', function () {
-                var cut = new embryo.vrmt.Route(routeThuleQaarnaaq);
+                var cut = RouteFactory.create(routeThuleQaarnaaq);
                 var serializedRoute = angular.toJson(cut, true);
 
                 expect(serializedRoute).toBeDefined();
@@ -208,44 +175,9 @@ describe('Risk Assessment Classes', function () {
 
         describe('getClosestPointOnRoute', function () {
             it('should something', function () {
-                var cut = new embryo.vrmt.Route(routeThuleQaarnaaq);
-                // var p = cut.getClosestPointOnRoute({lat: 72.29222998918011, lon: -56.69085405085945});
-                var p = cut.getClosestPointOnRoute({lat: 72.87637, lon: -56.527416});
-                console.log(p);
-
+                var cut = RouteFactory.create(routeThuleQaarnaaq);
+                var p = cut.getClosestPointOnRoute(Position.create(-56.527416, 72.87637));
             });
-            it('should turf', function () {
-                //72.89237750005236  -57.05079264413102
-                // var p = cut.getClosestPointOnRoute({lat: 72.29222998918011, lon: -56.69085405085945});
-                var line = turf.linestring([[71.87051666666666, -56.42565], [73.85173333333333, -57.67158333333333]]);
-                var point1 = turf.point([-57.03932847239242, 72.87415060743947]);
-                var point = turf.point([-56.527416, 72.87637]);
-                // var point1 = turf.point([72.87415060743947, -57.03932847239242]);
-                // var point = turf.point([72.87637, -56.527416]);
-                var pos1 = new embryo.geo.Position(-57.03932847239242, 72.87415060743947);
-                var pos = new embryo.geo.Position(-56.527416, 72.87637);
-                console.log(pos.geodesicDistanceTo(pos1)*1.852);
-                var closestPointOnLine = turf.pointOnLine(line, point);
-
-                console.log(turf.distance(point1, point));
-                console.log("TURF TEST");
-                // console.log(closestPointOnLine.geometry.coordinates);
-                // console.log(turf.lineDistance(line)/1.852);
-                //
-                // console.log("CLOSEST POINT distance using pointOnLine");
-                // console.log(turf.distance(closestPointOnLine, point)/1.852);
-                // var lineDist = turf.lineDistance(line);
-//
-//                 console.log("CLOSEST POINT distance iterating over line?");
-//                 var maxPoints = 1;
-//                 for (var i = 0; i < maxPoints; i++) {
-//                     var p = turf.along(line, (lineDist/maxPoints) * i, "kilometers");
-//                     console.log(turf.distance(p, point)/1.852);
-//
-//                 }
-
-            });
-
         });
 
     });

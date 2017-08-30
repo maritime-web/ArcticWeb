@@ -167,179 +167,216 @@ function RiskFactor(parameters) {
     }
 }
 
-embryo.vrmt.Route = function (route) {
-    Object.assign(this, route);
-    this.getTimeAtPosition = getTimeAtPosition;
-    this.getClosestPointOnRoute = getClosestPointOnRoute;
-    this.getExpectedVesselPosition = getExpectedVesselPosition;
-    this.getBearingAt = getBearingAt;
-    this.isOnRoute = isOnRoute;
-    this.isVesselOnRoute = isVesselOnRoute;
-    this.getStartPosition = getStartPosition;
-    this.isCompleted = isCompleted;
-    this.equals = equals;
+(function () {
+    'use strict';
 
-    var metersToNm = embryo.geo.Converter.metersToNm;
-    var routeAsLinestring = toLineString(this.wps);
-    var legs = toLegs(this.wps);
+    angular.module('vrmt.model', []);
+    angular.module('vrmt.model')
+        .factory('RouteFactory', RouteFactory);
 
-    function getTimeAtPosition(aPosition) {
-        var hours = getHoursToReachPosition(aPosition);
-        var departure = moment(this.etaDep);
+    RouteFactory.$inject = ['Position', 'OpenlayerService'];
 
-        return departure.add(hours, "h");
-    }
+    function RouteFactory(Position, OpenlayerService) {
 
-    function getHoursToReachPosition(aPosition) {
-        var positionOnRoute = getClosestPointOnRoute(aPosition);
+        embryo.vrmt.Route = function (route) {
+            Object.assign(this, route);
+            var that = this;
+            this.getTimeAtPosition = getTimeAtPosition;
+            this.getClosestPointOnRoute = getClosestPointOnRoute;
+            this.getExpectedVesselPosition = getExpectedVesselPosition;
+            this.getBearingAt = getBearingAt;
+            this.isOnRoute = isOnRoute;
+            this.isVesselOnRoute = isVesselOnRoute;
+            this.getStartPosition = getStartPosition;
+            this.isCompleted = isCompleted;
+            this.equals = equals;
 
-        var distanceBetween = positionOnRoute.geodesicDistanceTo(aPosition);
-        if (distanceBetween > 10) {
-            var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
-            throw new Error(errorMsg);
-        }
+            var metersToNm = embryo.geo.Converter.metersToNm;
+            var routeAsLinestring = toLineString(this.wps);
+            var legs = toLegs(this.wps);
 
-        var hours = 0;
-        for (var i = 0; i < legs.length; i++) {
-            var leg = legs[i];
-            if (leg.contains(positionOnRoute)) {
-                hours += leg.hoursTo(positionOnRoute);
-                break;
-            } else {
-                hours += leg.hours;
+            function getTimeAtPosition(aPosition) {
+                var hours = getHoursToReachPosition(aPosition);
+                var departure = moment(this.etaDep);
+
+                return departure.add(hours, "h");
             }
-        }
 
-        return hours;
-    }
+            function getHoursToReachPosition(aPosition) {
+                var positionOnRoute = getClosestPointOnRoute(aPosition);
 
-    function getClosestPointOnRoute(givenPosition) {
-        var turfPoint = turf.point([givenPosition.lon, givenPosition.lat]);
-        var turfPointOnLine = turf.pointOnLine(routeAsLinestring, turfPoint);
-        return new embryo.geo.Position(turfPointOnLine.geometry.coordinates[0], turfPointOnLine.geometry.coordinates[1]);
-    }
-
-    function getExpectedVesselPosition(dateTime) {
-        var activeLeg = getActiveLegAt(dateTime);
-        return activeLeg ? activeLeg.getVesselPositionAt(dateTime) : null;
-    }
-
-    function getBearingAt(dateTime) {
-        var activeLeg = getActiveLegAt(dateTime);
-        return activeLeg ? activeLeg.getBearing() : 0;
-    }
-
-    function getActiveLegAt(dateTime) {
-        return legs.find(function (leg) {
-            return leg.containsVesselAt(dateTime);
-        });
-    }
-
-    function isOnRoute(routeLocation) {
-        console.log("isOnRoute");
-        console.log(routeLocation);
-
-
-        var givenPosition = turf.point([routeLocation.lon, routeLocation.lat]);
-        var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
-        var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
-        return distanceBetween < 10;
-    }
-
-    function isVesselOnRoute() {
-        var now = moment().utc();
-        return legs.some(function (leg) {
-            return leg.containsVesselAt(now);
-        });
-    }
-
-    function getStartPosition() {
-        var firstWp = this.wps[0];
-        return [firstWp.longitude, firstWp.latitude];
-    }
-
-    function isCompleted() {
-        return moment().utc().isAfter(this.eta);
-    }
-
-    function equals(otherRoute) {
-        var thisRoute = this;
-        var sameDeparture = function () {
-            return thisRoute.etaDep == otherRoute.etaDep;
-        };
-        var sameWayPointCount = function () {
-            return thisRoute.wps.length == otherRoute.wps.length;
-        };
-        var sameWayPoints = function () {
-            var res = true;
-            for (var i = 0; i < thisRoute.wps; i++) {
-                var thisWp = thisRoute.wps[i];
-                var otherWp = otherRoute.wps[i];
-                if (thisWp.lat != otherWp.lat || thisWp.lon != otherWp.lon || thisWp.eta != otherWp.eta) {
-                    res = false;
-                    break;
+                var distanceBetween = positionOnRoute.rhumbLineDistanceTo(aPosition);
+                if (distanceBetween > 10) {
+                    var errorMsg = "Given position must be no more than 10 miles from the route. It was " + distanceBetween + " miles";
+                    throw new Error(errorMsg);
                 }
+
+                var hours = 0;
+                for (var i = 0; i < legs.length; i++) {
+                    var leg = legs[i];
+                    if (leg.contains(positionOnRoute)) {
+                        hours += leg.hoursTo(positionOnRoute);
+                        break;
+                    } else {
+                        hours += leg.hours;
+                    }
+                }
+
+                return hours;
             }
-            return res;
+
+            /**
+             *
+             * @param {embryo.geo.Position} givenPosition
+             * @return {embryo.geo.Position} Closest point.
+             */
+            function getClosestPointOnRoute(givenPosition) {
+                var coords = that.wps.map(function (wp) {
+                    return [wp.longitude, wp.latitude];
+                });
+
+                /** @type {ol.geom.LineString} */
+                var lineString = OpenlayerService.createLineString(coords);
+                var point = OpenlayerService.toLonLat(lineString.getClosestPoint(OpenlayerService.fromLonLat(givenPosition.asLonLatArray())));
+                return Position.create(point[0], point[1]);
+            }
+
+            /**
+             * Calculates the expected vessel position on the route at the given time.
+             * @param dateTime
+             * @returns {embryo.geo.Position | null}
+             */
+            function getExpectedVesselPosition(dateTime) {
+                var activeLeg = getActiveLegAt(dateTime);
+                return activeLeg ? activeLeg.getVesselPositionAt(dateTime) : null;
+            }
+
+            function getBearingAt(dateTime) {
+                var activeLeg = getActiveLegAt(dateTime);
+                return activeLeg ? activeLeg.getBearing() : 0;
+            }
+
+            function getActiveLegAt(dateTime) {
+                return legs.find(function (leg) {
+                    return leg.containsVesselAt(dateTime);
+                });
+            }
+
+            function isOnRoute(routeLocation) {
+                var givenPosition = turf.point([routeLocation.lon, routeLocation.lat]);
+                var closestPoint = turf.pointOnLine(routeAsLinestring, givenPosition);
+                var distanceBetween = metersToNm(turf.distance(closestPoint, givenPosition)*1000);
+                return distanceBetween < 10;
+            }
+
+            function isVesselOnRoute() {
+                var now = moment().utc();
+                return legs.some(function (leg) {
+                    return leg.containsVesselAt(now);
+                });
+            }
+
+            function getStartPosition() {
+                var firstWp = that.wps[0];
+                return [firstWp.longitude, firstWp.latitude];
+            }
+
+            function isCompleted() {
+                return moment().utc().isAfter(this.eta);
+            }
+
+            function equals(otherRoute) {
+                var thisRoute = this;
+                var sameDeparture = function () {
+                    return thisRoute.etaDep == otherRoute.etaDep;
+                };
+                var sameWayPointCount = function () {
+                    return thisRoute.wps.length == otherRoute.wps.length;
+                };
+                var sameWayPoints = function () {
+                    var res = true;
+                    for (var i = 0; i < thisRoute.wps; i++) {
+                        var thisWp = thisRoute.wps[i];
+                        var otherWp = otherRoute.wps[i];
+                        if (thisWp.lat != otherWp.lat || thisWp.lon != otherWp.lon || thisWp.eta != otherWp.eta) {
+                            res = false;
+                            break;
+                        }
+                    }
+                    return res;
+                };
+                return sameDeparture() && sameWayPointCount() && sameWayPoints();
+            }
+
+            function toLineString(wps) {
+                var coords = wps.map(function (wp) {
+                    return [wp.longitude, wp.latitude];
+                });
+                return turf.lineString(coords);
+            }
+
+            function toLegs(wps) {
+                var res = [];
+
+                for (var i = 0; i < wps.length - 1; i++) {
+                    res.push(createLeg(wps[i], wps[i + 1]));
+                }
+
+                function createLeg(wp1, wp2) {
+                    var leg = {};
+                    leg.speed = wp1.speed; // nots/h
+                    leg.heading = wp1.heading;
+                    /** @type {embryo.geo.Position} */
+                    leg.from = Position.create(wp1.longitude, wp1.latitude);
+                    /** @type {embryo.geo.Position} */
+                    leg.to = Position.create(wp2.longitude, wp2.latitude);
+                    leg.length = leg.from.rhumbLineDistanceTo(leg.to);//TODO depends on heading
+                    leg.lineString = turf.lineString([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
+                    leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
+                    leg.startTime = moment(wp1.eta);
+                    leg.endTime = moment(wp2.eta);
+
+                    leg.contains = function (position) {
+                        var turfPoint = turf.point([position.lon, position.lat]);
+                        var p = turf.pointOnLine(this.lineString, turfPoint);
+                        var positionOnLine = Position.create(p.geometry.coordinates[0], p.geometry.coordinates[1]);
+                        return positionOnLine.geodesicDistanceTo(position) < 0.1;
+                    };
+
+                    leg.hoursTo = function (position) {
+                        var distance = this.from.distanceTo(position, this.heading);
+                        return distance / this.speed;
+                    };
+
+                    leg.containsVesselAt = function (dateTime) {
+                        return this.startTime.isSameOrBefore(dateTime) && this.endTime.isSameOrAfter(dateTime)
+                    };
+
+                    leg.getVesselPositionAt = function (dateTime) {
+                        var secondsFromStart = moment.duration(moment(dateTime).diff(this.startTime)).asSeconds();
+                        var lengthInNm = embryo.geo.Converter.metersToNm(embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart);
+
+                        var lineString = OpenlayerService.createLineString([this.from.asLonLatArray(), this.to.asLonLatArray()]);
+
+                        return Position.create(OpenlayerService.toLonLat(lineString.getCoordinateAt(lengthInNm/this.length)));
+                    };
+
+                    leg.getBearing = function () {
+                        var bearing = this.from.bearingTo(this.to, this.heading);
+                        return embryo.Math.toRadians(bearing);
+                    };
+                    return leg;
+                }
+
+                return res;
+            }
         };
-        return sameDeparture() && sameWayPointCount() && sameWayPoints();
+
+        return {
+            create : function (route) {
+                return new embryo.vrmt.Route(route);
+            }
+        };
     }
+})();
 
-    function toLineString(wps) {
-        var coords = wps.map(function (wp) {
-            return [wp.longitude, wp.latitude];
-        });
-        return turf.linestring(coords);
-    }
-
-    function toLegs(wps) {
-        var res = [];
-
-        for (var i = 0; i < wps.length - 1; i++) {
-            res.push(createLeg(wps[i], wps[i + 1]));
-        }
-
-        function createLeg(wp1, wp2) {
-            var leg = {};
-            leg.speed = wp1.speed; // nots/h
-            leg.heading = wp1.heading;
-            leg.from = new embryo.geo.Position(wp1.longitude, wp1.latitude);
-            leg.to = new embryo.geo.Position(wp2.longitude, wp2.latitude);
-            leg.lineString = turf.linestring([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
-            leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
-            leg.startTime = moment(wp1.eta);
-            leg.endTime = moment(wp2.eta);
-
-            leg.contains = function (position) {
-                var turfPoint = turf.point([position.lon, position.lat]);
-                var p = turf.pointOnLine(this.lineString, turfPoint);
-                var positionOnLine = new embryo.geo.Position(p.geometry.coordinates[0], p.geometry.coordinates[1]);
-                return positionOnLine.geodesicDistanceTo(position) < 0.1;
-            };
-
-            leg.hoursTo = function (position) {
-                var distance = this.from.distanceTo(position, this.heading);
-                return distance / this.speed;
-            };
-
-            leg.containsVesselAt = function (dateTime) {
-                return this.startTime.isSameOrBefore(dateTime) && this.endTime.isSameOrAfter(dateTime)
-            };
-
-            leg.getVesselPositionAt = function (dateTime) {
-                var secondsFromStart = moment.duration(moment(dateTime).diff(this.startTime)).asSeconds();
-                var lengthInKm = embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart / 1000.0;
-                var point = turf.along(this.lineString, lengthInKm, "kilometers");
-                return [point.geometry.coordinates[0],point.geometry.coordinates[1]];
-            };
-
-            leg.getBearing = function () {
-                var bearing = this.from.bearingTo(this.to, this.heading);
-                return embryo.Math.toRadians(bearing);
-            };
-            return leg;
-        }
-
-        return res;
-    }
-};

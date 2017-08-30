@@ -639,6 +639,9 @@
         return embryo.geo.Position.create(lon, lat);
     }
 
+    embryo.geo.Position.prototype.asLonLatArray = function () {
+        return [this.lon, this.lat];
+    };
 
     module.factory('Position', function () {
         /**
@@ -647,19 +650,28 @@
          * - two parameters (longitude, latitude) in the format "degrees" (e.g. 10.5 and 12.34)
          * - a parameter, an object with "lon" and "lat" properties having values following either of the above.
          * - a parameter, an object with "longitude" and "latitude" properties having values following either of the above.
+         * - a parameter, an array with two numbers, longitude first.
         */
         embryo.geo.Position.create = function (){
             var lon, lat;
-            if(arguments.length == 1 && typeof arguments[0] === "object"){
-                if(arguments[0].longitude && arguments[0].latitude){
-                    lon = arguments[0].longitude, lat = arguments[0].latitude;
-                }else {
-                    assertObjectFieldValue(arguments[0], "lon");
-                    assertObjectFieldValue(arguments[0], "lat");
-                    lon = arguments[0].lon, lat = arguments[0].lat;
+            if(arguments.length === 1) {
+                if (Array.isArray(arguments[0])) {
+                    var lonLat = arguments[0];
+                    lon = lonLat[0];
+                    lat = lonLat[1];
+                } else if (typeof arguments[0] === "object") {
+                    if(arguments[0].longitude && arguments[0].latitude){
+                        lon = arguments[0].longitude, lat = arguments[0].latitude;
+                    }else {
+                        assertObjectFieldValue(arguments[0], "lon");
+                        assertObjectFieldValue(arguments[0], "lat");
+                        lon = arguments[0].lon;
+                        lat = arguments[0].lat;
+                    }
                 }
-            } else if(arguments.length == 2){
-                lon = arguments[0], lat = arguments[1];
+            } else if(arguments.length === 2){
+                lon = arguments[0];
+                lat = arguments[1];
             }
 
             if(typeof lon === "string"  && typeof lat === "string"){
@@ -667,9 +679,9 @@
                 lat = embryo.geo.Position.parseLatitude(lat);
             }
             return new embryo.geo.Position(lon, lat);
-        }
+        };
         return embryo.geo.Position;
-    })
+    });
 
     embryo.geo.Circle = function(centerPosition, radius){
         this.center = centerPosition;

@@ -43,7 +43,7 @@
                     return angular.fromJson(assessmentData);
                 })
                 .catch(function (err) {
-                    if (err.status == 404) {
+                    if (err.status === 404) {
                         return {
                             _id: routeId,
                             routeLocationSequence: 1,
@@ -73,7 +73,7 @@
                     return pouch.put(assessmentData);
                 })
                 .catch(function (err) {
-                    if (err.status == 404) {
+                    if (err.status === 404) {
                         return pouch.put(assessmentData);
                     } else {
                         return $q.reject(err);
@@ -87,7 +87,7 @@
                     return unWrapriskFactorData(angular.fromJson(doc));
                 })
                 .catch(function (err) {
-                    if (err.status == 404) {
+                    if (err.status === 404) {
                         return undefined;
                     } else {
                         return $q.reject(err);
@@ -106,7 +106,7 @@
                     return pouch.put(wrappeddata);
                 })
                 .catch(function (err) {
-                    if (err.status == 404) {
+                    if (err.status === 404) {
                         return pouch.put(wrappeddata);
                     } else {
                         return $q.reject(err);

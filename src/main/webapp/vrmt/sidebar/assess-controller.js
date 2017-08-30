@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessController", AssessController);
 
-    AssessController.$inject = ['$scope', '$timeout', '$interval', 'RiskAssessmentService', 'NotifyService', 'Events', 'growl'];
+    AssessController.$inject = ['$scope', '$timeout', '$interval', 'RiskAssessmentService', 'NotifyService', 'Events', 'growl', 'RouteFactory'];
 
-    function AssessController($scope, $timeout, $interval, RiskAssessmentService, NotifyService, Events, growl) {
+    function AssessController($scope, $timeout, $interval, RiskAssessmentService, NotifyService, Events, growl, RouteFactory) {
         var vm = this;
         vm.active = false;
         vm.currentLocationAssessment = null;
@@ -183,7 +183,7 @@
 
         NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
-            currentRoute = new embryo.vrmt.Route(newRoute);
+            currentRoute = RouteFactory.create(newRoute);
             vm.isInAssessable = currentRoute.isCompleted();
             vm.newAssessmentNotPossibleWarning = vm.isInAssessable ? "Please note. It is not possible to start a new assessment on an already completed route!" : undefined;
         }

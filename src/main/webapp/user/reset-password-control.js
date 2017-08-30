@@ -25,12 +25,16 @@
             modalInstance.result.then(reset, dismiss);
 
             function reset(result) {
-                Subject.changePassword(result.password)
-                    .then(function () {
-                        growl.success("Password changed successfully");
+                Subject.changePassword(result.password, username)
+                    .then(function (result) {
+                        var user = "";
+                        if (result && result.config && result.config.data) {
+                            user = result.config.data.username;
+                        }
+                        growl.success("Password changed successfully for user: '" + user +"'");
                     })
                     .catch(function (err, status) {
-                        var errorMsg = embryo.ErrorService.extractError(err, status);
+                        var errorMsg = status ? embryo.ErrorService.extractError(err, status) : err;
                         growl.error("Failed to change password. " + errorMsg);
                     });
             }

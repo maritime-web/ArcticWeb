@@ -95,7 +95,16 @@ describe('RiskAssessmentService', function () {
     }
 
     beforeEach(initializeTestData);
-    beforeEach(module('vrmt.app'));
+    beforeEach(module('embryo.geo.services'));
+    beforeEach(module('embryo.components.openlayer'));
+    beforeEach(module('vrmt.model'));
+    beforeEach(module('vrmt.app', function ($provide) {
+        var RiskAssessmentDataService = {
+            getAssessmentData: getFunctionRejectingWith("DUMMY IMPLEMENTATION"),
+            storeAssessmentData: getFunctionRejectingWith("DUMMY IMPLEMENTATION")
+        };
+        $provide.value('RiskAssessmentDataService', RiskAssessmentDataService);
+    }));
     beforeEach(inject(function (RiskAssessmentService, RiskAssessmentDataService, _$q_, _$rootScope_) {
         cut = RiskAssessmentService;
         $q = _$q_;
@@ -124,7 +133,10 @@ describe('RiskAssessmentService', function () {
             spyOn(dataService, "getAssessmentData").and.callFake(getFunctionResolving(withCurrentAssessment));
             spyOn(dataService, "storeAssessmentData").and.callFake(getFunctionResolving());
 
-            cut.createLocationAssessment(location.id, scores);
+            cut.createLocationAssessment(location.id, scores)
+                .catch(function (e) {
+                    fail("createLocationAssessment failed with message: " + e);
+                });
 
             $rootScope.$apply();
 

@@ -5,8 +5,8 @@
         .module('vrmt.map')
         .directive('route', route);
 
-    route.$inject = ['NotifyService', 'Events'];
-    function route(NotifyService, Events) {
+    route.$inject = ['NotifyService', 'Events', 'RouteFactory'];
+    function route(NotifyService, Events, RouteFactory) {
         return {
             restrict: 'E',
             require: '^olMap',
@@ -29,7 +29,7 @@
             routeLayer = new ol.layer.Vector({source: source});
 
             function addOrReplaceRoute() {
-                route = new embryo.vrmt.Route(arguments[1]);
+                route = RouteFactory.create(arguments[1]);
                 source.clear();
 
                 var routeFeature = createRouteFeature();
@@ -121,8 +121,8 @@
                 var styleText = style.getText();
                 var vesselCoord = null;
                 if (vesselPos) {
-                    styleText.setText('Expected vessel position ['+formatLatLon({lon: vesselPos[0], lat: vesselPos[1]}, 0, true)+']');
-                    vesselCoord = ol.proj.fromLonLat(vesselPos, undefined);
+                    styleText.setText('Expected vessel position ['+formatLatLon(vesselPos, 0, true)+']');
+                    vesselCoord = ol.proj.fromLonLat(vesselPos.asLonLatArray(), undefined);
                     style.getImage().setRotation(route.getBearingAt(moment().utc()) - Math.PI/2);
                 } else {
                     styleText.setText('Vessel is not on route');

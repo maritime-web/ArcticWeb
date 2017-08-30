@@ -74,7 +74,6 @@
                     var isSelfOrChild = element.find(event.target).length > 0 || element.html() == angular.element(event.target).html();
 
                     if (!isSelfOrChild) {
-                        console.warn('Should hide now');
                         scope.$apply(picker.hide());
                     }
                 };

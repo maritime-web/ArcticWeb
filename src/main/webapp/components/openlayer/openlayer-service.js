@@ -33,6 +33,22 @@
 
         this.getArcticCenter = function () {
             return ol.proj.fromLonLat([-65, 70], undefined);
+        };
+
+        /**
+         * Creates a ol.geom.LineString from a lon lat array.
+         * @param lonLats
+         */
+        this.createLineString = function(lonLats) {
+            /** @type {ol.geom.GeometryLayout|string} */
+            var xy = "XY";
+            var line = new ol.geom.LineString([], xy);
+            lonLats.forEach(function (coord) {
+                var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
+                line.appendCoordinate(mercatorCoord);
+            });
+
+            return line;
         }
     }
 })();

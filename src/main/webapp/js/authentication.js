@@ -119,7 +119,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
     }
 
     serviceModule.provider('Subject', function () {
-        function Subject($http, $rootScope, $cookieStore) {
+        function Subject($http, $rootScope, $cookieStore, $q) {
             $rootScope.initialAuthentication = embryo.authentication;
             var authentication = $cookieStore.get('embryo.authentication');
             if (typeof authentication !== 'undefined') {
@@ -197,11 +197,25 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
 
             this.changePassword = function (newPassword, otherUserName) {
                 var username = otherUserName || this.getDetails().userName;
-                var data = {
-                    username: username,
-                    password: newPassword
-                };
-                return $http.post(embryo.baseUrl + "rest/authentication//change-password-direct", data);
+
+                function isAdmin(role) {
+                    return role === "Administration";
+                }
+
+                var absolutelySure = true;
+                if (this.getDetails().userName === username && this.roles().find(isAdmin)) {
+                    absolutelySure = confirm("Warning! You are about to change password for an administrator.");
+                }
+
+                if (absolutelySure) {
+                    var data = {
+                        username: username,
+                        password: newPassword
+                    };
+                    return $http.post(embryo.baseUrl + "rest/authentication/change-password-direct", data);
+                } else {
+                    return $q.reject(username + " cancelled password change");
+                }
             };
 
             this.authenticationChanged = function (callback) {
@@ -213,8 +227,8 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
             };
         }
 
-        this.$get = function ($http, $rootScope, $cookieStore) {
-            return new Subject($http, $rootScope, $cookieStore);
+        this.$get = function ($http, $rootScope, $cookieStore, $q) {
+            return new Subject($http, $rootScope, $cookieStore, $q);
         };
     });
 

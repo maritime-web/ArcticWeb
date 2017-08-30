@@ -15,6 +15,7 @@ angular.module('vrmt.app', []);
             'ui.bootstrap.tooltip',
             'vrmt.render',
             'vrmt.map',
+            'vrmt.model',
             'vrmt.app',
             'embryo.menu',
             'embryo.user',
@@ -22,6 +23,8 @@ angular.module('vrmt.app', []);
             'embryo.routeService',
             'embryo.vessel.service',
             'embryo.scheduleService',
+            'embryo.geo.services',
+            'embryo.components.openlayer',
             'angular-growl',
             'embryo.pouchdb.services'
         ])

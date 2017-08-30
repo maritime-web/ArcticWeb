@@ -27,7 +27,7 @@ var libFiles = [
     {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/!(*min*).js']},
     {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']},
     {src: ['src/**/js/ext/moment.min.js']},
-    {src: ['src/**/js/ext/turf.min.js']},
+    {src: ['src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.js']},
     {src: ['src/**/js/ext/arc.js']},
     {src: ['src/**/libs/growl2-lib/*.min.js']}
 ];
@@ -42,9 +42,11 @@ var polyfills = [
 ];
 var vrmtFiles = [
     {src: ['src/**/js/embryo-for-test.js']},
+    {src: ['src/**/components/geo/geo-service.js']},
+    {src: ['src/**/components/openlayer/openlayer.module.js']},
+    {src: ['src/**/components/openlayer/openlayer-service.js']},
     {src: ['src/**/vrmt/**/app.js']},
     {src: ['src/**/vrmt/**/*.js']},
-    {src: ['src/**/components/geo/geo-service.js']},
     {src: ['src/**/js/authentication.js']}
 ];
 
@@ -446,7 +448,10 @@ module.exports = function (grunt) {
                 singleRun: false,
                 autoWatch: true,
                 keepalive: true,
-                files: libFiles.concat(testUtilityFiles).concat(polyfills).concat(vrmtFiles).concat(testDataFiles)
+                files: libFiles.concat(testUtilityFiles).concat(polyfills).concat(vrmtFiles).concat(testDataFiles),
+                exclude : [
+                    'src/main/webapp/js/ext/jquery.fileupload*.js'
+                ]
             }
         }
     });
