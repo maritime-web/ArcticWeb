@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("MapController", MapController);
 
-    MapController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'Events'];
+    MapController.$inject = ['$scope', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents'];
 
-    function MapController($scope, RiskAssessmentService, NotifyService, Events) {
+    function MapController($scope, RiskAssessmentService, NotifyService, VrmtEvents) {
         var vm = this;
 
         vm.hide = true;
@@ -15,25 +15,25 @@
         vm.vessel = null;
         vm.chosenRouteLocation = null;
 
-        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, loadedVessel) {
             vm.vessel = loadedVessel;
         }
 
-        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationChosen, onRouteLocationChosen);
         function onRouteLocationChosen(event, chosen) {
             vm.chosenRouteLocation = chosen;
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentUpdated, onCurrentAssessmentLoaded);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded() {
             vm.functions = [];
             vm.functions.push(startNewAssessmentfunction);
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentCompleted, onNoActiveAssessment);
-        NotifyService.subscribe($scope, Events.AssessmentDiscarded, onNoActiveAssessment);
-        NotifyService.subscribe($scope, Events.RouteLocationsLoaded, onNoActiveAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, onNoActiveAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, onNoActiveAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationsLoaded, onNoActiveAssessment);
         function onNoActiveAssessment() {
             vm.functions = [];
             vm.functions.push(deleteRouteLocationFunction);
@@ -48,7 +48,7 @@
             name: 'New Assesment',
             choose: function () {
                 vm.close();
-                NotifyService.notify(Events.OpenAssessmentEditor);
+                NotifyService.notify(VrmtEvents.OpenAssessmentEditor);
             }
         };
 
@@ -60,7 +60,7 @@
                 var locationToDelete = vm.chosenRouteLocation;
                 RiskAssessmentService.deleteRouteLocation(locationToDelete)
                     .then(function () {
-                        NotifyService.notify(Events.RouteLocationDeleted, locationToDelete);
+                        NotifyService.notify(VrmtEvents.RouteLocationDeleted, locationToDelete);
                     }, function (errorReason) {
                         console.log(errorReason);
                     });
@@ -70,12 +70,12 @@
         /**
          * Assessment location map functions
          */
-        NotifyService.subscribe($scope, Events.RouteLocationClicked, onAssessmentLocationClicked);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationClicked, onAssessmentLocationClicked);
         function onAssessmentLocationClicked(event, details) {
             vm.style.top = details.y + "px";
             vm.style.left = details.x + "px";
             vm.hide = false;
-            if (vm.functions.length == 0) {
+            if (vm.functions.length === 0) {
                 vm.functions.push(deleteRouteLocationFunction);
             }
         }
@@ -83,7 +83,7 @@
         /**
          * Vessel map functions
          */
-        NotifyService.subscribe($scope, Events.VesselClicked, onVesselClicked);
+        NotifyService.subscribe($scope, VrmtEvents.VesselClicked, onVesselClicked);
         function onVesselClicked(event, details) {
             vm.style.top = details.y + "px";
             vm.style.left = details.x + "px";
@@ -92,7 +92,7 @@
                     name: 'New Assesment location',
                     choose: function () {
                         vm.hide = true;
-                        NotifyService.notify(Events.AddRouteLocation, {
+                        NotifyService.notify(VrmtEvents.AddRouteLocation, {
                             vessel: {
                                 ais: {
                                     lon: vm.vessel.aisVessel.lon,

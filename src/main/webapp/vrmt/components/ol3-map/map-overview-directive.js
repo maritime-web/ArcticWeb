@@ -10,7 +10,7 @@
     function mapOverview() {
             return {
                 restrict: 'E',
-                require: '^olMap',
+                require: '^openlayerParent',
                 scope: {
                     collapsed: '='
                 },

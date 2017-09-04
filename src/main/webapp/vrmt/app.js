@@ -1,32 +1,18 @@
-// Define all modules here
-angular.module('vrmt.map', []);
-angular.module('vrmt.render', []);
-angular.module('vrmt.app', []);
-
 (function () {
     "use strict";
 
     angular.module('vrmt',
         [
-            'ngAnimate',
-            'ngSanitize',
-            'ui.bootstrap',
-            'ui.bootstrap.accordion',
-            'ui.bootstrap.tooltip',
             'vrmt.render',
             'vrmt.map',
             'vrmt.model',
             'vrmt.app',
+
             'embryo.menu',
             'embryo.user',
             'embryo.authentication',
-            'embryo.routeService',
-            'embryo.vessel.service',
-            'embryo.scheduleService',
-            'embryo.geo.services',
-            'embryo.components.openlayer',
-            'angular-growl',
-            'embryo.pouchdb.services'
+
+            'angular-growl'
         ])
         .config(['growlProvider', function (growlProvider) {
         growlProvider.globalTimeToLive(6000);

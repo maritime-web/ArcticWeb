@@ -2,14 +2,14 @@
     'use strict';
 
     angular.module('vrmt.map')
-        .directive('routeLocations', routeLocations);
+        .directive('vrmtRouteLocations', routeLocations);
 
-    routeLocations.$inject = ['NotifyService', 'Events'];
+    routeLocations.$inject = ['NotifyService', 'VrmtEvents'];
 
-    function routeLocations(NotifyService, Events) {
+    function routeLocations(NotifyService, VrmtEvents) {
         return {
             restrict: 'E',
-            require: '^olMap',
+            require: '^openlayerParent',
             scope: {},
             link: link
         };
@@ -23,10 +23,13 @@
             var currentAssessment = null;
 
             function createLocationLayer() {
-                return new ol.layer.Vector({
+                var layer = new ol.layer.Vector({
                     source: new ol.source.Vector(),
                     style: createLocationStyleFunction()
                 });
+                layer.set("Feature", "VRMT");
+
+                return layer;
             }
 
             function addOrReplaceLocation(location) {
@@ -95,11 +98,11 @@
             /**
              * Model listeners
              */
-            NotifyService.subscribe(scope, Events.RouteLocationsLoaded, function (event, routeLocations) {
+            NotifyService.subscribe(scope, VrmtEvents.RouteLocationsLoaded, function (event, routeLocations) {
                 currentAssessment = null;
                 changeRouteLocations(routeLocations);
             });
-            NotifyService.subscribe(scope, Events.AssessmentUpdated, function (event, assessment) {
+            NotifyService.subscribe(scope, VrmtEvents.AssessmentUpdated, function (event, assessment) {
                 currentAssessment = assessment;
                 changeRouteLocations(assessment.locationsToAssess);
             });
@@ -112,7 +115,7 @@
                 });
             }
 
-            NotifyService.subscribe(scope, Events.RouteLocationChosen, onAssessmentLocationChosen);
+            NotifyService.subscribe(scope, VrmtEvents.RouteLocationChosen, onAssessmentLocationChosen);
             function onAssessmentLocationChosen(event, chosen) {
                 select.getFeatures().clear();
 
@@ -125,29 +128,35 @@
             /**
              * Interactions
              */
-            var select = new ol.interaction.Select(/** @type {olx.interaction.SelectOptions}*/{
-                layers: [locationLayer],
-                style: createSelectedLocationStyleFunction(),
-                condition: function (e) {
-                    if (ol.events.condition.singleClick(e)) {
-                        var map = e.map;
-                        return map.hasFeatureAtPixel(e.pixel, function (layerCandidate) {
-                            return layerCandidate === locationLayer;
-                        });
+            var select = undefined;
+
+            createSelectInteraction();
+
+            function createSelectInteraction() {
+                select = new ol.interaction.Select(/** @type {olx.interaction.SelectOptions}*/{
+                    layers: [locationLayer],
+                    style: createSelectedLocationStyleFunction(),
+                    condition: function (e) {
+                        if (ol.events.condition.singleClick(e)) {
+                            var map = e.map;
+                            return map.hasFeatureAtPixel(e.pixel, function (layerCandidate) {
+                                return layerCandidate === locationLayer;
+                            });
+                        }
+                        return false;
                     }
-                    return false;
-                }
-            });
+                });
 
-            select.on('select', function (e) {
-                if (e.selected.length == 1) {
-                    var selectedFeature = e.selected[0];
-                    NotifyService.notify(Events.RouteLocationChosen, selectedFeature.get("routeLocation"));
-                }
+                select.on('select', function (e) {
+                    if (e.selected.length === 1) {
+                        var selectedFeature = e.selected[0];
+                        NotifyService.notify(VrmtEvents.RouteLocationChosen, selectedFeature.get("routeLocation"));
+                    }
 
-                scope.$apply();
-            });
+                    scope.$apply();
+                });
 
+            }
 
             function panToFeature(feature) {
                 olScope.getMap().then(function (map) {
@@ -155,7 +164,7 @@
                     var featureExtent = feature.getGeometry().getExtent();
                     var mapExtent = view.calculateExtent(map.getSize());
                     if (!ol.extent.containsExtent(mapExtent, featureExtent)) {
-                        view.fit(feature.getGeometry(), map.getSize(), {minResolution: view.getResolution()});
+                        view.fit(feature.getGeometry(), {size: map.getSize(), minResolution: view.getResolution()});
                     }
                 });
             }
@@ -169,12 +178,13 @@
 
                 var onclickKey = map.on('singleclick', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
-                    var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                    var layerFilter = function (layerCandidate) {
                         return layerCandidate === locationLayer;
-                    });
+                    };
+                    var hitThis = map.hasFeatureAtPixel(pixel, {layerFilter: layerFilter});
 
                     if (hitThis) {
-                        NotifyService.notify(Events.RouteLocationClicked, {
+                        NotifyService.notify(VrmtEvents.RouteLocationClicked, {
                             x: e.originalEvent.clientX,
                             y: e.originalEvent.clientY
                         });
@@ -182,6 +192,23 @@
                     scope.$apply();
 
                 });
+
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureActive, function () {
+                    if (!select) {
+                        createSelectInteraction();
+                        map.addInteraction(select);
+                    }
+                    locationLayer.setVisible(true);
+                });
+
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureInActive, function () {
+                    if (select) {
+                        map.removeInteraction(select);
+                    }
+                    locationLayer.setVisible(false);
+                });
+
+
                 // Clean up when the scope is destroyed
                 scope.$on('$destroy', function () {
                     if (angular.isDefined(locationLayer)) {
@@ -191,7 +218,7 @@
                         map.removeInteraction(select);
                     }
                     if (onclickKey) {
-                        map.unByKey(onclickKey);
+                        ol.Observable.unByKey(onclickKey);
                     }
                 });
 

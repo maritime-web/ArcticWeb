@@ -3,14 +3,14 @@
 
     angular
         .module('vrmt.map')
-        .directive('vessel', vessel);
+        .directive('vrmtVessel', vessel);
 
-    vessel.$inject = ['NotifyService', 'Events'];
+    vessel.$inject = ['NotifyService', 'VrmtEvents'];
 
-    function vessel(NotifyService, Events) {
+    function vessel(NotifyService, VrmtEvents) {
         var directive = {
             restrict: 'E',
-            require: '^olMap',
+            require: '^openlayerParent',
             scope: {},
             link: link
         };
@@ -18,13 +18,15 @@
 
         function link(scope, element, attrs, ctrl) {
             var vesselLayer = createVesselLayer();
-            NotifyService.subscribe(scope, Events.VesselLoaded, addOrReplaceVessel);
+            NotifyService.subscribe(scope, VrmtEvents.VesselLoaded, addOrReplaceVessel);
 
             function createVesselLayer() {
-                return new ol.layer.Vector({
+                var layer = new ol.layer.Vector({
                     source: new ol.source.Vector(),
                     style: createVesselStyle()
                 });
+                layer.set("Feature", "VRMT");
+                return layer;
             }
 
             function createVesselStyle() {
@@ -64,12 +66,14 @@
 
                 var onclickKey = map.on('singleclick', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
-                    var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+
+                    var layerFilter = function (layerCandidate) {
                         return layerCandidate === vesselLayer;
-                    });
+                    };
+                    var hitThis = map.hasFeatureAtPixel(pixel, {layerFilter: layerFilter});
 
                     if (hitThis) {
-                        NotifyService.notify(Events.VesselClicked, {
+                        NotifyService.notify(VrmtEvents.VesselClicked, {
                             x: e.originalEvent.clientX,
                             y: e.originalEvent.clientY
                         });
@@ -84,7 +88,7 @@
                         map.removeLayer(vesselLayer);
                     }
                     if (onclickKey) {
-                        map.unByKey(onclickKey);
+                        ol.Observable.unByKey(onclickKey);
                     }
                 });
             })

@@ -3,7 +3,9 @@
 
     angular
         .module('vrmt.app')
-        .constant('Events', {
+        .constant('VrmtEvents', {
+            VRMTFeatureActive: "VRMTFeatureActive",
+            VRMTFeatureInActive: "VRMTFeatureInActive",
             LocationAssessmentCreated: "LocationAssessmentCreated",
             LocationAssessmentDeleted: "LocationAssessmentDeleted",
             AddRouteLocation: "AddRouteLocation",
@@ -24,11 +26,11 @@
             AssessmentCompleted: "AssessmentCompleted",
             AssessmentDiscarded: "AssessmentDiscarded"
         })
-        .controller("AppController", AppController);
+        .controller("VrmtController", VrmtController);
 
-    AppController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'Events', '$timeout', 'growl'];
+    VrmtController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', '$timeout', 'growl'];
 
-    function AppController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, Events, $timeout, growl) {
+    function VrmtController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, VrmtEvents, $timeout, growl) {
         var vm = this;
         $scope.mmsi = null;
         vm.chosenRouteLocation = null;
@@ -38,6 +40,7 @@
         function initialize() {
             if (embryo.authentication.shipMmsi) {
                 $scope.mmsi = embryo.authentication.shipMmsi;
+                NotifyService.notify(VrmtEvents.VRMTFeatureActive);
                 //Make sure that all subscribers for vessel and route data have been registered before loading data
                 $timeout(function () {
                     $scope.$apply(function () {
@@ -59,7 +62,7 @@
          */
         function loadVessel() {
             VesselService.details($scope.mmsi, function (v) {
-                NotifyService.notify(Events.VesselLoaded, v);
+                NotifyService.notify(VrmtEvents.VesselLoaded, v);
                 console.log(v);
                 //Only change rute if we don't have one yet
                 var routeId = $scope.route ? $scope.route.id : v.additionalInformation.routeId;
@@ -84,8 +87,8 @@
                     if (!vm.chosenRouteLocation) {
                         vm.chosenRouteLocation = currentAssessment.locationsToAssess[0];
                     }
-                    NotifyService.notify(Events.AssessmentUpdated, currentAssessment);
-                    NotifyService.notify(Events.RouteLocationChosen, vm.chosenRouteLocation);
+                    NotifyService.notify(VrmtEvents.AssessmentUpdated, currentAssessment);
+                    NotifyService.notify(VrmtEvents.RouteLocationChosen, vm.chosenRouteLocation);
                 })
                 .catch(function (reason) {
                     loadRouteLocations();
@@ -95,9 +98,9 @@
         function loadRouteLocations() {
             RiskAssessmentService.getRouteLocations()
                 .then(function (routeLocations) {
-                    NotifyService.notify(Events.RouteLocationsLoaded, routeLocations);
+                    NotifyService.notify(VrmtEvents.RouteLocationsLoaded, routeLocations);
                     if (routeLocations.length > 0) {
-                        NotifyService.notify(Events.RouteLocationChosen, routeLocations[0]);
+                        NotifyService.notify(VrmtEvents.RouteLocationChosen, routeLocations[0]);
                     }
                 })
                 .catch(function (err) {
@@ -108,19 +111,19 @@
         /**
          * Reload data when Rute changes
          */
-        NotifyService.subscribe($scope, Events.RouteChanged, onRouteChanged);
+        NotifyService.subscribe($scope, VrmtEvents.RouteChanged, onRouteChanged);
         function onRouteChanged(event, newRoute) {
             $scope.route = newRoute;
             loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.NewAssessmentStarted, function () {
+        NotifyService.subscribe($scope, VrmtEvents.NewAssessmentStarted, function () {
             loadCurrentAssessment();
         });
-        NotifyService.subscribe($scope, Events.AssessmentDiscarded, function () {
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, function () {
             loadCurrentAssessment();
         });
-        NotifyService.subscribe($scope, Events.AssessmentCompleted, function () {
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, function () {
             loadCurrentAssessment();
         });
 
@@ -128,23 +131,23 @@
         /**
          * Reload data when CRUD operations have been performed
          */
-        NotifyService.subscribe($scope, Events.LocationAssessmentCreated, onAssessmentCRUD);
-        NotifyService.subscribe($scope, Events.LocationAssessmentDeleted, onAssessmentCRUD);
+        NotifyService.subscribe($scope, VrmtEvents.LocationAssessmentCreated, onAssessmentCRUD);
+        NotifyService.subscribe($scope, VrmtEvents.LocationAssessmentDeleted, onAssessmentCRUD);
         function onAssessmentCRUD() {
             loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.RouteLocationCreated, onRouteLocationCreated);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationCreated, onRouteLocationCreated);
         function onRouteLocationCreated() {
             loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.RouteLocationDeleted, onRouteLocationDeleted);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationDeleted, onRouteLocationDeleted);
         function onRouteLocationDeleted() {
             loadCurrentAssessment();
         }
 
-        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationChosen, onRouteLocationChosen);
         function onRouteLocationChosen(event, chosen) {
             vm.chosenRouteLocation = chosen;
         }
@@ -160,6 +163,8 @@
             console.log("Cleaning up VRMT");
             $interval.cancel(stop);
             stop = undefined;
+
+            NotifyService.notify(VrmtEvents.VRMTFeatureInActive);
         });
     }
 })();

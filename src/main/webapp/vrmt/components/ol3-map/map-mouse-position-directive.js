@@ -14,7 +14,7 @@
         return {
             restrict: 'E',
             replace: true,
-            require: '^olMap',
+            require: '^openlayerParent',
             template: "<div class='map-mouse-position'>{{currentPos | lonlat:{ decimals : 2, pp: true }  }}</div>",
             scope: {},
             link: function (scope, element, attrs, ctrl) {

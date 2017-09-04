@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("AssessmentFactorConfigController", AssessmentFactorConfigController);
 
-    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'Events', "growl", '$timeout'];
+    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'VrmtEvents', "growl", '$timeout'];
 
-    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, Events, growl, $timeout) {
+    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, VrmtEvents, growl, $timeout) {
         var vm = this;
         vm.hide = true;
         vm.vesselName = undefined;
@@ -32,14 +32,14 @@
             }
         }
 
-        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, newVessel) {
             if (newVessel.aisVessel) {
                 vm.vesselName = newVessel.aisVessel.name || $scope.mmsi;
             }
         }
 
-        NotifyService.subscribe($scope, Events.OpenAssessmentFactorEditor, vm.show);
+        NotifyService.subscribe($scope, VrmtEvents.OpenAssessmentFactorEditor, vm.show);
 
         function show() {
             vm.hide = false;

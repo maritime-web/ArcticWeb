@@ -45,6 +45,7 @@
     <script src="js/authentication.js" defer="defer" type="text/javascript"></script>
     <script src="components/geo/geo-service.js" defer="defer"></script>
     <script src="js/menu.js" defer="defer"></script>
+
     <script src="js/service/vessel-service.js" defer="defer"></script>
     <script src="js/service/route-service.js" defer="defer"></script>
     <script src="js/service/couchdb-services.js" defer="defer"></script>
@@ -52,14 +53,18 @@
     <script src="js/service/pouchdb-services.js" defer="defer"></script>
     <script src="js/service/storage-services.js" defer="defer"></script>
     <script src="js/service/schedule-service.js" defer="defer"></script>
+
     <script src="vrmt/app.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/app-ctrl.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/vrmt-app.module.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/vrmt-ctrl.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/timeline/timeline-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/risk-assessment/risk-assessment-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/risk-assessment/risk-assessment-data-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/risk-assessment/risk-factor-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/risk-assessment/risk-assessment-model.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/risk-assessment/risk-factor-assessor-service.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/vrmt-map/vrmt-map.module.js" defer="defer" type="text/javascript"></script>
+
     <script src="vrmt/components/ol3-map/position.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/ol3-map/map-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/ol3-map/latitude-directive.js" defer="defer" type="text/javascript"></script>
@@ -70,24 +75,31 @@
     <script src="vrmt/components/ol3-map/map-scale-line-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/ol3-map/map-tile-layer-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/ol3-map/ol-map-directive.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/components/vrmt-map/route-directive.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/components/vrmt-map/vessel-directive.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/components/vrmt-map/route-location-directive.js" defer="defer" type="text/javascript"></script>
+
+    <script src="vrmt/components/vrmt-map/vrmt-route-directive.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/vrmt-map/vrmt-vessel-directive.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/vrmt-map/vrmt-route-location-directive.js" defer="defer" type="text/javascript"></script>
+    <script src="vrmt/components/render/vrmt-render.module.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/index-color-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/outside-click-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/on-escape-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/mw-select-renderer-directive.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/map/map-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/components/render/render-utilities.js" defer="defer" type="text/javascript"></script>
-    <script src="vrmt/components/notify/notify-service.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/assessment/assessment-editor.controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/assessment/assessment-view-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/sidebar/sidebar-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/sidebar/assess-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/configuration/assessment-factor-config-controller.js" defer="defer" type="text/javascript"></script>
     <script src="vrmt/location/add-assessment-location-controller.js" defer="defer" type="text/javascript"></script>
+
     <script src="components/openlayer/openlayer.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/openlayer/openlayer-service.js" defer="defer" type="text/javascript"></script>
+    <script src="components/openlayer/openlayer-parent-directive.js" defer="defer" type="text/javascript"></script>
+
+    <script src="components/notification/notification.module.js" defer="defer" type="text/javascript"></script>
+    <script src="components/notification/notification-service.js" defer="defer" type="text/javascript"></script>
+
     <script src="components/version/version.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version-service.js" defer="defer" type="text/javascript"></script>
     <script src="user/user.module.js" defer type="text/javascript"></script>
@@ -107,14 +119,14 @@
 <div x-ng-include="'user/reset-password-modal.html'"></div>
 <div class="menuDivider"></div>
 <div growl></div>
-<div class="container-fluid" ng-controller="AppController as app">
+<div class="container-fluid" ng-controller="VrmtController as app">
     <div class="row">
         <div x-ng-include="'vrmt/map/map.html'"></div>
         <div x-ng-include="'vrmt/sidebar/sidebar.html'"></div>
         <div x-ng-include="'vrmt/assessment/assessment-editor.html'"></div>
         <div x-ng-include="'vrmt/assessment/assessment-view.html'"></div>
         <div x-ng-include="'vrmt/configuration/assessment-factor-config.html'"></div>
-        <div x-ng-include="'vrmt/timeline/timeline.html'"></div>
+        <!--<div x-ng-include="'vrmt/timeline/timeline.html'"></div>-->
         <span ng-controller="AssessmentLocationController"></span>
     </div>
 </div>

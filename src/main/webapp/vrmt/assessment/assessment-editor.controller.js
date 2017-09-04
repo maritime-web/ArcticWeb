@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentEditorController", AssessmentEditorController);
 
-    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'RiskFactorAssessorService', 'NotifyService', 'Events', 'growl'];
+    AssessmentEditorController.$inject = ['$scope', 'RiskAssessmentService', 'RiskFactorService', 'RiskFactorAssessorService', 'NotifyService', 'VrmtEvents', 'growl'];
 
-    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, RiskFactorAssessorService, NotifyService, Events, growl) {
+    function AssessmentEditorController($scope, RiskAssessmentService, RiskFactorService, RiskFactorAssessorService, NotifyService, VrmtEvents, growl) {
         var vm = this;
 
         vm.hide = true;
@@ -38,7 +38,7 @@
                 .then(
                     function (result) {
                         growl.success("Saved location assessment");
-                        NotifyService.notify(Events.LocationAssessmentCreated, result);
+                        NotifyService.notify(VrmtEvents.LocationAssessmentCreated, result);
                     },
                     function (reason) {
                         growl.error("Could not save location assessment: " + reason);
@@ -137,18 +137,18 @@
             });
         };
 
-        NotifyService.subscribe($scope, Events.OpenAssessmentEditor, vm.show);
+        NotifyService.subscribe($scope, VrmtEvents.OpenAssessmentEditor, vm.show);
 
-        NotifyService.subscribe($scope, Events.AssessmentCompleted, handleNoCurrentAssessment);
-        NotifyService.subscribe($scope, Events.AssessmentDiscarded, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, handleNoCurrentAssessment);
         function handleNoCurrentAssessment() {
             currentAssessment = null;
         }
-        NotifyService.subscribe($scope, Events.AssessmentUpdated, function (event, assessment) {
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentUpdated, function (event, assessment) {
             currentAssessment = assessment;
         });
 
-        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationChosen, onRouteLocationChosen);
         function onRouteLocationChosen(event, chosen) {
             chosenRoutelocation = chosen;
         }

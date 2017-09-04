@@ -38,13 +38,14 @@
 
     <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular.js" type="text/javascript"></script>
     <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-cookies.js" type="text/javascript"></script>
+    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-animate.js"></script>
+    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-sanitize.js"></script>
     <script src="js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js" type="text/javascript"></script>
 
     <script src="js/cached/openlayer-map/cdn.cloudflare/numeral.js/1.4.5/numeral.min.js"></script>
     <script src="js/cached/map/cdn.netdna/bootstrap/3.1.1/js/bootstrap.min.js" type="text/javascript"></script>
 
     <script src="js/cached/openlayer-map/cdn.cloudflare/openlayers/4.3.1/ol.js" type="text/javascript"></script>
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.2.0/ol-debug.js" type="text/javascript"></script>-->
     <script src='js/cached/map/cdn.cloudflare/pouchdb/5.1.0/pouchdb.js'></script>
 </head>
 
@@ -53,19 +54,25 @@
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
 <div x-ng-include="'user/reset-password-modal.html'"></div>
+<div x-ng-include="'vrmt/location/add-assessment-location.html'"></div>
+
 <div class="menuDivider"></div>
-<div id="map" class="container-fluid" style="padding-left: 0; padding-right: 0; position: relative">
-    <div class="row">
-        <openlayer-parent class="map col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <openlayer-mouse-position></openlayer-mouse-position>
-            <map-position></map-position>
-            <vessel-zoom></vessel-zoom>
-            <route requires-authenticated></route>
-            <vessel requires-authenticated></vessel>
-            <distance-to-nearest requires-authenticated></distance-to-nearest>
-            <distance-circles requires-authenticated></distance-circles>
-        </openlayer-parent>
-    </div>
+
+<div id="map">
+    <openlayer-parent>
+        <openlayer-mouse-position></openlayer-mouse-position>
+        <map-position></map-position>
+        <vessel-zoom></vessel-zoom>
+        <route requires-authenticated></route>
+        <vessel requires-authenticated></vessel>
+        <distance-to-nearest requires-authenticated></distance-to-nearest>
+        <distance-circles requires-authenticated></distance-circles>
+
+        <vrmt-route></vrmt-route>
+        <vrmt-vessel></vrmt-vessel>
+        <vrmt-route-locations></vrmt-route-locations>
+
+    </openlayer-parent>
 </div>
 
 <div id="hoveringBox"></div>
@@ -94,14 +101,31 @@
         </div>
     </div>
 
-<!--
-    <div e-location-enabled="ice">
-        <div class="controlContainer e-small-font">
-            <div x-ng-include="'partials/ice-control.html'"></div>
+
+    <div e-location-enabled="vrmt">
+        <div class="container-fluid e-small-font" ng-controller="VrmtController as app">
+            <div class="row">
+                <div id="wrap" ng-controller="MapController as map">
+                    <div x-ng-include="'vrmt/map/context-function-list.html'"></div>
+                </div>
+                <div x-ng-include="'vrmt/sidebar/sidebar.html'"></div>
+                <div x-ng-include="'vrmt/assessment/assessment-editor.html'"></div>
+                <div x-ng-include="'vrmt/assessment/assessment-view.html'"></div>
+                <div x-ng-include="'vrmt/configuration/assessment-factor-config.html'"></div>
+                <!--<div x-ng-include="'vrmt/timeline/timeline.html'"></div>-->
+                <span ng-controller="AssessmentLocationController"></span>
+            </div>
         </div>
-        <div x-ng-include="'partials/satelliteImageInformation.html'"></div>
     </div>
--->
+
+    <!--
+        <div e-location-enabled="ice">
+            <div class="controlContainer e-small-font">
+                <div x-ng-include="'partials/ice-control.html'"></div>
+            </div>
+            <div x-ng-include="'partials/satelliteImageInformation.html'"></div>
+        </div>
+    -->
 
 <!--
     <div class="controlContainer e-small-font">
@@ -127,34 +151,7 @@
     </div>
 -->
 
-<!--
-    <div id="zoomControlPanel" x-ng-controller="ZoomController" class="e-small-font">
-        <div class="pull-right">
-            <p>
-                <button id="dmaZoomIn" class="btn btn-primary btn-xs" x-ng-class="zoomClasses()">
-                    <i class="fa fa-plus"></i>
-                </button>
-            <p style="margin-bottom: 5px;"></p>
-            <button id="dmaZoomOut" class="btn btn-primary btn-xs" x-ng-class="zoomClasses()">
-                <i class="fa fa-minus"></i>
-            </button>
-            </p>
-        </div>
-        <p>
-            <button class="btn e-btn-wide btn-primary btn-xs" x-ng-click="zoomAll()">Zoom All Arctic</button>
-        </p>
-        <p requires-permissions="Sailor" x-ng-controller="ZoomYourVesselCtrl">
-            <button class="btn e-btn-wide btn-primary btn-xs" x-ng-click="zoomToYourVessel()">Zoom to Your Vessel
-            </button>
-        </p>
-        <p>
-            <button class="btn e-btn-wide btn-primary btn-xs" x-ng-click="switchBaseMap()">Switch Base Map</button>
-        </p>
-        <div style="float: left" class="e-small-font">
-            <b>Pointer coordinates:</b> <br/> <span id="coords"></span><span id="coords2"></span>
-        </div>
-    </div>
--->
+
 </div>
 
 <!-- The main application script -->
@@ -174,7 +171,7 @@
 <script src="js/ext/bootstrap-datetimepicker.js"></script>
 <script src="js/ext/angular-pouchdb-4.1.0.js"></script>
 
-<script src="js/ext/turf.min.js"></script>
+<script src="js/ext/cdn.cloudflare/turf/4.6.1/turf.min.js"></script>
 
 <script src="js/utils.js"></script>
 <script src="js/embryo.js"></script>
@@ -249,6 +246,37 @@
 
 <script src="user/user.module.js" type="text/javascript"></script>
 <script src="user/reset-password-control.js" type="text/javascript"></script>
+
+
+<script src="vrmt/vrmt-app.module.js" type="text/javascript"></script>
+<script src="vrmt/vrmt-ctrl.js" type="text/javascript"></script>
+<script src="vrmt/timeline/timeline-controller.js" type="text/javascript"></script>
+<script src="vrmt/components/risk-assessment/risk-assessment-service.js" type="text/javascript"></script>
+<script src="vrmt/components/risk-assessment/risk-assessment-data-service.js" type="text/javascript"></script>
+<script src="vrmt/components/risk-assessment/risk-factor-service.js" type="text/javascript"></script>
+<script src="vrmt/components/risk-assessment/risk-assessment-model.js" type="text/javascript"></script>
+<script src="vrmt/components/risk-assessment/risk-factor-assessor-service.js" type="text/javascript"></script>
+
+<script src="vrmt/components/vrmt-map/vrmt-map.module.js" type="text/javascript"></script>
+<script src="vrmt/components/vrmt-map/vrmt-route-directive.js" type="text/javascript"></script>
+<script src="vrmt/components/vrmt-map/vrmt-vessel-directive.js" type="text/javascript"></script>
+<script src="vrmt/components/vrmt-map/vrmt-route-location-directive.js" type="text/javascript"></script>
+
+<script src="vrmt/components/render/vrmt-render.module.js" type="text/javascript"></script>
+<script src="vrmt/components/render/index-color-directive.js" type="text/javascript"></script>
+<script src="vrmt/components/render/outside-click-directive.js" type="text/javascript"></script>
+<script src="vrmt/components/render/on-escape-directive.js" type="text/javascript"></script>
+<script src="vrmt/components/render/mw-select-renderer-directive.js" type="text/javascript"></script>
+
+<script src="vrmt/map/map-controller.js" type="text/javascript"></script>
+<script src="vrmt/components/render/render-utilities.js" type="text/javascript"></script>
+<script src="vrmt/assessment/assessment-editor.controller.js" type="text/javascript"></script>
+<script src="vrmt/assessment/assessment-view-controller.js" type="text/javascript"></script>
+<script src="vrmt/sidebar/sidebar-controller.js" type="text/javascript"></script>
+<script src="vrmt/sidebar/assess-controller.js" type="text/javascript"></script>
+<script src="vrmt/configuration/assessment-factor-config-controller.js" type="text/javascript"></script>
+<script src="vrmt/location/add-assessment-location-controller.js" type="text/javascript"></script>
+
 
 <script src="main-app.js" type="text/javascript"></script>
 <!-- endbuild -->

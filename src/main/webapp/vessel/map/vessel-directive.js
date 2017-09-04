@@ -325,9 +325,9 @@
 
                 var onclickKey = map.on('singleclick', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
-                    var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+                    var hitThis = map.hasFeatureAtPixel(pixel, {layerFilter : function (layerCandidate) {
                         return layerCandidate === vesselLayer;
-                    });
+                    }});
 
                     if (hitThis) {
                         var feature = vesselLayer.getSource().getClosestFeatureToCoordinate(e.coordinate);
@@ -345,10 +345,10 @@
                         map.removeLayer(vesselLayer);
                     }
                     if (onclickKey) {
-                        map.unByKey(onclickKey);
+                        ol.Observable.unByKey(onclickKey);
                     }
                     if (resolutionHandle && map.getView()) {
-                        map.getView().unByKey(resolutionHandle);
+                        ol.Observable.unByKey(resolutionHandle);
                     }
                 });
             })

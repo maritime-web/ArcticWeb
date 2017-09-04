@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .service('RiskFactorAssessorService', RiskFactorAssessorService);
 
-    RiskFactorAssessorService.$inject = ['$q', '$window', '$timeout', '$rootScope', 'NotifyService', 'Events', 'RouteFactory'];
+    RiskFactorAssessorService.$inject = ['$q', '$window', '$timeout', '$rootScope', 'NotifyService', 'VrmtEvents', 'RouteFactory'];
 
-    function RiskFactorAssessorService($q, $window, $timeout, $rootScope, NotifyService, Events, RouteFactory) {
+    function RiskFactorAssessorService($q, $window, $timeout, $rootScope, NotifyService, VrmtEvents, RouteFactory) {
         this.chooseOption = chooseOption;
 
         function chooseOption(assessmentLocation, riskFactor) {
@@ -62,7 +62,7 @@
             }
         }
 
-        NotifyService.subscribe($rootScope, Events.RouteChanged, function (event, newRoute) {
+        NotifyService.subscribe($rootScope, VrmtEvents.RouteChanged, function (event, newRoute) {
             route = RouteFactory.create(newRoute);
         });
     }

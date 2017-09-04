@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("SidebarController", SidebarController);
 
-    SidebarController.$inject = ['$scope', 'RiskAssessmentService', 'RouteService', 'ScheduleService', 'NotifyService', 'Events'];
+    SidebarController.$inject = ['$scope', 'RiskAssessmentService', 'RouteService', 'ScheduleService', 'NotifyService', 'VrmtEvents'];
 
-    function SidebarController($scope, RiskAssessmentService, RouteService, ScheduleService, NotifyService, Events) {
+    function SidebarController($scope, RiskAssessmentService, RouteService, ScheduleService, NotifyService, VrmtEvents) {
         var vm = this;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
@@ -55,7 +55,7 @@
         }
 
         CompletedAssessmentView.prototype.showDetails = function () {
-            NotifyService.notify(Events.OpenAssessmentView, this.assessment);
+            NotifyService.notify(VrmtEvents.OpenAssessmentView, this.assessment);
         };
 
         function toggleVisibility() {
@@ -63,7 +63,7 @@
         }
 
         function configure() {
-            NotifyService.notify(Events.OpenAssessmentFactorEditor);
+            NotifyService.notify(VrmtEvents.OpenAssessmentFactorEditor);
         }
 
         function routeDropdownClicked() {
@@ -91,19 +91,19 @@
             });
         }
 
-        NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
+        NotifyService.subscribe($scope, VrmtEvents.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
             vm.meta.routeView = new RouteView(newRoute);
             loadCompletedAssessments();
         }
 
-        NotifyService.subscribe($scope, Events.VesselLoaded, onVesselLoaded);
+        NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, newVessel) {
             vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
         }
 
 
-        NotifyService.subscribe($scope, Events.AssessmentCompleted, loadCompletedAssessments);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, loadCompletedAssessments);
 
         function loadCompletedAssessments() {
             RiskAssessmentService.getCompletedAssessments()

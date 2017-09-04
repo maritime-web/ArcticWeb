@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessController", AssessController);
 
-    AssessController.$inject = ['$scope', '$timeout', '$interval', 'RiskAssessmentService', 'NotifyService', 'Events', 'growl', 'RouteFactory'];
+    AssessController.$inject = ['$scope', '$timeout', '$interval', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', 'growl', 'RouteFactory'];
 
-    function AssessController($scope, $timeout, $interval, RiskAssessmentService, NotifyService, Events, growl, RouteFactory) {
+    function AssessController($scope, $timeout, $interval, RiskAssessmentService, NotifyService, VrmtEvents, growl, RouteFactory) {
         var vm = this;
         vm.active = false;
         vm.currentLocationAssessment = null;
@@ -38,7 +38,7 @@
         }
 
         function addCurrentPositionAsRouteLocationThenStartAssessment() {
-            unSubscribeRouteLocationCreated = NotifyService.subscribe($scope, Events.RouteLocationCreated, function () {
+            unSubscribeRouteLocationCreated = NotifyService.subscribe($scope, VrmtEvents.RouteLocationCreated, function () {
                 startAssessment();
                 onAddRouteLocationFinished();
             });
@@ -52,14 +52,14 @@
                 }
             };
 
-            NotifyService.notify(Events.AddRouteLocation, addRouteLocationEvent)
+            NotifyService.notify(VrmtEvents.AddRouteLocation, addRouteLocationEvent)
         }
 
         function startAssessment() {
             RiskAssessmentService.startNewAssessment()
                 .then(function (currentAssessment) {
                     growl.info("Started new risk assesssment");
-                    NotifyService.notify(Events.NewAssessmentStarted, currentAssessment);
+                    NotifyService.notify(VrmtEvents.NewAssessmentStarted, currentAssessment);
                 })
                 .catch(function (e) {
                     growl.error("<p>Unable to start new risk assessment:</p>" + e.message);
@@ -71,7 +71,7 @@
             RiskAssessmentService.endAssessment()
                 .then(function () {
                     growl.success("Risk assessment saved");
-                    NotifyService.notify(Events.AssessmentCompleted);
+                    NotifyService.notify(VrmtEvents.AssessmentCompleted);
                 })
                 .catch(function (e) {
                     growl.error(e.message);
@@ -83,7 +83,7 @@
             RiskAssessmentService.discardAssessment()
                 .then(function () {
                     growl.info("Risk assessment discarded");
-                    NotifyService.notify(Events.AssessmentDiscarded);
+                    NotifyService.notify(VrmtEvents.AssessmentDiscarded);
                 })
                 .catch(function (e) {
                     growl.error(e.message);
@@ -101,26 +101,26 @@
             this.valid = assessment.scores.length > 0;
 
             this.newAssessment = function () {
-                NotifyService.notify(Events.RouteLocationChosen, this.location);
-                NotifyService.notify(Events.OpenAssessmentEditor);
+                NotifyService.notify(VrmtEvents.RouteLocationChosen, this.location);
+                NotifyService.notify(VrmtEvents.OpenAssessmentEditor);
             };
 
             this.deleteLocation = function () {
                 var locationToDelete = this.location;
                 RiskAssessmentService.deleteLocation(locationToDelete.id)
                     .then(function (updatedAssessment) {
-                        NotifyService.notify(Events.AssessmentUpdated, updatedAssessment);
+                        NotifyService.notify(VrmtEvents.AssessmentUpdated, updatedAssessment);
                     });
             };
 
             this.choose = function () {
-                NotifyService.notify(Events.RouteLocationChosen, this.location);
+                NotifyService.notify(VrmtEvents.RouteLocationChosen, this.location);
             }
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentCompleted, handleNoCurrentAssessment);
-        NotifyService.subscribe($scope, Events.AssessmentDiscarded, handleNoCurrentAssessment);
-        NotifyService.subscribe($scope, Events.RouteLocationsLoaded, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, handleNoCurrentAssessment);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationsLoaded, handleNoCurrentAssessment);
         function handleNoCurrentAssessment() {
             vm.assessing = false;
             vm.assessmentViews = [];
@@ -130,7 +130,7 @@
             }
         }
 
-        NotifyService.subscribe($scope, Events.NewAssessmentStarted, onNewAssessmentStarted);
+        NotifyService.subscribe($scope, VrmtEvents.NewAssessmentStarted, onNewAssessmentStarted);
 
         function onNewAssessmentStarted(event, assessment) {
             onCurrentAssessmentLoaded(event, assessment);
@@ -142,7 +142,7 @@
             vm.assessmentStartedAt = currentAssessment.started.fromNow();
         }
 
-        NotifyService.subscribe($scope, Events.AssessmentUpdated, onCurrentAssessmentLoaded);
+        NotifyService.subscribe($scope, VrmtEvents.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded(event, assessment) {
             currentAssessment = assessment;
             vm.assessing = true;
@@ -170,7 +170,7 @@
             }
         }
 
-        NotifyService.subscribe($scope, Events.RouteLocationChosen, onRouteLocationChosen);
+        NotifyService.subscribe($scope, VrmtEvents.RouteLocationChosen, onRouteLocationChosen);
         function onRouteLocationChosen(event, chosen) {
             vm.currentLocationAssessment = getViewForRouteLocation(chosen);
         }
@@ -181,18 +181,18 @@
             })
         }
 
-        NotifyService.subscribe($scope, Events.RouteChanged, onRouteChange);
+        NotifyService.subscribe($scope, VrmtEvents.RouteChanged, onRouteChange);
         function onRouteChange(event, newRoute) {
             currentRoute = RouteFactory.create(newRoute);
             vm.isInAssessable = currentRoute.isCompleted();
             vm.newAssessmentNotPossibleWarning = vm.isInAssessable ? "Please note. It is not possible to start a new assessment on an already completed route!" : undefined;
         }
 
-        NotifyService.subscribe($scope, Events.VesselLoaded, function (event, v) {
+        NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, function (event, v) {
             vessel = v;
         });
 
-        NotifyService.subscribe($scope, Events.AddRouteLocationDiscarded, onAddRouteLocationFinished);
+        NotifyService.subscribe($scope, VrmtEvents.AddRouteLocationDiscarded, onAddRouteLocationFinished);
         function onAddRouteLocationFinished() {
             if (unSubscribeRouteLocationCreated) {
                 unSubscribeRouteLocationCreated();

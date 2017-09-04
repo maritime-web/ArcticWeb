@@ -11,7 +11,7 @@
             return {
                 restrict: 'E',
                 replace: true,
-                require: '^olMap',
+                require: '^openlayerParent',
                 template:
                     "<span class='map-scale-line'></span>",
                 scope: {

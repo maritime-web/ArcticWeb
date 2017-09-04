@@ -25,6 +25,11 @@
         'embryo.aisinformation',
         'embryo.areaselect.control',
 
+        'vrmt.render',
+        'vrmt.map',
+        'vrmt.model',
+        'vrmt.app',
+
         /* 3rd-party modules */
         'ui.bootstrap',
         'angular-growl'

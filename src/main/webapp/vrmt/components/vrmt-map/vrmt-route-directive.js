@@ -3,13 +3,13 @@
 
     angular
         .module('vrmt.map')
-        .directive('route', route);
+        .directive('vrmtRoute', route);
 
-    route.$inject = ['NotifyService', 'Events', 'RouteFactory'];
-    function route(NotifyService, Events, RouteFactory) {
+    route.$inject = ['NotifyService', 'VrmtEvents', 'RouteFactory', 'OpenlayerService'];
+    function route(NotifyService, VrmtEvents, RouteFactory, OpenlayerService) {
         return {
             restrict: 'E',
-            require: '^olMap',
+            require: '^openlayerParent',
             scope: {},
             link: link
         };
@@ -18,7 +18,7 @@
             var scope = arguments[0];
             var ctrl = arguments[3];
             var route = null;
-            NotifyService.subscribe(scope, Events.RouteChanged, addOrReplaceRoute);
+            NotifyService.subscribe(scope, VrmtEvents.RouteChanged, addOrReplaceRoute);
             var routeLayer;
             var pointerInteraction;
             var snapInteraction;
@@ -27,6 +27,8 @@
 
             var source = new ol.source.Vector();
             routeLayer = new ol.layer.Vector({source: source});
+            routeLayer.set("Feature", "VRMT");
+
 
             function addOrReplaceRoute() {
                 route = RouteFactory.create(arguments[1]);
@@ -139,6 +141,28 @@
                     onDestroy(map);
                 });
 
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureActive, function () {
+                    if (!pointerInteraction) {
+                        addPointerInteraction(map);
+                    }
+                    if (!snapInteraction) {
+                        addSnapInteraction(map);
+                    }
+                    routeLayer.setVisible(true);
+                });
+
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureInActive, function () {
+                    if (pointerInteraction) {
+                        map.removeInteraction(pointerInteraction);
+                        pointerInteraction = undefined;
+                    }
+                    if (snapInteraction) {
+                        map.removeInteraction(snapInteraction);
+                        snapInteraction = undefined;
+                    }
+                    routeLayer.setVisible(false);
+                });
+
                 addPointerInteraction(map);
 
                 //snap after other interactions in order for its map browser event handlers
@@ -152,17 +176,18 @@
                 pointerInteraction = new ol.interaction.Pointer({handleEvent: function (e) {
 
                     var pixel =  e.pixel;
-                    var hitThis = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
+
+                    var hitThis = map.hasFeatureAtPixel(pixel, {hitTolerance: 2, layerFilter: function (layerCandidate) {
                         return layerCandidate === routeLayer;
-                    });
+                    }});
 
-                    var hitOther = map.hasFeatureAtPixel(pixel, function (layerCandidate) {
-                        return layerCandidate !== routeLayer;
-                    });
+                    var hitOther = map.hasFeatureAtPixel(pixel, {layerFilter: function (layerCandidate) {
+                        return layerCandidate !== routeLayer && layerCandidate.get("Feature") === "VRMT"  && e.type === "singleclick";
+                    }});
 
-                    if (hitThis && !hitOther && e.type == "singleclick") {
+                    if (hitThis && !hitOther && e.type === "singleclick") {
                         var coord = ol.proj.toLonLat(e.coordinate, undefined);
-                        NotifyService.notify(Events.AddRouteLocation, {
+                        NotifyService.notify(VrmtEvents.AddRouteLocation, {
                             route: {
                                 lon: coord[0],
                                 lat: coord[1]

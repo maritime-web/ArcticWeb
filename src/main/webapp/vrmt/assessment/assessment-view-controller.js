@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("AssessmentViewController", AssessmentViewController);
 
-    AssessmentViewController.$inject = ['$scope', 'NotifyService', 'Events', 'growl'];
+    AssessmentViewController.$inject = ['$scope', 'NotifyService', 'VrmtEvents', 'growl'];
 
-    function AssessmentViewController($scope, NotifyService, Events, growl) {
+    function AssessmentViewController($scope, NotifyService, VrmtEvents, growl) {
         var vm = this;
         vm.hide = true;
         vm.dismiss = dismiss;
@@ -24,7 +24,7 @@
             this.time = moment(locationAssessment.time).format("YYYY-MM-DD HH:mm");
         }
 
-        NotifyService.subscribe($scope, Events.OpenAssessmentView, onOpen);
+        NotifyService.subscribe($scope, VrmtEvents.OpenAssessmentView, onOpen);
 
         function onOpen(event, assessment) {
             vm.hide = false;
