@@ -5,9 +5,9 @@
         .module('vrmt.map')
         .directive('vrmtVessel', vessel);
 
-    vessel.$inject = ['NotifyService', 'VrmtEvents'];
+    vessel.$inject = ['NotifyService', 'VrmtEvents', 'OpenLayerStyleFactory'];
 
-    function vessel(NotifyService, VrmtEvents) {
+    function vessel(NotifyService, VrmtEvents, OpenLayerStyleFactory) {
         var directive = {
             restrict: 'E',
             require: '^openlayerParent',
@@ -22,49 +22,35 @@
 
             function createVesselLayer() {
                 var layer = new ol.layer.Vector({
-                    source: new ol.source.Vector(),
-                    style: createVesselStyle()
+                    source: new ol.source.Vector()
                 });
                 layer.set("Feature", "VRMT");
                 return layer;
             }
 
-            function createVesselStyle() {
-                return new ol.style.Style({
-                    image: new ol.style.Icon(({
-                        anchor: [0.85, 0.5],
-                        opacity: 0.85,
-                        src: 'img/vessel_purple.png'
-                    }))
-                });
-            }
-
             function addOrReplaceVessel(event, vessel) {
                 if (vessel && vessel.aisVessel) {
-                    addOrReplaceVesselFeature(vessel.aisVessel.lat, vessel.aisVessel.lon);
-                    updateStyle(((vessel.aisVessel.cog - 90) * (Math.PI / 180)));
+                    addOrReplaceVesselFeature(vessel);
                 }
             }
 
-            function addOrReplaceVesselFeature(lat, lon) {
+            function addOrReplaceVesselFeature(vesselDetails) {
+                var lat = vesselDetails.aisVessel.lat;
+                var lon = vesselDetails.aisVessel.lon;
+
                 var source = vesselLayer.getSource();
                 source.clear();
                 var vesselFeature = new ol.Feature({
                     geometry: new ol.geom.Point(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'))
                 });
-
+                vesselFeature.set("vessel", vesselDetails.overview, true);
+                vesselFeature.setStyle(OpenLayerStyleFactory.createVesselStyleFunction(vesselDetails.mmsi, vesselDetails.mmsi));
                 source.addFeature(vesselFeature);
             }
 
-            function updateStyle(radian) {
-                vesselLayer.getStyle().getImage().setRotation(radian);
-            }
-
-            var olScope = ctrl.getOpenlayersScope();
-            olScope.getMap().then(function (map) {
-                map.addLayer(vesselLayer);
-
-                var onclickKey = map.on('singleclick', function (e) {
+            var onclickKey = null;
+            function createClickListener(map) {
+                onclickKey = map.on('singleclick', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
 
                     var layerFilter = function (layerCandidate) {
@@ -79,7 +65,30 @@
                         });
                     }
                     scope.$apply();
+                });
+            }
 
+            var olScope = ctrl.getOpenlayersScope();
+            olScope.getMap().then(function (map) {
+                map.addLayer(vesselLayer);
+
+                if (NotifyService.hasOccurred(VrmtEvents.VRMTFeatureActive)) {
+                    createClickListener(map);
+                }
+
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureActive, function () {
+                    if (!onclickKey) {
+                        createClickListener(map);
+                    }
+                    vesselLayer.setVisible(true);
+                });
+
+                NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureInActive, function () {
+                    if (onclickKey) {
+                        ol.Observable.unByKey(onclickKey);
+                        onclickKey = null;
+                    }
+                    vesselLayer.setVisible(false);
                 });
 
                 // Clean up when the scope is destroyed

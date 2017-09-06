@@ -139,9 +139,9 @@
                     condition: function (e) {
                         if (ol.events.condition.singleClick(e)) {
                             var map = e.map;
-                            return map.hasFeatureAtPixel(e.pixel, function (layerCandidate) {
+                            return map.hasFeatureAtPixel(e.pixel, {layerFilter: function (layerCandidate) {
                                 return layerCandidate === locationLayer;
-                            });
+                            }});
                         }
                         return false;
                     }

@@ -22,8 +22,9 @@
         vm.showRouteChoices = showRouteChoices;
         vm.routeViews = [];
         vm.meta = {
-            vesselName: $scope.mmsi,
-            routeView: {id: null, name: null}
+            mmsi: $scope.mmsi,
+            vesselName: null,
+            routeView: {routeId: null, name: null}
         };
 
         /**
@@ -84,7 +85,7 @@
                         return voyage.route ? new RouteView(voyage) : null;
                     })
                     .filter(function (elem) {
-                        return elem != null;
+                        return elem !== null;
                     });
             }, function (error) {
                 console.log(error);
@@ -101,7 +102,6 @@
         function onVesselLoaded(event, newVessel) {
             vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
         }
-
 
         NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, loadCompletedAssessments);
 

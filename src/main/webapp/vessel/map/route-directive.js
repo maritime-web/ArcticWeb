@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    angular.module('embryo.vessel.map', ['embryo.geo.services']);
+    angular.module('embryo.vessel.map', ['embryo.geo.services', 'embryo.components.vessel']);
 
     angular
         .module('embryo.vessel.map')
@@ -34,7 +34,7 @@
                 arrowImg: 'img/arrow_red_route.svg'
             };
 
-            var selectedRouteOpteions = {
+            var selectedRouteOptions = {
                 source: selectedRouteSource,
                 routeColor: '#3E7D1D',
                 arrowImg: 'img/arrow_green_route.svg'
@@ -66,19 +66,27 @@
 
             NotifyService.subscribe(scope, VesselEvents.ShowRoute, function (event, routeId) {
                 RouteService.getRoute(routeId, function (route) {
-                    selectedRouteOpteions.source.clear();
-                    addRoute(route, selectedRouteOpteions);
+                    selectedRouteOptions.source.clear();
+                    addRoute(route, selectedRouteOptions);
                     selectedRouteLayer.setVisible(true);
                 });
             });
 
             NotifyService.subscribe(scope, VesselEvents.ShowRoutes, function (event, routes) {
-                selectedRouteOpteions.source.clear();
+                selectedRouteOptions.source.clear();
                 routes.forEach(function (r) {
-                    addRoute(r, selectedRouteOpteions);
+                    addRoute(r, selectedRouteOptions);
                 });
                 selectedRouteLayer.setVisible(true);
                 NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, selectedRouteLayer)
+            });
+
+            NotifyService.subscribe(scope, VesselEvents.VesselFeatureActive, function () {
+                myRouteLayer.setVisible(true);
+            });
+            NotifyService.subscribe(scope, VesselEvents.VesselFeatureInActive, function () {
+                myRouteLayer.setVisible(false);
+                selectedRouteLayer.setVisible(false);
             });
 
             function addRoute(route, options) {

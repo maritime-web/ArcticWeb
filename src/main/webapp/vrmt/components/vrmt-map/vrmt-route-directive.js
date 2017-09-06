@@ -5,8 +5,8 @@
         .module('vrmt.map')
         .directive('vrmtRoute', route);
 
-    route.$inject = ['NotifyService', 'VrmtEvents', 'RouteFactory', 'OpenlayerService'];
-    function route(NotifyService, VrmtEvents, RouteFactory, OpenlayerService) {
+    route.$inject = ['NotifyService', 'VrmtEvents', 'RouteFactory', 'OpenlayerService', 'OpenLayerStyleFactory'];
+    function route(NotifyService, VrmtEvents, RouteFactory, OpenlayerService, OpenLayerStyleFactory) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -40,7 +40,7 @@
                     var coord = [wp.longitude, wp.latitude];
                     var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
                     routeFeature.getGeometry().appendCoordinate(mercatorCoord);
-                    source.addFeature(createWaypointFeature(mercatorCoord));
+                    // source.addFeature(createWaypointFeature(mercatorCoord));
                 });
 
                 var vesselLocationFeature = createVesselLocationFeature();
@@ -54,6 +54,7 @@
                 /** @type {ol.geom.GeometryLayout|string} */
                 var xy = "XY";
                 var line = new ol.geom.LineString([], xy);
+/*
                 var style = new ol.style.Style({
                     stroke: new ol.style.Stroke({
                         color: '#FF0000',
@@ -61,9 +62,13 @@
                         lineDash: [5, 5, 0, 5]
                     })
                 });
+*/
                 var feature = new ol.Feature();
                 feature.setGeometry(line);
-                feature.setStyle(style);
+                feature.set('routeColor', '#FF0000', true);
+                feature.set('arrowImg', 'img/arrow_red_route.svg', true);
+                // feature.setStyle(style);
+                feature.setStyle(OpenLayerStyleFactory.createRouteStyleFunction());
                 return feature;
             }
 
@@ -163,11 +168,14 @@
                     routeLayer.setVisible(false);
                 });
 
-                addPointerInteraction(map);
+                if (NotifyService.hasOccurred(VrmtEvents.VRMTFeatureActive)) {
+                    addPointerInteraction(map);
 
-                //snap after other interactions in order for its map browser event handlers
-                // to be fired first. It's handlers are responsible of doing the snapping.
-                addSnapInteraction(map);
+                    //snap after other interactions in order for its map browser event handlers
+                    // to be fired first. It's handlers are responsible of doing the snapping.
+                    addSnapInteraction(map);
+                }
+
                 routeLayer.setVisible(true);
                 map.addLayer(routeLayer);
             });

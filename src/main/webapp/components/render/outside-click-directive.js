@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('vrmt.render')
+        .module('embryo.components.render')
         .directive("outsideClick", outsideClick);
 
     outsideClick.$inject = ['$document'];

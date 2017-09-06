@@ -5,6 +5,7 @@
         [
             'vrmt.model',
 
+            'embryo.components.vessel',
             'embryo.components.openlayer',
             'embryo.components.notification'
         ])

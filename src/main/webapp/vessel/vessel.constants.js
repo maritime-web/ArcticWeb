@@ -3,16 +3,18 @@
 
     angular.module('embryo.vessel')
         .constant('VesselEvents', {
-            VesselsLoaded: 'VesselsLoaded',
-            VesselClicked: 'VesselClicked',
-            VesselSelected: 'VesselSelected',
-            ShowNearestVessels: 'ShowNearestVessels',
-            HideNearestVessels: 'HideNearestVessels',
-            HideExtraVesselsInfo: 'HideExtraVesselsInfo',
-            ShowDistanceCircles: 'ShowDistanceCircles',
-            HideDistanceCircles: 'HideDistanceCircles',
-            ShowRoute: 'ShowRoute',
-            ShowRoutes: 'ShowRoutes',
-            HideRoute: 'HideRoute'
+            VesselFeatureActive: 'Vessel.FeatureActive',
+            VesselFeatureInActive: 'Vessel.FeatureInActive',
+            VesselsLoaded: 'Vessel.VesselsLoaded',
+            VesselClicked: 'Vessel.VesselClicked',
+            VesselSelected: 'Vessel.VesselSelected',
+            ShowNearestVessels: 'Vessel.ShowNearestVessels',
+            HideNearestVessels: 'Vessel.HideNearestVessels',
+            HideExtraVesselsInfo: 'Vessel.HideExtraVesselsInfo',
+            ShowDistanceCircles: 'Vessel.ShowDistanceCircles',
+            HideDistanceCircles: 'Vessel.HideDistanceCircles',
+            ShowRoute: 'Vessel.ShowRoute',
+            ShowRoutes: 'Vessel.ShowRoutes',
+            HideRoute: 'Vessel.HideRoute'
         });
 })();

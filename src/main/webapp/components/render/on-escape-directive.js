@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('vrmt.render')
+        .module('embryo.components.render')
         .directive("onEscape", onEscape);
 
     onEscape.$inject = ['$document'];

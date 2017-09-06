@@ -379,6 +379,7 @@ module.exports = function (grunt) {
                         'src/main/webapp/js/cached/map/cdn.cloudflare/bootstrap/**',
                         'src/main/webapp/partials/common/*.html',
                         'src/main/webapp/vessel/**/*.html',
+                        'src/main/webapp/vrmt/**/*.html',
                         'src/main/webapp/img/**/*.png',
                         'src/main/webapp/img/**/*.jpg',
                         'src/main/webapp/img/**/*.gif',

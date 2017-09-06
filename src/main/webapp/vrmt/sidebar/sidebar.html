@@ -16,34 +16,45 @@
                     </h4>
                 </div>
                 <div class="panel-body">
-                    <div class="text-with-button">
-                        <div class="col-xs-8">
-                            <img src="img/vessel_purple.png">
-                            <span style="padding-left: 10px;">{{sidebar.meta.vesselName}}</span>
-                        </div>
-                        <div class="col-xs-4">
-                            <button ng-click="sidebar.configure()" class="btn btn-primary btn-xs">
-                                Configure
-                            </button>
-                        </div>
-                    </div>
-                    <div class="text-with-button">
-                        <div class="col-xs-8">
-                            Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with estimated
-                            departure on {{sidebar.meta.routeView.etaDep}}
-                        </div>
-                        <div class="col-xs-4">
-                            <div mw-select-renderer>
-                                <button class="btn btn-primary btn-xs" ng-click="sidebar.routeDropdownClicked()">
-                                    Change
+                    <div ng-if="sidebar.meta.mmsi">
+                        <div class="text-with-button">
+                            <div class="col-xs-8">
+                                <img src="img/vessel_purple.png">
+                                <span style="padding-left: 10px;">{{sidebar.meta.vesselName || 'Loading...'}}</span>
+                            </div>
+                            <div class="col-xs-4">
+                                <button ng-click="sidebar.configure()" class="btn btn-primary btn-xs">
+                                    Configure
                                 </button>
-                                <div class="btn-group-vertical button-dropdown">
-                                    <button class="btn btn-default btn-xs" ng-click="routeView.choose()"
-                                            ng-repeat="routeView in sidebar.routeViews">
-                                        {{routeView.name}}
+                            </div>
+                        </div>
+                        <div class="text-with-button" ng-if="sidebar.meta.routeView.routeId">
+                            <div class="col-xs-8">
+                                Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with
+                                estimated
+                                departure on {{sidebar.meta.routeView.etaDep}}
+                            </div>
+                            <div class="col-xs-4">
+                                <div mw-select-renderer>
+                                    <button class="btn btn-primary btn-xs" ng-click="sidebar.routeDropdownClicked()">
+                                        Change
                                     </button>
+                                    <div class="btn-group-vertical button-dropdown">
+                                        <button class="btn btn-default btn-xs" ng-click="routeView.choose()"
+                                                ng-repeat="routeView in sidebar.routeViews">
+                                            {{routeView.name}}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="col-xs-12" ng-if="!sidebar.meta.routeView.routeId">
+                            Please create a voyage with routes in the Schedule menu.
+                        </div>
+                    </div>
+                    <div ng-if="!sidebar.meta.mmsi">
+                        <div class="col-xs-12">
+                            To make Risk Assessments attach an MMSI to the ArcticWeb account and define one or more routes.
                         </div>
                     </div>
                 </div>

@@ -1,47 +1,10 @@
 embryo.vessel = {};
 
-/*
-embryo.eventbus.VesselSelectedEvent = function(id) {
-    var event = jQuery.Event("VesselSelectedEvent");
-    event.vesselId = id;
-    return event;
-};
-
-embryo.eventbus.VesselUnselectedEvent = function() {
-    var event = jQuery.Event("VesselUnselectedEvent");
-    return event;
-};
-
-embryo.eventbus.registerShorthand(embryo.eventbus.VesselSelectedEvent, "vesselSelected");
-embryo.eventbus.registerShorthand(embryo.eventbus.VesselUnselectedEvent, "vesselUnselected");
-*/
-
 //TODO REMOVE ASAP
 embryo.global = {};
 embryo.global.vessels = null;
 
 $(function() {
-
-    var vesselLayer;
-    var selectedId = null;
-
-/*
-    embryo.postLayerInitialization(function(){
-        vesselLayer = new VesselLayer({clusteringEnabled: true});
-        addLayerToMap("vessel", vesselLayer, embryo.map);
-
-
-        vesselLayer.select(function(id) {
-            if (selectedId != id && selectedId != null)
-                embryo.eventbus.fireEvent(embryo.eventbus.VesselUnselectedEvent());
-            if (id)
-                embryo.eventbus.fireEvent(embryo.eventbus.VesselSelectedEvent(id));
-            else
-                embryo.eventbus.fireEvent(embryo.eventbus.VesselUnselectedEvent());
-            selectedId = id;
-        });
-    })
-*/
 
     embryo.vessel.lookupVessel = function(id) {
         for ( var i in embryo.global.vessels) {
@@ -238,9 +201,15 @@ $(function() {
                     $scope.selected.sections = initSelectedSections();
                 }, true);
 
+                /**
+                 * Clean up
+                 */
                 $scope.$on("$destroy", function() {
                     VesselInformation.hideAll();
                     NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
+                    console.log("Cleaning up VESSEL Feature");
+                    NotifyService.notify(VesselEvents.VesselFeatureInActive, moment());
+
                 });
 
                 NotifyService.subscribe($scope, VesselEvents.VesselClicked, onVesselChosen);
@@ -304,7 +273,7 @@ $(function() {
                     return sections;
                 }
 
-
+                NotifyService.notify(VesselEvents.VesselFeatureActive, moment());
             } ]);
 
     module.controller("SearchVesselController", [ '$scope', 'VesselService', 'NotifyService', 'VesselEvents',  function($scope, VesselService, NotifyService, VesselEvents) {

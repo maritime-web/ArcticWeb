@@ -4,33 +4,33 @@
     angular
         .module('vrmt.app')
         .constant('VrmtEvents', {
-            VRMTFeatureActive: "VRMTFeatureActive",
-            VRMTFeatureInActive: "VRMTFeatureInActive",
-            LocationAssessmentCreated: "LocationAssessmentCreated",
-            LocationAssessmentDeleted: "LocationAssessmentDeleted",
-            AddRouteLocation: "AddRouteLocation",
-            AddRouteLocationDiscarded: "AddRouteLocationDiscarded",
-            RouteLocationCreated: "RouteLocationCreated",
-            RouteLocationDeleted: "RouteLocationDeleted",
-            RouteChanged: "RouteChanged",
-            VesselLoaded: "VesselLoaded",
-            OpenAssessmentEditor: "OpenAssessmentEditor",
-            OpenAssessmentView: "OpenAssessmentView",
-            OpenAssessmentFactorEditor: "OpenAssessmentFactorEditor",
-            RouteLocationChosen: "RouteLocationChosen",
-            RouteLocationClicked: "RouteLocationClicked",
-            VesselClicked: "VesselClicked",
-            RouteLocationsLoaded: "RouteLocationsLoaded",
-            AssessmentUpdated: "AssessmentUpdated",
-            NewAssessmentStarted: "NewAssessmentStarted",
-            AssessmentCompleted: "AssessmentCompleted",
-            AssessmentDiscarded: "AssessmentDiscarded"
+            VRMTFeatureActive: "VRMT.FeatureActive",
+            VRMTFeatureInActive: "VRMT.FeatureInActive",
+            LocationAssessmentCreated: "VRMT.LocationAssessmentCreated",
+            LocationAssessmentDeleted: "VRMTL.ocationAssessmentDeleted",
+            AddRouteLocation: "VRMT.AddRouteLocation",
+            AddRouteLocationDiscarded: "VRMT.AddRouteLocationDiscarded",
+            RouteLocationCreated: "VRMT.RouteLocationCreated",
+            RouteLocationDeleted: "VRMT.RouteLocationDeleted",
+            RouteChanged: "VRMT.RouteChanged",
+            VesselLoaded: "VRMT.VesselLoaded",
+            OpenAssessmentEditor: "VRMT.OpenAssessmentEditor",
+            OpenAssessmentView: "VRMT.OpenAssessmentView",
+            OpenAssessmentFactorEditor: "VRMT.OpenAssessmentFactorEditor",
+            RouteLocationChosen: "VRMT.RouteLocationChosen",
+            RouteLocationClicked: "VRMT.RouteLocationClicked",
+            VesselClicked: "VRMT.VesselClicked",
+            RouteLocationsLoaded: "VRMT.RouteLocationsLoaded",
+            AssessmentUpdated: "VRMT.AssessmentUpdated",
+            NewAssessmentStarted: "VRMT.NewAssessmentStarted",
+            AssessmentCompleted: "VRMT.AssessmentCompleted",
+            AssessmentDiscarded: "VRMT.AssessmentDiscarded"
         })
         .controller("VrmtController", VrmtController);
 
-    VrmtController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', '$timeout', 'growl'];
+    VrmtController.$inject = ['$scope', '$interval', 'RouteService', 'VesselService', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', '$timeout', 'growl', 'ScheduleService'];
 
-    function VrmtController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, VrmtEvents, $timeout, growl) {
+    function VrmtController($scope, $interval, RouteService, VesselService, RiskAssessmentService, NotifyService, VrmtEvents, $timeout, growl, ScheduleService) {
         var vm = this;
         $scope.mmsi = null;
         vm.chosenRouteLocation = null;
@@ -40,7 +40,7 @@
         function initialize() {
             if (embryo.authentication.shipMmsi) {
                 $scope.mmsi = embryo.authentication.shipMmsi;
-                NotifyService.notify(VrmtEvents.VRMTFeatureActive);
+                NotifyService.notify(VrmtEvents.VRMTFeatureActive, moment());
                 //Make sure that all subscribers for vessel and route data have been registered before loading data
                 $timeout(function () {
                     $scope.$apply(function () {
@@ -66,7 +66,20 @@
                 console.log(v);
                 //Only change rute if we don't have one yet
                 var routeId = $scope.route ? $scope.route.id : v.additionalInformation.routeId;
-                loadRoute(routeId);
+                if (!routeId) { //No active route, choose one in the schedule
+                    ScheduleService.getYourSchedule($scope.mmsi, function (schedule) {
+                        var mapToRouteId = function (voyage) {return voyage.route ? voyage.route.id : null;};
+                        var voyagesWithoutRoutes = function (elem) {return elem !== null;};
+                        var routeIds = schedule.voyages.map(mapToRouteId).filter(voyagesWithoutRoutes);
+                        if (routeIds && routeIds.length > 0) {
+                            loadRoute(routeIds[0]);
+                        }
+                    });
+                } else {
+                    loadRoute(routeId);
+                }
+            }, function (error) {//todo identify timeout error
+                growl.error("Error loading vessel information: " + Array.isArray(error) ? error.toString() : '')
             });
         }
 
@@ -164,7 +177,7 @@
             $interval.cancel(stop);
             stop = undefined;
 
-            NotifyService.notify(VrmtEvents.VRMTFeatureInActive);
+            NotifyService.notify(VrmtEvents.VRMTFeatureInActive, moment());
         });
     }
 })();

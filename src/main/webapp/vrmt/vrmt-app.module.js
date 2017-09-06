@@ -13,6 +13,7 @@
             'vrmt.map',
             'vrmt.model',
 
+            'embryo.components.render',
             'embryo.authentication',
             'embryo.routeService',
             'embryo.vessel.service',
