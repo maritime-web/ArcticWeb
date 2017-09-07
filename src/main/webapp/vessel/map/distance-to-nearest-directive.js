@@ -40,6 +40,7 @@
 
             function createDistanceLayer() {
                 return new ol.layer.Vector({
+                    title: 'Distance to nearest vessels',
                     source: new ol.source.Vector()
                 });
             }

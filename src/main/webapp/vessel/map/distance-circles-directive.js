@@ -50,6 +50,7 @@
 
             function createCircleLayer() {
                 return new ol.layer.Vector({
+                    title: 'Distance circles',
                     source: new ol.source.Vector()
                 });
             }

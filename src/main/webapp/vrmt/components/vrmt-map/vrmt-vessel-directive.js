@@ -5,9 +5,9 @@
         .module('vrmt.map')
         .directive('vrmtVessel', vessel);
 
-    vessel.$inject = ['NotifyService', 'VrmtEvents', 'OpenLayerStyleFactory'];
+    vessel.$inject = ['NotifyService', 'VrmtEvents', 'OpenLayerStyleFactory', 'FeatureName'];
 
-    function vessel(NotifyService, VrmtEvents, OpenLayerStyleFactory) {
+    function vessel(NotifyService, VrmtEvents, OpenLayerStyleFactory, FeatureName) {
         var directive = {
             restrict: 'E',
             require: '^openlayerParent',
@@ -22,7 +22,12 @@
 
             function createVesselLayer() {
                 var layer = new ol.layer.Vector({
-                    source: new ol.source.Vector()
+                    title: 'VRMT Vessel',
+                    source: new ol.source.Vector(),
+                    context: {
+                        feature: FeatureName,
+                        name: 'Vessel'
+                    }
                 });
                 layer.set("Feature", "VRMT");
                 return layer;
@@ -74,6 +79,7 @@
 
                 if (NotifyService.hasOccurred(VrmtEvents.VRMTFeatureActive)) {
                     createClickListener(map);
+                    updateContextToActive();
                 }
 
                 NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureActive, function () {
@@ -81,6 +87,7 @@
                         createClickListener(map);
                     }
                     vesselLayer.setVisible(true);
+                    updateContextToActive();
                 });
 
                 NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureInActive, function () {
@@ -89,7 +96,20 @@
                         onclickKey = null;
                     }
                     vesselLayer.setVisible(false);
+                    updateContextToInActive();
                 });
+
+                function updateContextToActive() {
+                    var newContext = Object.assign({}, vesselLayer.get('context'));
+                    newContext.active = true;
+                    vesselLayer.set('context', newContext);
+                }
+
+                function updateContextToInActive() {
+                    var newContext = Object.assign({}, vesselLayer.get('context'));
+                    newContext.active = false;
+                    vesselLayer.set('context', newContext);
+                }
 
                 // Clean up when the scope is destroyed
                 scope.$on('$destroy', function () {

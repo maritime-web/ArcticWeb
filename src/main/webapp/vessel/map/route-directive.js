@@ -24,9 +24,15 @@
             var selectedRouteLayer;
 
             var myRouteSource = new ol.source.Vector();
-            myRouteLayer = new ol.layer.Vector({source: myRouteSource});
+            myRouteLayer = new ol.layer.Vector({
+                title: 'My Route',
+                source: myRouteSource
+            });
             var selectedRouteSource = new ol.source.Vector();
-            selectedRouteLayer = new ol.layer.Vector({source: selectedRouteSource});
+            selectedRouteLayer = new ol.layer.Vector({
+                title: 'Selected Route',
+                source: selectedRouteSource
+            });
 
             var myRouteOptions = {
                 source: myRouteSource,

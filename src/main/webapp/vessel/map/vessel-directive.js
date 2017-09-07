@@ -29,7 +29,12 @@
 
             function createVesselLayer() {
                 return new ol.layer.Vector({
-                    source: new ol.source.Vector()
+                    title: 'Vessels',
+                    source: new ol.source.Vector(),
+                    context: {
+                        feature: 'Vessel',
+                        name: 'Vessels'
+                    }
                 });
             }
 
@@ -200,12 +205,15 @@
 
                 if (NotifyService.hasOccurred(VesselEvents.VesselFeatureActive)) {
                     createVesselClickListener(map);
+                    updateContextToActive();
                 }
 
                 NotifyService.subscribe(scope, VesselEvents.VesselFeatureActive, function () {
                     if (!onclickKey) {
                         createVesselClickListener(map);
                     }
+                    updateContextToActive();
+                    vesselLayer.setVisible(true);
                 });
                 NotifyService.subscribe(scope, VesselEvents.VesselFeatureInActive, function () {
                     if (onclickKey) {
@@ -214,7 +222,20 @@
                     }
                     clickedMmsi = null;
                     replaceVessels();
+                    updateContextToInActive();
                 });
+
+                function updateContextToActive() {
+                    var newContext = Object.assign({}, vesselLayer.get('context'));
+                    newContext.active = true;
+                    vesselLayer.set('context', newContext);
+                }
+
+                function updateContextToInActive() {
+                    var newContext = Object.assign({}, vesselLayer.get('context'));
+                    newContext.active = false;
+                    vesselLayer.set('context', newContext);
+                }
 
                 // Clean up when the scope is destroyed
                 scope.$on('$destroy', function () {

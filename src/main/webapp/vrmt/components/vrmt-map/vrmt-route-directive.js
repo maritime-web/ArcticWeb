@@ -5,8 +5,8 @@
         .module('vrmt.map')
         .directive('vrmtRoute', route);
 
-    route.$inject = ['NotifyService', 'VrmtEvents', 'RouteFactory', 'OpenlayerService', 'OpenLayerStyleFactory'];
-    function route(NotifyService, VrmtEvents, RouteFactory, OpenlayerService, OpenLayerStyleFactory) {
+    route.$inject = ['NotifyService', 'VrmtEvents', 'RouteFactory', 'OpenlayerService', 'OpenLayerStyleFactory', 'FeatureName'];
+    function route(NotifyService, VrmtEvents, RouteFactory, OpenlayerService, OpenLayerStyleFactory, FeatureName) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -26,9 +26,16 @@
 
 
             var source = new ol.source.Vector();
-            routeLayer = new ol.layer.Vector({source: source});
-            routeLayer.set("Feature", "VRMT");
+            routeLayer = new ol.layer.Vector({
+                title: 'VRMT Route',
+                source: source,
+                context: {
+                    feature: FeatureName,
+                    name: 'Route'
+                }
 
+            });
+            routeLayer.set("Feature", "VRMT");
 
             function addOrReplaceRoute() {
                 route = RouteFactory.create(arguments[1]);

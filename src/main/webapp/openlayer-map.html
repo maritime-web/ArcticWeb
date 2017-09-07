@@ -61,6 +61,9 @@
 <div id="map">
     <openlayer-parent>
         <openlayer-mouse-position></openlayer-mouse-position>
+        <layer-switcher>
+            <div x-ng-include="'components/openlayer/layer-switcher.template.html'"></div>
+        </layer-switcher>
         <map-position></map-position>
         <vessel-zoom></vessel-zoom>
         <route requires-authenticated></route>
@@ -243,6 +246,7 @@
 <script src="components/openlayer/openlayer-parent-directive.js" type="text/javascript"></script>
 <script src="components/openlayer/map-position-directive.js" type="text/javascript"></script>
 <script src="components/openlayer/position.js" type="text/javascript"></script>
+<script src="components/openlayer/layer-switcher.directive.js" type="text/javascript"></script>
 
 <script src="components/notification/notification.module.js" type="text/javascript"></script>
 <script src="components/notification/notification-service.js" type="text/javascript"></script>
@@ -266,6 +270,7 @@
 <script src="vrmt/components/risk-assessment/risk-factor-assessor-service.js" type="text/javascript"></script>
 
 <script src="vrmt/components/vrmt-map/vrmt-map.module.js" type="text/javascript"></script>
+<script src="vrmt/components/vrmt-map/vrmt-map.constants.js" type="text/javascript"></script>
 <script src="vrmt/components/vrmt-map/vrmt-route-directive.js" type="text/javascript"></script>
 <script src="vrmt/components/vrmt-map/vrmt-vessel-directive.js" type="text/javascript"></script>
 <script src="vrmt/components/vrmt-map/vrmt-route-location-directive.js" type="text/javascript"></script>

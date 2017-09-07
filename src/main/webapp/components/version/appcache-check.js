@@ -19,10 +19,7 @@
         }
 
         if (appCache) {
-            console.log('APPCACHE STATUS');
-            console.log(getStatus());
             if (appCache.status === appCache.IDLE) {
-                console.log('INITIATE CHECK FOR NEW UPDATE');
                 appCache.update();
             }
             if (appCache.status === appCache.UPDATEREADY) {
@@ -54,19 +51,21 @@
             });
 
             // Checking for an update. Always the first event fired in the sequence.
-            appCache.addEventListener('checking', handleCacheEvent, false);
+            // appCache.addEventListener('checking', handleCacheEvent, false);
 
             // An update was found. The browser is fetching resources.
-            appCache.addEventListener('downloading', handleCacheEvent, false);
+            // appCache.addEventListener('downloading', handleCacheEvent, false);
 
             // Fired after the first download of the manifest.
+/*
             appCache.addEventListener('noupdate', function (e) {
                 handleCacheEvent(e);
             });
+*/
 
             // Fired if the manifest file returns a 404 or 410.
             // This results in the application cache being deleted.
-            appCache.addEventListener('obsolete', handleCacheEvent, false);
+            // appCache.addEventListener('obsolete', handleCacheEvent, false);
 
             // Fired for each resource listed in the manifest as it is being fetched.
             // appCache.addEventListener('progress', handleCacheEvent, false);

@@ -4,9 +4,9 @@
     angular.module('vrmt.map')
         .directive('vrmtRouteLocations', routeLocations);
 
-    routeLocations.$inject = ['NotifyService', 'VrmtEvents'];
+    routeLocations.$inject = ['NotifyService', 'VrmtEvents', 'FeatureName'];
 
-    function routeLocations(NotifyService, VrmtEvents) {
+    function routeLocations(NotifyService, VrmtEvents, FeatureName) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -24,8 +24,14 @@
 
             function createLocationLayer() {
                 var layer = new ol.layer.Vector({
+                    title: 'VRMT Route locations',
                     source: new ol.source.Vector(),
-                    style: createLocationStyleFunction()
+                    style: createLocationStyleFunction(),
+                    context: {
+                        feature: FeatureName,
+                        name: 'Route Locations'
+                    }
+
                 });
                 layer.set("Feature", "VRMT");
 
