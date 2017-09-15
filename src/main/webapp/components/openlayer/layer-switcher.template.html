@@ -1,19 +1,23 @@
 <div>
-    <div class="e-small-font" style="position: absolute;right: 240px;top: 50px;z-index: 150; width: 22px;">
-        <div style="background-color: rgba(0, 60, 136, 0.5); border-radius: 4px;padding: 1px;">
+    <div class="e-small-font layer-switcher-button">
+        <div>
             <a href=# style="color: white;" ng-click="toggle($event)">
                 <img src="img/layers.svg" width="19px" height="19px">
             </a>
         </div>
     </div>
-    <div class="e-small-font" style="position: absolute;right: 240px;top: 80px;z-index: 150; width: 230px;">
+    <div class="layer-switcher e-small-font">
         <div ng-hide="hidden" on-escape="hide()" outside-click="hide()">
-            <div class="container-fluid"
-                 style="background-color: rgba(0, 60, 136, 0.5);color: white;border-radius: 4px;">
+            <div class="container-fluid">
                 <div class="row" ng-repeat="feature in features">
                     <div class="col-xs-12">
+
                         <h5>{{feature}}</h5>
-                        <div class="checkbox" ng-class="{disabled: isActive(feature)}" ng-repeat="layer in featuresLayers.get(feature)">
+
+                        <div class="checkbox"
+                             ng-class="{disabled: isActive(feature)}"
+                             ng-repeat="layer in featuresLayers.get(feature)">
+
                             <label for="{{layer.name}}">
                                 <input type="checkbox"
                                        id="{{layer.name}}"
@@ -24,6 +28,7 @@
 
                                 {{layer.name}} <span style="font-weight: bold; color: red;" ng-if="!layer.hasData()">(No data yet!)</span>
                             </label>
+
                         </div>
                     </div>
                 </div>

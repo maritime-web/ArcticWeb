@@ -25,6 +25,7 @@
                 vessels = VesselService.getLatest();
                 myMmsi = Subject.getDetails().shipMmsi;
                 replaceVessels();
+                updateContext();
             });
 
             function createVesselLayer() {
@@ -225,18 +226,6 @@
                     updateContextToInActive();
                 });
 
-                function updateContextToActive() {
-                    var newContext = Object.assign({}, vesselLayer.get('context'));
-                    newContext.active = true;
-                    vesselLayer.set('context', newContext);
-                }
-
-                function updateContextToInActive() {
-                    var newContext = Object.assign({}, vesselLayer.get('context'));
-                    newContext.active = false;
-                    vesselLayer.set('context', newContext);
-                }
-
                 // Clean up when the scope is destroyed
                 scope.$on('$destroy', function () {
                     if (angular.isDefined(vesselLayer)) {
@@ -249,7 +238,24 @@
                         ol.Observable.unByKey(resolutionHandle);
                     }
                 });
-            })
+            });
+
+            function updateContext() {
+                var newContext = Object.assign({}, vesselLayer.get('context'));
+                vesselLayer.set('context', newContext);
+            }
+
+            function updateContextToActive() {
+                var newContext = Object.assign({}, vesselLayer.get('context'));
+                newContext.active = true;
+                vesselLayer.set('context', newContext);
+            }
+
+            function updateContextToInActive() {
+                var newContext = Object.assign({}, vesselLayer.get('context'));
+                newContext.active = false;
+                vesselLayer.set('context', newContext);
+            }
         }
     }
 })();

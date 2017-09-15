@@ -68,16 +68,66 @@ body {
     display: none;
 }
 
+/** Control size and position of sidepanels */
+
 .controlPanel2, .controlPanelWide {
     position: absolute;
-    top: 50px; /* 55 */
-    left: 10px;
+    top: 55px; /* 55 */
+    left: 0;
     width: 300px;
 }
 
 .controlPanelWide {
-    width: 400px;
+    width: 100%;
 }
+
+@media (min-width: 768px) {
+    .controlPanel2, .controlPanelWide {
+        top: 90px;
+        left: 10px;
+        width: 300px;
+    }
+
+    .controlPanelWide {
+        width: 400px;
+    }
+}
+@media (min-width: 1200px) {
+    .controlPanel2, .controlPanelWide {
+        top: 50px;
+        left: 10px;
+        width: 300px;
+    }
+
+    .controlPanelWide {
+        width: 400px;
+    }
+}
+
+/** Position of zoom box */
+.zoom-box {
+    padding: 5px 5px 5px 5px;
+    border-radius: 4px;
+    z-index: 200;
+    position: absolute;
+    right: 100px;
+    top: 80px;
+    background-color: rgba(0, 60, 136, 0.5);
+    width: 130px;
+}
+
+@media (min-width: 768px) {
+    .zoom-box {
+        top: 90px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .zoom-box {
+        top: 80px;
+    }
+}
+
 
 .accordion-group {
     background-color: white;
@@ -185,11 +235,12 @@ body {
     padding-left: 7px;
 }
 
-.reportingPanel, .reportingPanel2, .e-reporting-panel {
+/** Reporting panels activated from the control panel/sidebar and positioned relative to them */
+.e-reporting-panel, .e-reporting-panel-wide {
     background-color: white;
     position: absolute;
-    top: 50px;
-    left: 315px;
+    top: 60px;
+    left: 0;
     z-index: 1039;
     border-radius: 4px;
     -webkit-border-radius: 4px;
@@ -197,8 +248,30 @@ body {
     font-size: 11px;
 }
 
-.reportingPanel label, .reportingPanel2 label {
-    font-weight: normal;
+.e-reporting-panel-wide {
+    background-color: transparent;
+    width: 100%;
+}
+
+@media (min-width: 768px) {
+    .e-reporting-panel, .e-reporting-panel-wide {
+        top: 90px;
+    }
+
+    .e-reporting-panel {
+        left: 315px;
+    }
+
+    .e-reporting-panel-wide {
+        left: 415px;
+        width: 400px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .e-reporting-panel, .e-reporting-panel-wide {
+        top: 50px;
+    }
 }
 
 .input-sm, .input-group-addon, select.input-sm, button.btn-sm {
@@ -237,11 +310,6 @@ body {
 @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
     .controlPanel {
         width: 250px;
-    }
-
-    .reportingPanel {
-        left: 265px;
-        max-width: 710px;
     }
 
     .input-mini {
@@ -331,13 +399,54 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
     background-color: rgba(0, 60, 136, 0.5);
 }
 
+/** Layer switcher */
+.layer-switcher-button, .layer-switcher {
+    position: absolute;
+    z-index: 150;
+    background-color: rgba(0, 60, 136, 0.5);
+    border-radius: 4px;
+}
+.layer-switcher-button {
+    /*top: 50px;*/
+    bottom: 90px;
+    width: 22px;
+    right: 10px;
+    padding: 1px;
+}
+
+.layer-switcher {
+    bottom: 10px;
+    width: 230px;
+    right: 50px;
+    color: white;
+}
+
+@media (min-width: 1200px) {
+    .layer-switcher-button, .layer-switcher {
+        right: 240px;
+    }
+
+    .layer-switcher-button {
+        top: 50px;
+        bottom: auto;
+        width: 22px;
+    }
+
+    .layer-switcher {
+        top: 80px;
+        bottom: auto;
+        width: 230px;
+    }
+}
+
 /* Overriding OL4 style*/
 .ol-attribution ul {
     font-size: small;
 }
 
 .ol-attribution {
-    bottom: 3em;
+    bottom: 50px;
+    right: 10px;
 }
 
 .ol-custom-overviewmap {
@@ -349,19 +458,26 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
 
 .ol-zoom {
     left: auto;
-    right: 0.5em;
-    top: 50px;
+    right: 10px;
+    top: 28px;
     background-color: rgba(0, 60, 136, 0.5);
     padding: 0 0 0 0;
 }
 
-.ol-control button {
-    background-color: #337ab7
+@media (min-width: 768px) {
+    .ol-zoom {
+        top: 48px;
+    }
+
+}
+@media (min-width: 1200px) {
+    .ol-zoom {
+        top: 8px;
+    }
 }
 
-.layer-switcher {
-    top: 10px;
-    right: 20px;
+.ol-control button {
+    background-color: #337ab7
 }
 
 .popover {

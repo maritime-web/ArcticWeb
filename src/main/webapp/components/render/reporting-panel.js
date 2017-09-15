@@ -11,7 +11,7 @@ $(function() {
                 
                 function fixReportingPanelSize() {
                     element.css("overflow", "auto");
-                    element.css("max-height", Math.max(100, $("#map").height() - 100) + "px");
+                    element.css("max-height", Math.max(100, $("body").height() - 100) + "px");
                 }
 
                 jQuery($window).resize(fixReportingPanelSize);

@@ -58,25 +58,23 @@
 
 <div class="menuDivider"></div>
 
-<div id="map">
-    <openlayer-parent>
-        <openlayer-mouse-position></openlayer-mouse-position>
-        <layer-switcher>
-            <div x-ng-include="'components/openlayer/layer-switcher.template.html'"></div>
-        </layer-switcher>
-        <map-position></map-position>
-        <vessel-zoom></vessel-zoom>
-        <route requires-authenticated></route>
-        <vessel requires-authenticated></vessel>
-        <distance-to-nearest requires-authenticated></distance-to-nearest>
-        <distance-circles requires-authenticated></distance-circles>
+<openlayer-parent>
+    <openlayer-mouse-position></openlayer-mouse-position>
+    <layer-switcher>
+        <div x-ng-include="'components/openlayer/layer-switcher.template.html'"></div>
+    </layer-switcher>
+    <map-position></map-position>
+    <vessel-zoom></vessel-zoom>
+    <route requires-authenticated></route>
+    <vessel requires-authenticated></vessel>
+    <distance-to-nearest requires-authenticated></distance-to-nearest>
+    <distance-circles requires-authenticated></distance-circles>
 
-        <vrmt-route></vrmt-route>
-        <vrmt-vessel></vrmt-vessel>
-        <vrmt-route-locations></vrmt-route-locations>
+    <vrmt-route></vrmt-route>
+    <vrmt-vessel></vrmt-vessel>
+    <vrmt-route-locations></vrmt-route-locations>
 
-    </openlayer-parent>
-</div>
+</openlayer-parent>
 
 <div id="hoveringBox"></div>
 
