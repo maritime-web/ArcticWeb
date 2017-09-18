@@ -31,7 +31,7 @@
                 replaceDistanceFeatures();
                 distanceLayer.setVisible(true);
 
-                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, distanceLayer);
+                NotifyService.notify(OpenlayerEvents.ZoomToLayer, distanceLayer);
             }
 
             function hideNearest() {

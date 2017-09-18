@@ -31,7 +31,7 @@
                 }
                 replaceDistanceFeatures();
                 circleLayer.setVisible(true);
-                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, circleLayer);
+                NotifyService.notify(OpenlayerEvents.ZoomToLayer, circleLayer);
 
             }
 

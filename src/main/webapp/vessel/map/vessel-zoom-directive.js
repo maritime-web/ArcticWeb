@@ -23,7 +23,7 @@
                     center: OpenlayerService.getArcticCenter(),
                     resolution: OpenlayerService.maxResolution
                 };
-                NotifyService.notify(OpenlayerEvents.OpenlayerZoomAndCenter, data);
+                NotifyService.notify(OpenlayerEvents.ZoomAndCenter, data);
             };
 
             $scope.zoomMyVessel = function () {
@@ -32,7 +32,7 @@
                     id: myMmsi,
                     resolution: 2000
                 };
-                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToFeature, data);
+                NotifyService.notify(OpenlayerEvents.ZoomToFeature, data);
             }
 
         }

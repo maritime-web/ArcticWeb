@@ -84,7 +84,7 @@
                     addRoute(r, selectedRouteOptions);
                 });
                 selectedRouteLayer.setVisible(true);
-                NotifyService.notify(OpenlayerEvents.OpenlayerZoomToLayer, selectedRouteLayer)
+                NotifyService.notify(OpenlayerEvents.ZoomToLayer, selectedRouteLayer)
             });
 
             NotifyService.subscribe(scope, VesselEvents.VesselFeatureActive, function () {

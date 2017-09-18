@@ -8,8 +8,13 @@
     function OpenlayerService() {
         this.minResolution = 5;
         this.maxResolution = 18500;
+
         var projMercator = 'EPSG:3857';
         var proj4326 = 'EPSG:4326';
+        var geoJsonFormat = new ol.format.GeoJSON({
+            defaultDataProjection: proj4326,
+            featureProjection: projMercator
+        });
 
         /** Rounds each value of the array to the given number of decimals */
         this.round = function (values, decimals) {
@@ -49,6 +54,29 @@
             });
 
             return line;
-        }
+        };
+
+        /** Converts a GeoJSON feature to an OL feature **/
+        this.geoJsonCollectionToOlFeatures = function (featureCollection) {
+            return geoJsonFormat.readFeatures(featureCollection);
+        };
+
+        /** Computes the extent for the list of features **/
+        this.getFeaturesExtent = function (features) {
+            var extent = ol.extent.createEmpty();
+            for (var i = 0; features && i < features.length; i++) {
+                var geometry = features[i].getGeometry();
+                if (geometry) {
+                    ol.extent.extend(extent, geometry.getExtent());
+                }
+            }
+            return extent;
+        };
+
+        /** Computes the center for the list of features **/
+        this.getFeaturesCenter = function (features) {
+            var extent = this.getFeaturesExtent(features);
+            return ol.extent.isEmpty(extent) ? null : ol.extent.getCenter(extent);
+        };
     }
 })();

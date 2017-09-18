@@ -30,6 +30,8 @@
         'vrmt.model',
         'vrmt.app',
 
+        'embryo.nwnm',
+
         /* 3rd-party modules */
         'ui.bootstrap',
         'angular-growl'

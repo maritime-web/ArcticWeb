@@ -17,7 +17,7 @@
 
         function link(scope, element, attrs, ctrl) {
 
-            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomAndCenter, centerAndZoom);
+            NotifyService.subscribe(scope, OpenlayerEvents.ZoomAndCenter, centerAndZoom);
             function centerAndZoom(e, data) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -27,12 +27,17 @@
                 })
             }
 
-            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomToLayer, zoomToLayer);
+            NotifyService.subscribe(scope, OpenlayerEvents.ZoomToExtent, zoomToExtent);
+            function zoomToExtent(e, extent) {
+                fitExtent(extent);
+            }
+
+            NotifyService.subscribe(scope, OpenlayerEvents.ZoomToLayer, zoomToLayer);
             function zoomToLayer(e, layer) {
                 fitExtent(layer.getSource().getExtent());
             }
 
-            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerZoomToFeature, zoomToFeature);
+            NotifyService.subscribe(scope, OpenlayerEvents.ZoomToFeature, zoomToFeature);
             function zoomToFeature(e, data) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -43,7 +48,7 @@
                 })
             }
 
-            NotifyService.subscribe(scope, OpenlayerEvents.OpenlayerPanToFeature, panToFeature);
+            NotifyService.subscribe(scope, OpenlayerEvents.PanToFeature, panToFeature);
             function panToFeature(e, featureId) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -90,10 +95,7 @@
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     var view = map.getView();
-                    var mapExtent = view.calculateExtent(map.getSize());
-                    if (!ol.extent.containsExtent(mapExtent, extent)) {
-                        view.fit(extent, {size: map.getSize(), maxZoom: 8});
-                    }
+                    view.fit(extent, {size: map.getSize(), minResolution: 100, padding: [5,5,5,5]});
                 })
             }
         }
