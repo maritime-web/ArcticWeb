@@ -141,6 +141,18 @@
             }
         });
 
+        NotifyService.subscribe($scope, IceEvents.IcebergSelected, function (e, ice) {
+            if (!ice) {
+                $scope.selected.open = false;
+                $scope.selected.inshore = false;
+                $scope.selected.observation = null;
+            } else {
+                $scope.selected.open = true;
+                $scope.selected.observation = ice;
+                showIceInformation(ice);
+            }
+        });
+
         NotifyService.subscribe($scope, IceEvents.InshoreReportsSelected, function (e, reports) {
             if (!reports) {
                 $scope.selected.open = false;
@@ -197,9 +209,20 @@
             NotifyService.notify(IceEvents.HideChart);
         };
 
+        $scope.hideIceberg = function ($event, chart) {
+            $event.preventDefault();
+            delete chartsDisplayed[chart.type];
+            NotifyService.notify(IceEvents.HideIcebergs);
+        };
+
         $scope.zoom = function ($event) {
             $event.preventDefault();
             NotifyService.notify(IceEvents.ZoomToChart)
+        };
+
+        $scope.zoomIceberg = function ($event) {
+            $event.preventDefault();
+            NotifyService.notify(IceEvents.ZoomToIceberg)
         };
 
         $scope.showInshore = function ($event, location) {
@@ -231,7 +254,7 @@
                 function finishedDrawing() {
                     var totalPolygons = 0;
                     var totalPoints = 0;
-                    if (chart.type == 'iceberg') {
+                    if (chart.type === 'iceberg') {
                         totalPoints = data.fragments.length;
                     } else {
                         for (var i in data.fragments) {
@@ -255,7 +278,11 @@
                 // the browser update the
                 // view and show above message
                 $timeout(function () {
-                    NotifyService.notify(IceEvents.ShowChart, [ data ]);
+                    if (chart.type === 'iceberg') {
+                        NotifyService.notify(IceEvents.ShowIcebergs, [ data ]);
+                    } else {
+                        NotifyService.notify(IceEvents.ShowChart, [ data ]);
+                    }
                     finishedDrawing();
                 }, 10);
             }, function (errorMsg, status) {

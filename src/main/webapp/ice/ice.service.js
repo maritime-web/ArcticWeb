@@ -12,12 +12,12 @@
 
                 function onSuccess(data) {
                     embryo.messagePanel.replace(messageId, {
-                        text: "List of " + data.length + (type == "iceberg" ? " icebergs" : " ice charts")
-                            + " downloaded.",
+                        text: "List of " + data.length + (type === "iceberg" ? " icebergs" : " ice charts")
+                        + " downloaded.",
                         type: "success"
                     });
                     success(data);
-                    }
+                }
 
                 function onError(data, status, headers, config) {
                     var txt = "requesting list of ice charts";
@@ -27,12 +27,12 @@
                         type: "error"
                     });
                     error(errorMsg, status);
-                    }
+                }
 
                 $http.get(embryo.baseUrl + "rest/ice/" + type + "/observations", {
-                    timeout: embryo.defaultTimeout,
+                    timeout: embryo.defaultTimeout
                 }).success(onSuccess).error(onError);
-                }
+            }
 
             var service = {
                     iceCharts : function(success, error) {
