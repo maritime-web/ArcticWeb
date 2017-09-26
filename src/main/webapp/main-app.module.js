@@ -32,6 +32,8 @@
 
         'embryo.nwnm',
 
+        'embryo.ice',
+
         /* 3rd-party modules */
         'ui.bootstrap',
         'angular-growl'

@@ -75,6 +75,9 @@
     <vrmt-route-locations></vrmt-route-locations>
 
     <nwnm-map></nwnm-map>
+
+    <ice-chart-map></ice-chart-map>
+    <inshore-ice-report-map></inshore-ice-report-map>
 </openlayer-parent>
 
 <div id="hoveringBox"></div>
@@ -120,14 +123,12 @@
         </div>
     </div>
 
-    <!--
         <div e-location-enabled="ice">
             <div class="controlContainer e-small-font">
-                <div x-ng-include="'partials/ice-control.html'"></div>
+                <div x-ng-include="'ice/ice-control.html'"></div>
             </div>
-            <div x-ng-include="'partials/satelliteImageInformation.html'"></div>
+            <div x-ng-include="'ice/satelliteImageInformation.html'"></div>
         </div>
-    -->
 
     <div class="controlContainer e-small-font">
         <div e-location-enabled="nwnm">
@@ -215,7 +216,11 @@
 
 <script src="components/geo/geo-service.js"></script>
 
-<script src="components/shapefile/shape-service.js"></script>
+<script src="components/shapefile/shape.module.js"></script>
+<script src="components/shapefile/shape.service.js"></script>
+
+<script src="components/tileset/tileset.module.js"></script>
+<script src="components/tileset/tileset.service.js"></script>
 
 <script src="components/vessel/vessel.module.js" type="text/javascript"></script>
 <script src="components/vessel/route-model.js" type="text/javascript"></script>
@@ -290,6 +295,14 @@
 <script src="nwnm/message-id-badge.directive.js" type="text/javascript"></script>
 <script src="nwnm/render-message-source.directive.js" type="text/javascript"></script>
 <script src="nwnm/to-trusted.filter.js" type="text/javascript"></script>
+
+<script src="ice/ice.module.js" type="text/javascript"></script>
+<script src="ice/ice.constants.js" type="text/javascript"></script>
+<script src="ice/ice.service.js" type="text/javascript"></script>
+<script src="ice/ice.controller.js" type="text/javascript"></script>
+<script src="ice/ice-satellite.controller.js" type="text/javascript"></script>
+<script src="ice/ice-chart-map.directive.js" type="text/javascript"></script>
+<script src="ice/inshore-ice-report-map.directive.js" type="text/javascript"></script>
 
 <script src="main-app.module.js" type="text/javascript"></script>
 <script src="main-app.config.js" type="text/javascript"></script>

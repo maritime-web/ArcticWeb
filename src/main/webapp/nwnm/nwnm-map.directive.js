@@ -154,7 +154,7 @@
                 });
                 if (collection.length > 0) {
                     var extent = OpenlayerService.getFeaturesExtent(collection);
-                    NotifyService.notify(OpenlayerEvents.ZoomToExtent, extent)
+                    NotifyService.notify(OpenlayerEvents.ZoomToExtent, {extent: extent})
                 }
 
             });

@@ -1,5 +1,5 @@
 (function() {
-    var module = angular.module('embryo.shape', []);
+    var module = angular.module('embryo.shape');
 
     module.service('ShapeService', ['$http', function($http) {
         function convert(data, delta, exponent) {
@@ -8,7 +8,7 @@
 
                 var factor = Math.pow(10, exponent);
 
-                current = {
+                var current = {
                     x : 0,
                     y : 0
                 };
@@ -51,9 +51,9 @@
         }
 
         function retrieveShapes(url, name, arguments, success, error){
-            var r = (typeof (arguments) != "object") ? {} : arguments;
+            var r = (typeof (arguments) !== "object") ? {} : arguments;
             if (!r.delta) {
-                r.delta = embryo.shape.delta;
+                r.delta = true;
             }
 
             $http.get(url, {
@@ -81,15 +81,6 @@
                 var url = embryo.baseUrl + "rest/shapefile/single/" + name;
                 retrieveShapes(url, name, arguments, success, error);                
             }
-
         };
     }]);
-
-    embryo.shape = {
-        delta : true
-    };
-
-    module.run(function(ShapeService) {
-        embryo.shape.service = ShapeService;
-    });
 })();

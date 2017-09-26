@@ -74,6 +74,9 @@ module.exports = function (grunt) {
                 files: [ '<%= proj.livereload %>/{,*/}*.html', '<%= proj.livereload %>/css/{,*/}*.css',
                     '<%= proj.livereload %>/js/{,*/}*.js',
                     '<%= proj.livereload %>/img/{,*/}*.{png,jpg,jpeg,gif,webp,svg}' ]
+            },
+            options: {
+                interval: 1000
             }
         },
 

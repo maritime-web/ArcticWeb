@@ -28,13 +28,13 @@
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToExtent, zoomToExtent);
-            function zoomToExtent(e, extent) {
-                fitExtent(extent);
+            function zoomToExtent(e, data) {
+                fitExtent(data);
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToLayer, zoomToLayer);
             function zoomToLayer(e, layer) {
-                fitExtent(layer.getSource().getExtent());
+                fitExtent({extent: layer.getSource().getExtent()});
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToFeature, zoomToFeature);
@@ -91,11 +91,13 @@
                 return res;
             }
 
-            function fitExtent(extent) {
+            function fitExtent(data) {
+                var minResolution = data.minResolution ? data.minResolution : 100;
+                var extent = data.extent;
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     var view = map.getView();
-                    view.fit(extent, {size: map.getSize(), minResolution: 100, padding: [5,5,5,5]});
+                    view.fit(extent, {size: map.getSize(), minResolution: minResolution, padding: [5,5,5,5]});
                 })
             }
         }
