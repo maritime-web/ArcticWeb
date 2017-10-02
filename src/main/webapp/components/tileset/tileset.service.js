@@ -18,8 +18,7 @@
 
     module.service('TileSetService', [
         '$http',
-        'CookieService',
-        function ($http, $interval, CookieService) {
+        function ($http) {
             var service = {
                 listByType: function (type, success, error) {
                     var messageId = embryo.messagePanel.show({
