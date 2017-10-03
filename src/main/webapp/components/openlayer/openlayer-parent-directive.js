@@ -73,7 +73,7 @@
                     ]
                 })];
                 var view = new ol.View({
-                    resolution: 4000,
+                    resolution: 7000,
                     minResolution: OpenlayerService.minResolution,
                     maxResolution: OpenlayerService.maxResolution,
                     zoomFactor: 1.4,

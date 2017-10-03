@@ -30,7 +30,7 @@
                 var myMmsi = Subject.getDetails().shipMmsi;
                 var data = {
                     id: myMmsi,
-                    resolution: 2000
+                    minResolution: 2000
                 };
                 NotifyService.notify(OpenlayerEvents.ZoomToFeature, data);
             }

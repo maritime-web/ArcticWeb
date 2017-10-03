@@ -5,9 +5,9 @@
         .module('embryo.components.openlayer')
         .directive('mapPosition', mapPosition);
 
-    mapPosition.$inject = ['NotifyService', 'OpenlayerEvents'];
+    mapPosition.$inject = ['NotifyService', 'OpenlayerEvents', 'OpenlayerService'];
 
-    function mapPosition(NotifyService, OpenlayerEvents) {
+    function mapPosition(NotifyService, OpenlayerEvents, OpenlayerService) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -18,6 +18,7 @@
         function link(scope, element, attrs, ctrl) {
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomAndCenter, centerAndZoom);
+
             function centerAndZoom(e, data) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -28,27 +29,37 @@
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToExtent, zoomToExtent);
+
             function zoomToExtent(e, data) {
                 fitExtent(data);
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToLayer, zoomToLayer);
+
             function zoomToLayer(e, layer) {
                 fitExtent({extent: layer.getSource().getExtent()});
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToFeature, zoomToFeature);
+
             function zoomToFeature(e, data) {
-                var olScope = ctrl.getOpenlayersScope();
-                olScope.getMap().then(function (map) {
-                    var feature = findFeature(map, data.id);
-                    var view = map.getView();
-                    view.setResolution(data.resolution);
-                    view.setCenter(feature.getGeometry().getFirstCoordinate());
-                })
+                var feature = data.feature;
+
+                if (feature) {
+                    fitExtent({extent: OpenlayerService.getFeaturesExtent([feature]), padding: data.padding, minResolution: data.minResolution});
+
+                } else if (data.id) {
+                    ctrl.getOpenlayersScope().getMap().then(function (map) {
+                        feature = findFeature(map, data.id);
+                        if (feature) {
+                            fitExtent({extent: OpenlayerService.getFeaturesExtent([feature]), padding: data.padding, minResolution: data.minResolution});
+                        }
+                    });
+                }
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.PanToFeature, panToFeature);
+
             function panToFeature(e, featureId) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -93,11 +104,12 @@
 
             function fitExtent(data) {
                 var minResolution = data.minResolution ? data.minResolution : 100;
+                var padding = data.padding ? data.padding : [5, 5, 5, 5];
                 var extent = data.extent;
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     var view = map.getView();
-                    view.fit(extent, {size: map.getSize(), minResolution: minResolution, padding: [5,5,5,5]});
+                    view.fit(extent, {size: map.getSize(), minResolution: minResolution, padding: padding});
                 })
             }
         }

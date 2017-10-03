@@ -31,8 +31,8 @@
         'vrmt.app',
 
         'embryo.nwnm',
-
         'embryo.ice',
+        'embryo.weather',
 
         /* 3rd-party modules */
         'ui.bootstrap',
