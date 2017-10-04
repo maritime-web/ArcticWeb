@@ -82,7 +82,7 @@
 
                     var styleFunction = function (feature, resolution) {
                         var fillColor = "rgba(255, 0, 0, 0.0)";
-                        if (fragment.district && fragment.district.warnings) {
+                        if (fragment.district && fragment.district.warnings && resolution > 800) {
                             fillColor = "rgba(255, 0, 0, 0.5)";
                         }
 
@@ -138,9 +138,6 @@
 
             /** Zoom to chosen district **/
             NotifyService.subscribe(scope, WeatherEvents.ZoomToDistrict, function (e, district) {
-                console.log("ZOOM TO DISTRICT");
-                console.log(district);
-
                 var districtFeature = seaForecastLayer.getSource().getFeatures().find(function (f) {
                     return f.get('district') === district;
                 });
@@ -149,7 +146,6 @@
                     selectedFeature = districtFeature;
                     NotifyService.notify(OpenlayerEvents.ZoomToFeature, {feature: districtFeature, minResolution: 2500, padding: [20,20,20,20]});
                 }
-
             });
 
             /** Hide forecast **/

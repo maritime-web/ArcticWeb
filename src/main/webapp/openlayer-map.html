@@ -79,7 +79,9 @@
     <ice-chart-map></ice-chart-map>
     <inshore-ice-report-map></inshore-ice-report-map>
     <iceberg-map></iceberg-map>
+
     <weather-forecast-map></weather-forecast-map>
+    <metoc-map></metoc-map>
 </openlayer-parent>
 
 <div id="hoveringBox"></div>
@@ -87,7 +89,6 @@
 <div id="messagePanel"></div>
 
 <div>
-    <!--<div x-ng-include="'partials/settings.html'"></div>-->
 
     <div e-location-enabled="vessels">
         <div class="controlContainer e-small-font">
@@ -138,6 +139,7 @@
         </div>
         <div e-location-enabled="weather">
             <div x-ng-include="'weather/weather-control.html'"></div>
+            <div x-ng-include="'partials/settings.html'"></div>
         </div>
 <!--
         <div e-location-enabled="forecasts">
@@ -313,6 +315,7 @@
 <script src="weather/sea-forecast-map.directive.js" type="text/javascript"></script>
 <script src="weather/metoc.service.js" type="text/javascript"></script>
 <script src="weather/weather.service.js" type="text/javascript"></script>
+<script src="weather/metoc-map.directive.js" type="text/javascript"></script>
 
 
 <script src="main-app.module.js" type="text/javascript"></script>

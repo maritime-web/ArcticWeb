@@ -9,5 +9,9 @@
             HideForecast: 'Weather.HideForecast',
             DistrictSelected: 'Weather.DistrictSelected',
             ZoomToDistrict: 'Weather.ZoomToDistrict',
+            ShowMetoc: 'Weather.ShowMetoc',
+            MetocSelected: 'Weather.MetocSelected',
+            ClearMetoc: 'Weather.ClearMetoc',
+            ClearMetocSelection: 'Weather.ClearMetocSelection'
         });
 })();

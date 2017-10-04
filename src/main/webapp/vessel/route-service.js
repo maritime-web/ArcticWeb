@@ -15,7 +15,7 @@
             return {
                 getActiveMeta: function (mmsi, success, error) {
                     var url = embryo.baseUrl + 'rest/route/active/meta/' + mmsi;
-                    $http.get(url).success(success);
+                    $http.get(url).success(success).error(error);
                 },
                 setActiveRoute: function (routeId, activity, callback, error) {
                     $http.put(embryo.baseUrl + 'rest/route/activate/', {
