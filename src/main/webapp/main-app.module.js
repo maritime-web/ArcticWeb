@@ -33,6 +33,7 @@
         'embryo.nwnm',
         'embryo.ice',
         'embryo.weather',
+        'embryo.forecast',
 
         /* 3rd-party modules */
         'ui.bootstrap',

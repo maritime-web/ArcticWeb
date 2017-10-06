@@ -41,6 +41,14 @@
         };
 
         /**
+         * Creates a ol.geom.Pooint from a lon-lat coordinate array.
+         * @param lonLat
+         */
+        this.createPoint = function(lonLat) {
+            return new ol.geom.Point(this.fromLonLat(lonLat));
+        };
+
+        /**
          * Creates a ol.geom.LineString from a lon lat array.
          * @param lonLats
          */
@@ -54,6 +62,19 @@
             });
 
             return line;
+        };
+
+        /**
+         * Creates a ol.geom.Polygon from a lon lat array.
+         * @param lonLats
+         */
+        this.createPolygon = function(lonLats) {
+            var coords = [];
+            lonLats.forEach(function (coord) {
+                var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
+                coords.push(mercatorCoord);
+            });
+            return new ol.geom.Polygon([coords]);
         };
 
         /** Converts a GeoJSON feature to an OL feature **/

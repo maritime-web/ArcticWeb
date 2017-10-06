@@ -82,6 +82,7 @@
 
     <weather-forecast-map></weather-forecast-map>
     <metoc-map></metoc-map>
+    <forecast-map></forecast-map>
 </openlayer-parent>
 
 <div id="hoveringBox"></div>
@@ -139,12 +140,12 @@
         </div>
         <div e-location-enabled="weather">
             <div x-ng-include="'weather/weather-control.html'"></div>
-            <div x-ng-include="'partials/settings.html'"></div>
+            <div x-ng-include="'weather/settings.html'"></div>
+        </div>
+        <div e-location-enabled="forecasts">
+            <div x-ng-include="'forecast/forecast-control.html'"></div>
         </div>
 <!--
-        <div e-location-enabled="forecasts">
-            <div x-ng-include="'partials/forecast-control.html'"></div>
-        </div>
         <div e-location-enabled="sar">
             <div x-ng-include="'partials/sar-control.html'"></div>
             <div x-ng-include="'partials/sar-edit.html'"></div>
@@ -317,6 +318,11 @@
 <script src="weather/weather.service.js" type="text/javascript"></script>
 <script src="weather/metoc-map.directive.js" type="text/javascript"></script>
 
+<script src="forecast/forecast.module.js" type="text/javascript"></script>
+<script src="forecast/forecast.constants.js" type="text/javascript"></script>
+<script src="forecast/forecast.controller.js" type="text/javascript"></script>
+<script src="forecast/forecast.service.js" type="text/javascript"></script>
+<script src="forecast/forecast-map.directive.js" type="text/javascript"></script>
 
 <script src="main-app.module.js" type="text/javascript"></script>
 <script src="main-app.config.js" type="text/javascript"></script>
