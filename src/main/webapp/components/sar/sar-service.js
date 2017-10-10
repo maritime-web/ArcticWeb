@@ -616,7 +616,7 @@
     }]);
 
 
-    // USED IN sar-edit.js and sar-controller.js
+    // USED IN sar-edit.controller.js and sar-controller.js
     module.factory('SarOperationFactory', ['RapidResponseOutput', "DatumPointOutput", "DatumLineOutput", "BackTrackOutput",
         function (RapidResponseOutput, DatumPointOutput, DatumLineOutput, BackTrackOutput) {
 
@@ -784,7 +784,7 @@
     }
 
 
-    // USED IN sar-edit.js and sar-controller.js
+    // USED IN sar-edit.controller.js and sar-controller.js
     module.service('EffortAllocationService', ['LivePouch', '$log', function (LivePouch, $log) {
 
         var service = {
@@ -1435,7 +1435,7 @@
         return JSON.parse(JSON.stringify(object));
     }
 
-    // USED IN sar-edit.js and sar-controller.js
+    // USED IN sar-edit.controller.js and sar-controller.js
     module.service('SarService', ['$log', '$timeout', 'Subject', 'Position', 'SarTableFactory',
         function ($log, $timeout, Subject, Position, SarTableFactory) {
 

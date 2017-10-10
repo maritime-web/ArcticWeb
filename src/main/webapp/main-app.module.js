@@ -34,6 +34,7 @@
         'embryo.ice',
         'embryo.weather',
         'embryo.forecast',
+        'embryo.sar',
 
         /* 3rd-party modules */
         'ui.bootstrap',

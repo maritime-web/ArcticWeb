@@ -14,6 +14,6 @@
         "DatumLine": "dl",
         "BackTrack": "bt",
         "TrackLine" : "tl"
-    })
+    });
     module.constant('Operation', embryo.sar.Operation);
 })();

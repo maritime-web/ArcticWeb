@@ -15,6 +15,7 @@
             defaultDataProjection: proj4326,
             featureProjection: projMercator
         });
+        var wgs84Sphere = new ol.Sphere(6378137);
 
         /** Rounds each value of the array to the given number of decimals */
         this.round = function (values, decimals) {
@@ -75,6 +76,16 @@
                 coords.push(mercatorCoord);
             });
             return new ol.geom.Polygon([coords]);
+        };
+
+        /**
+         * Creates a ol.geom.Polygon from a lon lat array.
+         * @param center lonLat array e.g. [lon, lat]
+         * @param radius radius in meters
+         */
+        this.createCircularPolygon = function(center, radius) {
+            var mercatorCenter = ol.proj.fromLonLat(center, undefined);
+            return new ol.geom.Polygon.circular(wgs84Sphere, center, radius, 64).transform(proj4326, projMercator);
         };
 
         /** Converts a GeoJSON feature to an OL feature **/

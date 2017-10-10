@@ -13,7 +13,7 @@
         "EffortAllocation": "Allocation",
         "SearchPattern": "Pattern",
         "Log": "SarLog"
-    })
+    });
 
     module.constant('SarType', embryo.sar.Type);
 })();
