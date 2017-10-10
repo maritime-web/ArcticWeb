@@ -84,7 +84,6 @@
          * @param radius radius in meters
          */
         this.createCircularPolygon = function(center, radius) {
-            var mercatorCenter = ol.proj.fromLonLat(center, undefined);
             return new ol.geom.Polygon.circular(wgs84Sphere, center, radius, 64).transform(proj4326, projMercator);
         };
 

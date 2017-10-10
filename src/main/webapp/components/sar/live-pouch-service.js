@@ -6,6 +6,7 @@
     module.factory('LivePouch', ['PouchDBFactory', '$log', function (PouchDBFactory, $log) {
         var dbName = 'embryo-live';
         var liveDb = PouchDBFactory.createLocalPouch(dbName);
+        liveDb.setMaxListeners(20);
         var remoteDb = PouchDBFactory.createRemotePouch(dbName);
 
         var sync = liveDb.sync(remoteDb, {
@@ -19,7 +20,7 @@
             // replicate resumed (e.g. new changes replicating, user went back online)
         }).on('denied', function (err) {
             // a document failed to replicate (e.g. due to permissions)
-            $log.error("Sync failed for document")
+            $log.error("Sync failed for document");
             $log.error(err)
         }).on('complete', function (info) {
             // handle complete

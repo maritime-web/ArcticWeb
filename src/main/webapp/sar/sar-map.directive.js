@@ -144,13 +144,18 @@
 
             });
 
-            NotifyService.subscribe(scope, SarEvents.ZoomToOperation, function (sar) {
-                console.log("ZOOM TO OPERATION");
+            NotifyService.subscribe(scope, SarEvents.ZoomToOperation, function (e, sar) {
+                var featuresInSar = [];
+                sarLayer.getSource().getFeatures().forEach(function (f) {
+                    if (sar._id === f.get("sarId")) {
+                        featuresInSar.push(f);
+                    }
+                });
 
+                NotifyService.notify(OpenlayerEvents.ZoomToExtent, {extent: OpenlayerService.getFeaturesExtent(featuresInSar), minResolution: OpenlayerService.minResolution});
             });
 
             NotifyService.subscribe(scope, SarEvents.DrawSarDocuments, function (e, sarDocuments) {
-                console.log("Drawing SAR documents");
                 update(sarDocuments);
             });
 
