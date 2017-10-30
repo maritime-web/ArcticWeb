@@ -5,9 +5,33 @@
         .module('embryo.sar')
         .directive('sarMap', sarMap);
 
-    sarMap.$inject = ['SarEvents', 'OpenlayerService', 'NotifyService', 'OpenlayerEvents', 'SarType', 'SarStatus', 'Operation', 'SearchPattern', 'EffortStatus'];
+    sarMap.$inject = [
+        'SarEvents',
+        'OpenlayerService',
+        'NotifyService',
+        'OpenlayerEvents',
+        'SarType',
+        'SarStatus',
+        'Operation',
+        'SearchPattern',
+        'EffortStatus',
+        'ModifyRectangleInteractionFactory',
+        'Position'
+    ];
 
-    function sarMap(SarEvents, OpenlayerService, NotifyService, OpenlayerEvents, SarType, SarStatus, Operation, SearchPattern, EffortStatus) {
+    function sarMap(
+        SarEvents,
+        OpenlayerService,
+        NotifyService,
+        OpenlayerEvents,
+        SarType,
+        SarStatus,
+        Operation,
+        SearchPattern,
+        EffortStatus,
+        ModifyRectangleInteractionFactory,
+        Position) {
+
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -36,42 +60,93 @@
                 }
             });
 
-            var selectedFeature;
+            var modifyRectangleInteraction;
 
 
             /***
              * Style functions
-            ***/
+             ***/
             var sarLayerStyleFunction = function (feature, resolution) {
                 var color = feature.get("color");
                 var type = feature.get("type");
                 var label = feature.get("label");
                 var status = feature.get("status");
+                var temp = feature.get("temp");
                 var active = sarLayer.get('context').active;
+                var sarActive = feature.get("active");
+                var isEdit = feature.get("edit");
 
                 var styles = [];
 
 
+                var baseStroke = new ol.style.Stroke({color: getColor(getStrokeOpacity()), width: getStrokeWidth()});
+                if (useDottedStyle()) {
+                    baseStroke.setLineDash([1,5]);
+                }
                 styles.push(new ol.style.Style({
-                    stroke: new ol.style.Stroke({color: getColor(getStrokeOpacity()), width: getStrokeWidth()}),
+                    stroke: baseStroke,
                     fill: new ol.style.Fill({
                         color: getColor(getFillOpacity())
                     })
                 }));
 
-                if (resolution < 4000 && label) {
-                    var offset = type === 'position' ? 10 : 0;
+                if (resolution < 500 && label && active) {
+                    var offset = type === 'position' ? 10 : -10;
                     styles.push(new ol.style.Style({
                         text: new ol.style.Text(/** @type {olx.style.TextOptions}*/{
                             textAlign: 'start',
-                            font: 'bold 12px Courier New, monospace',
+                            font: 'bold 14px Courier New, monospace',
                             text: label,
                             offsetX: offset,
                             offsetY: offset,
                             rotation: 0
                         })
                     }));
+                }
 
+                if (shouldAddOrientationArrows()) {
+                    var geometry = feature.getGeometry();
+                    geometry.forEachSegment(function (start, end) {
+                        var dx = end[0] - start[0];
+                        var dy = end[1] - start[1];
+                        var rotation = Math.atan2(dy, dx);
+
+                        var a = dy / dx;
+                        var b = start[1] - a * start[0];
+                        var middle = [start[0] + dx / 2.0];
+                        middle[1] = a * middle[0] + b;
+
+                        // arrows icon
+                        var svgArrow = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">' +
+                            '<polyline fill="none" stroke="'+getColor(1)+'" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8" points="0,0 100,50 0,100" transform="scale(0.1)"/>' +
+                            '</svg>';
+                        var arrowImage = new Image();
+                        arrowImage.src = 'data:image/svg+xml,' + encodeURI(svgArrow) ;
+
+                        // arrows
+                        styles.push(new ol.style.Style({
+                            geometry: new ol.geom.Point(middle),
+                            image: new ol.style.Icon({
+                                img: arrowImage,
+                                anchor: [0.75, 0.5],
+                                rotateWithView: true,
+                                rotation: -rotation,
+                                imgSize: [10, 10]
+                            })
+                        }));
+                    });
+                }
+
+                if (shouldDrawPointAsCircle()) {
+                    styles.push(new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: getCircleRadius(),
+                            stroke: new ol.style.Stroke({color: getColor(getStrokeOpacity()), width: getStrokeWidth()}),
+                            fill: new ol.style.Fill({
+                                color: getColor(getFillOpacity())
+                            })
+                        })
+                    }));
                 }
 
                 return styles;
@@ -81,11 +156,11 @@
                 }
 
                 function getColor(opacity) {
-                    var red = 'rgba(255,0,0,'+opacity+')';
-                    var grey = 'rgba(125,135,122,'+opacity+')';
-                    var black = 'rgba(0,0,0,'+opacity+')';
-                    var green = 'rgba(0,128,0,'+opacity+')';
-                    var lightgray = 'rgba(153,153,153,'+opacity+')';
+                    var red = 'rgba(255,0,0,' + opacity + ')';
+                    var grey = 'rgba(125,135,122,' + opacity + ')';
+                    var black = 'rgba(0,0,0,' + opacity + ')';
+                    var green = 'rgba(0,128,0,' + opacity + ')';
+                    var lightgray = 'rgba(153,153,153,' + opacity + ')';
 
                     if (type === SarType.Log || type === "position") {
                         return black;
@@ -100,10 +175,10 @@
                         return red;
                     }
                     if (type) {
-                        if(color){
+                        if (color) {
                             return color;
                         }
-                        return active ? green : lightgray;
+                        return sarActive ? green : lightgray;
                     }
 
                     return red;
@@ -112,7 +187,7 @@
 
                 function getStrokeOpacity() {
                     if (type === 'dv' || type === 'dsp') {
-                        return active ?  0.7 : 0.35;
+                        return active ? 0.7 : 0.35;
                     }
                     return active ? 0.6 : 0.3;
                 }
@@ -120,10 +195,58 @@
                 function getFillOpacity() {
                     return active ? 0.2 : 0.1;
                 }
+
+                function shouldAddOrientationArrows() {
+                    var isLineString = feature.getGeometry().getType() === "LineString";
+                    return (isLineString && type !== 'dsp') || (isLineString && temp);
+                }
+
+                function shouldDrawPointAsCircle() {
+                    var isPoint = feature.getGeometry().getType() === "Point";
+                    return isPoint && (isEdit || type === SarType.Log || type === "position")
+                }
+
+                function getCircleRadius() {
+                    var r = 1;
+                    if (isEdit) {
+                        return 10
+                    }
+                    if (type === SarType.Log || type === "position") {
+                        r = 5;
+                        if (resolution < 600) {
+                            r = 10
+                        }
+                        if (resolution < 100) {
+                            r = 15
+                        }
+                        return r;
+                    }
+                    return r;
+                }
+
+                function useDottedStyle() {
+                    return type === "dsp" && !isEdit;
+                }
             };
 
             sarLayer.setStyle(sarLayerStyleFunction);
+            sarEditLayer.setStyle(sarLayerStyleFunction);
 
+
+            NotifyService.subscribe(scope, OpenlayerEvents.BoxChanged, function (e, boxFeature) {
+                var extent = boxFeature.getGeometry().getExtent();
+                var zoneUpdate = {
+                    _id: boxFeature.get("id"),
+                    area: {
+                        // list of points (components) are always created as A, B, C, D in drawEffortAllocationZone
+                        A: Position.create(OpenlayerService.toLonLat([extent[0],extent[1]])),
+                        B: Position.create(OpenlayerService.toLonLat([extent[2],extent[1]])),
+                        C: Position.create(OpenlayerService.toLonLat([extent[2],extent[3]])),
+                        D: Position.create(OpenlayerService.toLonLat([extent[0],extent[3]]))
+                    }
+                };
+                NotifyService.notify(SarEvents.EffortAllocationZoneModified, zoneUpdate);
+            });
 
             NotifyService.subscribe(scope, SarEvents.ActivatePositionSelection, function () {
                 console.log("ACTIVATE POSITION SELECTION");
@@ -144,6 +267,14 @@
 
             });
 
+            NotifyService.subscribe(scope, SarEvents.CreateTemporarySearchPattern, function (e, pattern) {
+                drawTemporarySearchPattern(pattern);
+            });
+
+            NotifyService.subscribe(scope, SarEvents.RemoveTemporarySearchPattern, function () {
+                removeTemporarySearchPattern();
+            });
+
             NotifyService.subscribe(scope, SarEvents.ZoomToOperation, function (e, sar) {
                 var featuresInSar = [];
                 sarLayer.getSource().getFeatures().forEach(function (f) {
@@ -152,7 +283,10 @@
                     }
                 });
 
-                NotifyService.notify(OpenlayerEvents.ZoomToExtent, {extent: OpenlayerService.getFeaturesExtent(featuresInSar), minResolution: OpenlayerService.minResolution});
+                NotifyService.notify(OpenlayerEvents.ZoomToExtent, {
+                    extent: OpenlayerService.getFeaturesExtent(featuresInSar),
+                    minResolution: OpenlayerService.minResolution
+                });
             });
 
             NotifyService.subscribe(scope, SarEvents.DrawSarDocuments, function (e, sarDocuments) {
@@ -160,8 +294,8 @@
             });
 
             function update(sarDocuments) {
-                selectedFeature = undefined;
                 sarLayer.getSource().clear();
+                sarEditLayer.getSource().clear();
 
                 for (var index in sarDocuments) {
                     if (SarType.SearchArea === sarDocuments[index]['@type']) {
@@ -175,13 +309,11 @@
                     }
                 }
 
-/*
-TODO look at this
-                if (this.tempSearchPatternFeature) {
-                    this.layers.sarEdit.addFeatures([this.tempSearchPatternFeature]);
+                if (tempSearchPatternFeature) {
+                    sarEditLayer.getSource().addFeatures(tempSearchPatternFeature);
                 }
-*/
 
+                updateSelection();
                 updateContext();
             }
 
@@ -344,7 +476,6 @@ TODO look at this
                 }
             };
 
-
             var drawEffortAllocationZone = function (effAll) {
                 var area = effAll.area;
 
@@ -365,11 +496,13 @@ TODO look at this
                 if (effAll.status === embryo.sar.effort.Status.Active) {
                     sarLayer.getSource().addFeature(f);
                 } else {
+                    f.set("edit", true, true);
                     sarEditLayer.getSource().addFeature(f);
                 }
             };
+
             var drawSearchPattern = function (pattern, temporary) {
-                var points = createRoutePoints(pattern);//TODO FIX route points
+                var points = createRoutePoints(pattern);
 
                 if (pattern.type === SearchPattern.SectorSearch) {
                     var radiusInMeters = nmToMeters(pattern.radius);
@@ -395,52 +528,62 @@ TODO look at this
                             type: "dragPoint",
                             sarId: pattern.sarId,
                             id: pattern._id + "drag",
-                            temp: !!temporary
+                            temp: !!temporary,
+                            edit: true
                         }));
                     }
                 }
 
                 var csp = points[0];
-                sarLayer.getSource().addFeature(new ol.Feature({
-                    geometry: csp,
-                    type: 'circleLabel',
-                    label: 'CSP',
-                    id: pattern._id,
-                    sarId: pattern.sarId,
-                    temp: !!temporary
-                }));
+                if (csp) {
+                    sarLayer.getSource().addFeature(new ol.Feature({
+                        geometry: OpenlayerService.createPoint(csp),
+                        type: 'circleLabel',
+                        label: 'CSP',
+                        id: pattern._id,
+                        sarId: pattern.sarId,
+                        temp: !!temporary
+                    }));
+                }
 
-                sarEditLayer.getSource().addFeature(new ol.Feature({
-                    geometry: OpenlayerService.createLineString(points),
-                    type: "searchPattern",
-                    id: pattern._id,
-                    sarId: pattern.sarId,
-                    temp: !!temporary
-                }));
+                var searchPatternFeature = undefined;
+                if (points && points.length > 0) {
+                    searchPatternFeature = new ol.Feature({
+                        geometry: OpenlayerService.createLineString(points),
+                        type: "searchPattern",
+                        id: pattern._id,
+                        sarId: pattern.sarId,
+                        temp: !!temporary,
+                        edit: true
+                    });
+                    sarEditLayer.getSource().addFeature(searchPatternFeature);
+                }
+
+                return searchPatternFeature;
 
                 function createRoutePoints(route) {
                     var firstPoint = true;
                     var previousWps = null;
                     var points = [];
 
-                    for ( var index in route.wps) {
+                    for (var index in route.wps) {
                         if (!firstPoint && previousWps.heading === 'GC') {
                             var linePoints = createGeoDesicLineAsGeometryPoints({
-                                y 	: previousWps.latitude,
-                                x 	: previousWps.longitude
+                                y: previousWps.latitude,
+                                x: previousWps.longitude
                             }, {
-                                y 	: route.wps[index].latitude,
-                                x 	: route.wps[index].longitude
+                                y: route.wps[index].latitude,
+                                x: route.wps[index].longitude
                             });
 
                             linePoints.shift();
                             points = points.concat(linePoints);
                         }
 
-                        points = points.concat(toGeometryPoints([ {
-                            y 	: route.wps[index].latitude,
-                            x 	: route.wps[index].longitude
-                        } ]));
+                        points = points.concat(toGeometryPoints([{
+                            y: route.wps[index].latitude,
+                            x: route.wps[index].longitude
+                        }]));
                         firstPoint = false;
                         previousWps = route.wps[index];
                     }
@@ -558,47 +701,62 @@ TODO look at this
                 }));
             }
 
+            var tempSearchPatternFeature;
 
+            function drawTemporarySearchPattern(searchPattern) {
+                removeTemporarySearchPattern();
+                tempSearchPatternFeature = drawSearchPattern(searchPattern, true);
+            }
+
+            function removeTemporarySearchPattern() {
+                tempSearchPatternFeature = undefined;
+
+                removeTempFeatures(sarLayer);
+                removeTempFeatures(sarEditLayer);
+
+                function removeTempFeatures(layer) {
+                    layer.getSource().getFeatures().forEach(function (f) {
+                        var temp = f.get('temp');
+                        if (temp) {
+                            layer.getSource().removeFeature(f);
+                        }
+                    });
+                }
+            }
+
+            function updateSelection() {
+                var selectedFeature = modifyRectangleInteraction.getSelectedFeature();
+                modifyRectangleInteraction.clearSelection();
+                if (selectedFeature) {
+                    var id = selectedFeature.get("id");
+                    var newSelectedFeature = sarEditLayer.getSource().getFeatures().find(function (feature) {
+                        var candidateId = feature.get("id");
+                        return id === candidateId;
+                    });
+
+                    if (newSelectedFeature) {
+                        modifyRectangleInteraction.replaceSelection(newSelectedFeature);
+                    }
+                }
+            }
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {
                 map.addLayer(sarLayer);
                 map.addLayer(sarEditLayer);
-                var onClickKey;
 
-                function createClickListener() {
-                    onClickKey = map.on('singleclick', function (e) {
-                        var pixel = map.getEventPixel(e.originalEvent);
-                        var hitThis = map.hasFeatureAtPixel(pixel, {
-                            layerFilter: function (layerCandidate) {
-                                return layerCandidate === sarLayer;
-                            }
-                        });
-
-                        if (hitThis) {
-                            map.forEachFeatureAtPixel(pixel, function (feature) {
-                                selectedFeature = feature;
-                                return true;
-                            }, {
-                                layerFilter: function (layerCandidate) {
-                                    return layerCandidate === sarLayer;
-                                }
-                            });
-
-                            sarLayer.getSource().changed();
-                        }
-                        scope.$apply();
-                    });
+                function createModifyRectangleInteraction() {
+                    modifyRectangleInteraction = ModifyRectangleInteractionFactory.create(map, sarEditLayer);
                 }
 
                 if (NotifyService.hasOccurred(SarEvents.SarFeatureActive)) {
-                    createClickListener();
+                    createModifyRectangleInteraction();
                     updateContextToActive();
                 }
 
                 NotifyService.subscribe(scope, SarEvents.SarFeatureActive, function () {
-                    if (!onClickKey) {
-                        createClickListener();
+                    if (!modifyRectangleInteraction) {
+                        createModifyRectangleInteraction();
                     }
                     updateContextToActive();
                     sarLayer.setVisible(true);
@@ -606,9 +764,9 @@ TODO look at this
                 });
 
                 NotifyService.subscribe(scope, SarEvents.SarFeatureInActive, function () {
-                    if (onClickKey) {
-                        ol.Observable.unByKey(onClickKey);
-                        onClickKey = null;
+                    if (modifyRectangleInteraction) {
+                        modifyRectangleInteraction.destroy(map);
+                        modifyRectangleInteraction = null;
                     }
                     updateContextToInActive();
                 });
@@ -618,8 +776,11 @@ TODO look at this
                     if (angular.isDefined(sarLayer)) {
                         map.removeLayer(sarLayer);
                     }
-                    if (onClickKey) {
-                        ol.Observable.unByKey(onClickKey);
+                    if (angular.isDefined(sarEditLayer)) {
+                        map.removeLayer(sarEditLayer);
+                    }
+                    if (modifyRectangleInteraction) {
+                        modifyRectangleInteraction.destroy(map);
                     }
                 });
             });

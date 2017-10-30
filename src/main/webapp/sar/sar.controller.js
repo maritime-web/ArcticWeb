@@ -98,7 +98,6 @@
                     }
                 }
 
-                console.log("CONTROLLER SAYS DRAW SAR DOCS");
                 sarDocuments = documents;
                 NotifyService.notify(SarEvents.DrawSarDocuments, sarDocuments);
                 $log.debug("loadSarDocuments");
@@ -127,8 +126,6 @@
             changes.cancel();
         });
 
-
-        console.log("CONTROLLER LOAD SAR DOCS");
         loadSarDocuments();
     }]);
 

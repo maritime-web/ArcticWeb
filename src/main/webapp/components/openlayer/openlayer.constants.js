@@ -6,7 +6,8 @@
         ZoomToFeature: 'Openlayer.ZoomToFeature',
         ZoomToLayer: 'Openlayer.ZoomToLayer',
         ZoomAndCenter: 'Openlayer.ZoomAndCenter',
-        ZoomToExtent: 'Openlayer.ZoomToExtent'
+        ZoomToExtent: 'Openlayer.ZoomToExtent',
+        BoxChanged: 'Openlayer.BoxChanged'
     });
 
 })();

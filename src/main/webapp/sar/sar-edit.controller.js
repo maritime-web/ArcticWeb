@@ -115,7 +115,7 @@
             sarTypeDatas[Operation.DatumPoint] = new SarTypeData("Drift", "Datum point", "/img/sar/datumpoint.png");
             sarTypeDatas[Operation.DatumLine] = new SarTypeData("Drift", "Datum line", "/img/sar/datumline.png");
             sarTypeDatas[Operation.BackTrack] = new SarTypeData("Drift", "Back track", "/img/sar/backtrack.png");
-            sarTypeDatas[Operation.TrackLine] = new SarTypeData("Search", "Track line search", "/img/sar/tracklinesss.png");
+            sarTypeDatas[Operation.TrackLine] = new SarTypeData("Search", "Track line search", "/img/sar/tracklinesearchreturn.png");
 
             $scope.sarTypeDatas = sarTypeDatas;
 

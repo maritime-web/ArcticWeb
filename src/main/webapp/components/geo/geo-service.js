@@ -979,10 +979,8 @@
             for (var i in polygon.positions) {
                 tmp.push([polygon.positions[i].lon,polygon.positions[i].lat]);
             }
-            tmp.push([polygon.positions[0].lon,polygon.positions[0].lat])
-            var feature = turf.polygon(tmp, {"fill": "#00f"});
-            feature.geometry.type = "Polygon";
-            feature.geometry.coordinates = [feature.geometry.coordinates];
+            tmp.push([polygon.positions[0].lon,polygon.positions[0].lat]);
+            var feature = turf.polygon([tmp], {"fill": "#00f"});
             return feature;
         }
 
