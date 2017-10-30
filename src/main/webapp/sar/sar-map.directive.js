@@ -255,9 +255,15 @@
             NotifyService.subscribe(scope, SarEvents.DeactivatePositionSelection, function () {
                 console.log("DEACTIVATE POSITION SELECTION");
 
+
             });
 
             NotifyService.subscribe(scope, SarEvents.ActivateTrackLinePositioning, function () {
+/*
+                sarEditLayer.getSource().getFeatures().forEach(function (t) {
+                   console.log(t);
+                });
+*/
                 console.log("ACTIVATE TRACK LINE POSITIONING");
 
             });
