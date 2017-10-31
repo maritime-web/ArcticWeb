@@ -247,14 +247,72 @@
                 NotifyService.notify(SarEvents.EffortAllocationZoneModified, zoneUpdate);
             });
 
+            var positionSelectionContext = {};
             NotifyService.subscribe(scope, SarEvents.ActivatePositionSelection, function () {
-                console.log("ACTIVATE POSITION SELECTION");
+                var draftStyle = new ol.style.Style({
+                    image: new ol.style.Circle({
+                        radius: 10,
+                        stroke: new ol.style.Stroke({color: 'rgba(255,0,0,0.8)', width: 3}),
+                        fill: new ol.style.Fill({
+                            color: 'rgba(255,0,0,0.4)'
+                        })
+                    })
+                });
+
+                positionSelectionContext.tempLayer = new ol.layer.Vector({
+                    title: 'Temporary Layer',
+                    source: new ol.source.Vector()
+                });
+
+                positionSelectionContext.tempLayer.setStyle(draftStyle);
+
+                var draw = new ol.interaction.Draw({
+                    type: "Point",
+                    source: positionSelectionContext.tempLayer.getSource(),
+                    style: new ol.style.Style({
+                        image: new ol.style.Circle({
+                            radius: 10,
+                            stroke: new ol.style.Stroke({color: 'rgba(255,0,0,0.6)', width: 2}),
+                            fill: new ol.style.Fill({
+                                color: 'rgba(255,0,0,0.3)'
+                            })
+                        })
+                    })
+                });
+                positionSelectionContext.draw = draw;
+
+                var olScope = ctrl.getOpenlayersScope();
+                olScope.getMap().then(function (map) {
+                    positionSelectionContext.tempLayer.setMap(map);
+                    map.addInteraction(draw);
+                });
+
+                positionSelectionContext.drawEndKey = draw.on("drawend", function (e) {
+                    var pos = Position.create(OpenlayerService.toLonLat(e.feature.getGeometry().getCoordinates()));
+                    NotifyService.notify(SarEvents.PositionSelected, pos);
+                });
+
             });
 
             NotifyService.subscribe(scope, SarEvents.DeactivatePositionSelection, function () {
-                console.log("DEACTIVATE POSITION SELECTION");
+                if (positionSelectionContext) {
+                    var olScope = ctrl.getOpenlayersScope();
 
+                    olScope.getMap().then(function (map) {
+                        if (positionSelectionContext.draw) {
+                            map.removeInteraction(positionSelectionContext.draw);
+                        }
 
+                        if (positionSelectionContext.tempLayer) {
+                            positionSelectionContext.tempLayer.setMap(null);
+                        }
+
+                    });
+
+                    if (positionSelectionContext.drawEndKey) {
+                        ol.Observable.unByKey(positionSelectionContext.drawEndKey);
+                    }
+                }
             });
 
             var tracklinePositionContext = {};

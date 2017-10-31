@@ -562,7 +562,7 @@
         }
 
         NotifyService.notify(SarEvents.ActivatePositionSelection);
-        NotifyService.subscribe($scope, SarEvents.PositionSelected, function (pos) {
+        NotifyService.subscribe($scope, SarEvents.PositionSelected, function (e, pos) {
 
             var objectPos = Position.create($scope.sar.objectPosition);
             var driftPos = Position.create($scope.sarOperation.output.circle.datum);
@@ -578,6 +578,7 @@
             }
 
             $scope.sar.selectedPositions.push(pos);
+            $scope.$apply()
         });
 
         $scope.$on("$destroy", function () {
