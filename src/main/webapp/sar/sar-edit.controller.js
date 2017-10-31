@@ -1374,7 +1374,7 @@
 
     module.controller("Trackline", ['$scope', 'NotifyService', 'SarEvents', function ($scope, NotifyService, SarEvents) {
         NotifyService.notify(SarEvents.ActivateTrackLinePositioning);
-        NotifyService.subscribe($scope, SarEvents.TrackLinePositionModified, function (pos) {
+        NotifyService.subscribe($scope, SarEvents.TrackLinePositionModified, function (e, pos) {
             $scope.sp.dragPoint = pos;
             $scope.generateSearchPattern();
         });

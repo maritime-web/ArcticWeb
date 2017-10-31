@@ -19,18 +19,17 @@
         'Position'
     ];
 
-    function sarMap(
-        SarEvents,
-        OpenlayerService,
-        NotifyService,
-        OpenlayerEvents,
-        SarType,
-        SarStatus,
-        Operation,
-        SearchPattern,
-        EffortStatus,
-        ModifyRectangleInteractionFactory,
-        Position) {
+    function sarMap(SarEvents,
+                    OpenlayerService,
+                    NotifyService,
+                    OpenlayerEvents,
+                    SarType,
+                    SarStatus,
+                    Operation,
+                    SearchPattern,
+                    EffortStatus,
+                    ModifyRectangleInteractionFactory,
+                    Position) {
 
         return {
             restrict: 'E',
@@ -81,7 +80,7 @@
 
                 var baseStroke = new ol.style.Stroke({color: getColor(getStrokeOpacity()), width: getStrokeWidth()});
                 if (useDottedStyle()) {
-                    baseStroke.setLineDash([1,5]);
+                    baseStroke.setLineDash([1, 5]);
                 }
                 styles.push(new ol.style.Style({
                     stroke: baseStroke,
@@ -118,10 +117,10 @@
 
                         // arrows icon
                         var svgArrow = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">' +
-                            '<polyline fill="none" stroke="'+getColor(1)+'" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8" points="0,0 100,50 0,100" transform="scale(0.1)"/>' +
+                            '<polyline fill="none" stroke="' + getColor(1) + '" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8" points="0,0 100,50 0,100" transform="scale(0.1)"/>' +
                             '</svg>';
                         var arrowImage = new Image();
-                        arrowImage.src = 'data:image/svg+xml,' + encodeURI(svgArrow) ;
+                        arrowImage.src = 'data:image/svg+xml,' + encodeURI(svgArrow);
 
                         // arrows
                         styles.push(new ol.style.Style({
@@ -239,10 +238,10 @@
                     _id: boxFeature.get("id"),
                     area: {
                         // list of points (components) are always created as A, B, C, D in drawEffortAllocationZone
-                        A: Position.create(OpenlayerService.toLonLat([extent[0],extent[1]])),
-                        B: Position.create(OpenlayerService.toLonLat([extent[2],extent[1]])),
-                        C: Position.create(OpenlayerService.toLonLat([extent[2],extent[3]])),
-                        D: Position.create(OpenlayerService.toLonLat([extent[0],extent[3]]))
+                        A: Position.create(OpenlayerService.toLonLat([extent[0], extent[1]])),
+                        B: Position.create(OpenlayerService.toLonLat([extent[2], extent[1]])),
+                        C: Position.create(OpenlayerService.toLonLat([extent[2], extent[3]])),
+                        D: Position.create(OpenlayerService.toLonLat([extent[0], extent[3]]))
                     }
                 };
                 NotifyService.notify(SarEvents.EffortAllocationZoneModified, zoneUpdate);
@@ -258,23 +257,72 @@
 
             });
 
+            var tracklinePositionContext = {};
             NotifyService.subscribe(scope, SarEvents.ActivateTrackLinePositioning, function () {
-/*
-                sarEditLayer.getSource().getFeatures().forEach(function (t) {
-                   console.log(t);
-                });
-*/
-                console.log("ACTIVATE TRACK LINE POSITIONING");
-
+                activateTracklinePositioning();
             });
 
-            NotifyService.subscribe(scope, SarEvents.DeactivateTrackLinePositioning, function () {
-                console.log("DEACTIVATE TRACK LINE POSITIONING");
+            function activateTracklinePositioning() {
+                var dragPoint = sarEditLayer.getSource().getFeatures().find(function (f) {
+                    var type = f.get("type");
+                    return type === "dragPoint"
+                });
 
+                if (dragPoint) {
+                    tracklinePositionContext.active = true;
+                    var sarId = dragPoint.get("sarId");
+                    var routeFeature = sarLayer.getSource().getFeatures().find(function (f) {
+                        var type = f.get("type");
+                        return type === "dv" && f.get("sarId") === sarId;
+                    });
+
+                    var pointTranslate = new ol.interaction.Translate({
+                        features: new ol.Collection([dragPoint])
+                    });
+                    tracklinePositionContext.translate = pointTranslate;
+
+                    tracklinePositionContext.translatingKey = pointTranslate.on("translating", function (e) {
+                        var point = routeFeature.getGeometry().getClosestPoint(e.coordinate);
+                        dragPoint.getGeometry().setCoordinates(point);
+                    });
+
+                    tracklinePositionContext.translateendKey = pointTranslate.on("translateend", function (e) {
+                        var pos = Position.create(OpenlayerService.toLonLat(dragPoint.getGeometry().getCoordinates()));
+                        NotifyService.notify(SarEvents.TrackLinePositionModified, pos);
+                    });
+
+                    var olScope = ctrl.getOpenlayersScope();
+                    olScope.getMap().then(function (map) {
+                        map.addInteraction(pointTranslate);
+                    })
+                }
+            }
+
+            NotifyService.subscribe(scope, SarEvents.DeactivateTrackLinePositioning, function () {
+                if (tracklinePositionContext) {
+                    if (tracklinePositionContext.translate) {
+                        var olScope = ctrl.getOpenlayersScope();
+                        olScope.getMap().then(function (map) {
+                            map.removeInteraction(tracklinePositionContext.translate);
+                        })
+                    }
+
+                    if (tracklinePositionContext.translatingKey) {
+                        ol.Observable.unByKey(tracklinePositionContext.translatingKey);
+                    }
+
+                    if (tracklinePositionContext.translateendKey) {
+                        ol.Observable.unByKey(tracklinePositionContext.translateendKey);
+                    }
+                }
+                tracklinePositionContext = {};
             });
 
             NotifyService.subscribe(scope, SarEvents.CreateTemporarySearchPattern, function (e, pattern) {
                 drawTemporarySearchPattern(pattern);
+                if (!tracklinePositionContext.active) {
+                    activateTracklinePositioning();
+                }
             });
 
             NotifyService.subscribe(scope, SarEvents.RemoveTemporarySearchPattern, function () {
