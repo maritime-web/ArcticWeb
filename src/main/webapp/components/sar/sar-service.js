@@ -1204,16 +1204,16 @@
 
     module.factory('TrackLineReturn',['Position', 'Route', function (Position, Route) {
 
-        function TrackLineReturn(){};
+        function TrackLineReturn(){}
 
         TrackLineReturn.prototype = new SearchPatternCalculator();
 
         TrackLineReturn.prototype.createWaypoints = function (zone, sp, routePoints) {
             var distanceToTravel = zone.time * zone.speed;
 
-            var routeLengthToTravel = (distanceToTravel - zone.S)/2
+            var routeLengthToTravel = (distanceToTravel - zone.S)/2;
 
-            var wps = []
+            var wps = [];
             for(var i in routePoints){
                 wps.push({
                     longitude : routePoints[i].lon,
@@ -1225,7 +1225,7 @@
                 waypoints : wps
             });
 
-            var routePointsToTravel = []
+            var routePointsToTravel = [];
             var startPos = sp.dragPoint ? Position.create(sp.dragPoint) : null;
 
             for(var i = 0; i < route.waypoints.length - 1 && routeLengthToTravel >= 0; i++){
@@ -1237,7 +1237,7 @@
 
                 if(startPos) {
                     var distanceToWp1 = startPos.distanceTo(wp1, embryo.geo.Heading.RL);
-                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL)
+                    var distanceToWp2 = startPos.distanceTo(wp2, embryo.geo.Heading.RL);
                     if (Math.abs(distanceToWp1 + distanceToWp2 - distance) < 0.1) {
                         // on route leg
 
@@ -1266,20 +1266,20 @@
             }
 
             // TODO if great circle we need to include all points between waypoints
-            var turnPointsOut = []
-            var turnPointsReturn = []
+            var turnPointsOut = [];
+            var turnPointsReturn = [];
 
-            var outBearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90
-            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90
+            var outBearing = sp.turn === embryo.sar.effort.Side.Starboard ? -90 : 90;
+            var returnBearing = sp.turn === embryo.sar.effort.Side.Port ? -90 : 90;
 
             for(var i = 0; i < routePointsToTravel.length - 1; i++){
-                var p1 = routePointsToTravel[i]
-                var p2 = routePointsToTravel[i + 1]
+                var p1 = routePointsToTravel[i];
+                var p2 = routePointsToTravel[i + 1];
 
                 var bearing = p1.bearingTo(p2, embryo.geo.Heading.RL);
-                turnPointsOut.push(p1.transformRhumbLine(bearing + outBearing, zone.S/2))
-                turnPointsReturn.push(p1.transformRhumbLine(bearing + returnBearing, zone.S/2))
-                turnPointsOut.push(p2.transformRhumbLine(bearing + outBearing, zone.S/2))
+                turnPointsOut.push(p1.transformRhumbLine(bearing + outBearing, zone.S/2));
+                turnPointsReturn.push(p1.transformRhumbLine(bearing + returnBearing, zone.S/2));
+                turnPointsOut.push(p2.transformRhumbLine(bearing + outBearing, zone.S/2));
                 turnPointsReturn.push(p2.transformRhumbLine(bearing + returnBearing, zone.S/2))
             }
 
@@ -1290,7 +1290,7 @@
                 wayPoints.push(this.createWaypoint(i, turnPoints[i], zone.speed, embryo.geo.Heading.RL, zone.S / 2));
             }
             return wayPoints;
-        }
+        };
 
 
         TrackLineReturn.prototype.calculate = function (zone, sp, sar) {

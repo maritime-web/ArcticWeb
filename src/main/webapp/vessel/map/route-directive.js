@@ -7,9 +7,9 @@
         .module('embryo.vessel.map')
         .directive('route', route);
 
-    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents', 'OpenlayerEvents'];
+    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents', 'OpenlayerEvents', 'Route', 'OpenlayerService'];
 
-    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents, OpenlayerEvents) {
+    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents, OpenlayerEvents, Route, OpenlayerService) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -100,18 +100,12 @@
                 source.addFeature(createRouteFeature());
 
                 function createRouteFeature() {
-                    /** @type {ol.geom.GeometryLayout|string} */
-                    var xy = "XY";
-                    var line = new ol.geom.LineString([], xy);
-                    var feature = new ol.Feature();
-                    angular.forEach(route.wps, function (wp) {
-                        /** @type {ol.Coordinate|[]} */
-                        var coord = [wp.longitude, wp.latitude];
-                        var mercatorCoord = ol.proj.fromLonLat(coord, undefined);
-                        line.appendCoordinate(mercatorCoord);
+                    var r = Route.build(route);
+                    var points = r.createRoutePoints();
+                    var feature = new ol.Feature({
+                        geometry: OpenlayerService.createLineString(points)
                     });
 
-                    feature.setGeometry(line);
                     feature.set('routeColor', options.routeColor, true);
                     feature.set('arrowImg', options.arrowImg, true);
                     feature.setStyle(styleFunction);

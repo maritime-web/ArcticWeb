@@ -16,7 +16,8 @@
         'SearchPattern',
         'EffortStatus',
         'ModifyRectangleInteractionFactory',
-        'Position'
+        'Position',
+        'Route'
     ];
 
     function sarMap(SarEvents,
@@ -29,7 +30,8 @@
                     SearchPattern,
                     EffortStatus,
                     ModifyRectangleInteractionFactory,
-                    Position) {
+                    Position,
+                    Route) {
 
         return {
             restrict: 'E',
@@ -613,7 +615,7 @@
             };
 
             var drawSearchPattern = function (pattern, temporary) {
-                var points = createRoutePoints(pattern);
+                var points = Route.build(pattern).createRoutePoints();
 
                 if (pattern.type === SearchPattern.SectorSearch) {
                     var radiusInMeters = nmToMeters(pattern.radius);
@@ -671,62 +673,6 @@
                 }
 
                 return searchPatternFeature;
-
-                function createRoutePoints(route) {
-                    var firstPoint = true;
-                    var previousWps = null;
-                    var points = [];
-
-                    for (var index in route.wps) {
-                        if (!firstPoint && previousWps.heading === 'GC') {
-                            var linePoints = createGeoDesicLineAsGeometryPoints({
-                                y: previousWps.latitude,
-                                x: previousWps.longitude
-                            }, {
-                                y: route.wps[index].latitude,
-                                x: route.wps[index].longitude
-                            });
-
-                            linePoints.shift();
-                            points = points.concat(linePoints);
-                        }
-
-                        points = points.concat(toGeometryPoints([{
-                            y: route.wps[index].latitude,
-                            x: route.wps[index].longitude
-                        }]));
-                        firstPoint = false;
-                        previousWps = route.wps[index];
-                    }
-
-                    return points;
-
-                    function createGeoDesicLineAsGeometryPoints(p1, p2) {
-                        var generator = new arc.GreatCircle(p1, p2, {
-                            'foo': 'bar'
-                        });
-                        var line = generator.Arc(100, {
-                            offset: 10
-                        });
-
-                        var points = [];
-                        for (var i in line.geometries) {
-                            for (j in line.geometries[i].coords) {
-                                points.push([line.geometries[i].coords[j][0], line.geometries[i].coords[j][1]]);
-                            }
-                        }
-
-                        return points;
-                    }
-
-                    function toGeometryPoints(points) {
-                        var geometryPoints = [];
-                        for (var index in points) {
-                            geometryPoints.push([points[index].x, points[index].y]);
-                        }
-                        return geometryPoints;
-                    }
-                }
             };
 
             var drawLogPosition = function (log) {
