@@ -5,9 +5,9 @@
         .module('embryo.components.openlayer')
         .directive('mapPosition', mapPosition);
 
-    mapPosition.$inject = ['NotifyService', 'OpenlayerEvents', 'OpenlayerService'];
+    mapPosition.$inject = ['NotifyService', 'OpenlayerEvents', 'OpenlayerService', 'CookieService'];
 
-    function mapPosition(NotifyService, OpenlayerEvents, OpenlayerService) {
+    function mapPosition(NotifyService, OpenlayerEvents, OpenlayerService, CookieService) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -16,9 +16,23 @@
         };
 
         function link(scope, element, attrs, ctrl) {
+            var viewListenerKey;
+
+            /**
+             * Saves the maps position and resolution in cookies with the given names whenever it changes.
+             */
+            NotifyService.subscribe(scope, OpenlayerEvents.SaveMapState, function (e, data) {
+                var olScope = ctrl.getOpenlayersScope();
+                olScope.getMap().then(function (map) {
+                    var view = map.getView();
+                    viewListenerKey = view.on(["change:center", "change:resolution"], function () {
+                        CookieService.set(data.centerCookie, view.getCenter(), 10);
+                        CookieService.set(data.resolutionCookie, view.getResolution(), 10);
+                    });
+                })
+            });
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomAndCenter, centerAndZoom);
-
             function centerAndZoom(e, data) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -29,19 +43,16 @@
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToExtent, zoomToExtent);
-
             function zoomToExtent(e, data) {
                 fitExtent(data);
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToLayer, zoomToLayer);
-
             function zoomToLayer(e, layer) {
                 fitExtent({extent: layer.getSource().getExtent()});
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomToFeature, zoomToFeature);
-
             function zoomToFeature(e, data) {
                 var feature = data.feature;
 
@@ -59,7 +70,6 @@
             }
 
             NotifyService.subscribe(scope, OpenlayerEvents.PanToFeature, panToFeature);
-
             function panToFeature(e, featureId) {
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
@@ -112,6 +122,13 @@
                     view.fit(extent, {size: map.getSize(), minResolution: minResolution, padding: padding});
                 })
             }
+
+
+            scope.$on("destroy", function () {
+                if (viewListenerKey) {
+                    ol.Observable.unByKey(viewListenerKey);
+                }
+            })
         }
     }
 })();

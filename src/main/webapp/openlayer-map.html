@@ -94,6 +94,7 @@
 <div id="messagePanel"></div>
 
 <div requires-authenticated>
+    <div ng-controller="CoreController as core"></div>
 
     <div e-location-enabled="vessels">
         <div class="controlContainer e-small-font">
@@ -191,6 +192,9 @@
 <script src="js/embryo.js"></script>
 <script src="js/authentication.js" type="text/javascript"></script>
 <script src="js/menu.js" type="text/javascript"></script>
+
+<script src="core/core.module.js" type="text/javascript"></script>
+<script src="core/core.controller.js" type="text/javascript"></script>
 
 <script src="select-area/select-area-service.js" type="text/javascript"></script>
 <script src="select-area/select-area-control.js"></script>

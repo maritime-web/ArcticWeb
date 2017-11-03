@@ -7,7 +7,8 @@
         ZoomToLayer: 'Openlayer.ZoomToLayer',
         ZoomAndCenter: 'Openlayer.ZoomAndCenter',
         ZoomToExtent: 'Openlayer.ZoomToExtent',
-        BoxChanged: 'Openlayer.BoxChanged'
+        BoxChanged: 'Openlayer.BoxChanged',
+        SaveMapState: 'Openlayer.SaveMapState'
     });
 
 })();

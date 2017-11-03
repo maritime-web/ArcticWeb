@@ -207,7 +207,6 @@ $(function() {
                 $scope.$on("$destroy", function() {
                     VesselInformation.hideAll();
                     NotifyService.notify(VesselEvents.HideExtraVesselsInfo);
-                    console.log("Cleaning up VESSEL Feature");
                     NotifyService.notify(VesselEvents.VesselFeatureInActive, moment());
 
                 });
@@ -316,7 +315,6 @@ $(function() {
             return shownCounter > 0;
         };
         $scope.clearSelectedOnMap = function($event) {
-            console.log("clearSelectedOnMap");
             $event.preventDefault();
 
             NotifyService.notify(VesselEvents.HideExtraVesselsInfo);

@@ -11,8 +11,6 @@
             $scope.state.showNW = true;
             $scope.state.showNM = false;
 
-            console.log("INITIALIZING NWNM");
-
             initialize();
 
             function initialize() {

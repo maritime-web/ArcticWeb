@@ -2,6 +2,7 @@
     "use strict";
     angular.module('embryo.main.app', [
         /* Shared modules */
+        'embryo.core',
         'embryo.menu',
         'embryo.authentication',
         'embryo.user',

@@ -63,7 +63,6 @@
         function loadVessel() {
             VesselService.details($scope.mmsi, function (v) {
                 NotifyService.notify(VrmtEvents.VesselLoaded, v);
-                console.log(v);
                 //Only change rute if we don't have one yet
                 var routeId = $scope.route ? $scope.route.id : v.additionalInformation.routeId;
                 if (!routeId) { //No active route, choose one in the schedule
