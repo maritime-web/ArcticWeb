@@ -306,7 +306,6 @@
                         if (positionSelectionContext.tempLayer) {
                             positionSelectionContext.tempLayer.setMap(null);
                         }
-
                     });
 
                     if (positionSelectionContext.drawEndKey) {

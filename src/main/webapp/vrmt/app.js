@@ -18,9 +18,5 @@
         growlProvider.globalTimeToLive(6000);
         growlProvider.globalPosition('bottom-left');
     }]);
-
-    $(function () {
-        embryo.authentication.currentPageRequiresAuthentication = true;
-    });
 })();
 

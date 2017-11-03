@@ -66,32 +66,34 @@
     </layer-switcher>
     <map-position></map-position>
     <vessel-zoom></vessel-zoom>
-    <route requires-authenticated></route>
-    <vessel requires-authenticated></vessel>
-    <distance-to-nearest requires-authenticated></distance-to-nearest>
-    <distance-circles requires-authenticated></distance-circles>
+    <div requires-authenticated>
+        <route></route>
+        <vessel requires-authenticated></vessel>
+        <distance-to-nearest requires-authenticated></distance-to-nearest>
+        <distance-circles requires-authenticated></distance-circles>
 
-    <vrmt-route></vrmt-route>
-    <vrmt-vessel></vrmt-vessel>
-    <vrmt-route-locations></vrmt-route-locations>
+        <vrmt-route></vrmt-route>
+        <vrmt-vessel></vrmt-vessel>
+        <vrmt-route-locations></vrmt-route-locations>
 
-    <nwnm-map></nwnm-map>
+        <nwnm-map></nwnm-map>
 
-    <ice-chart-map></ice-chart-map>
-    <inshore-ice-report-map></inshore-ice-report-map>
-    <iceberg-map></iceberg-map>
+        <ice-chart-map></ice-chart-map>
+        <inshore-ice-report-map></inshore-ice-report-map>
+        <iceberg-map></iceberg-map>
 
-    <weather-forecast-map></weather-forecast-map>
-    <metoc-map></metoc-map>
-    <forecast-map></forecast-map>
-    <sar-map></sar-map>
+        <weather-forecast-map></weather-forecast-map>
+        <metoc-map></metoc-map>
+        <forecast-map></forecast-map>
+        <sar-map></sar-map>
+    </div>
 </openlayer-parent>
 
 <div id="hoveringBox"></div>
 
 <div id="messagePanel"></div>
 
-<div>
+<div requires-authenticated>
 
     <div e-location-enabled="vessels">
         <div class="controlContainer e-small-font">

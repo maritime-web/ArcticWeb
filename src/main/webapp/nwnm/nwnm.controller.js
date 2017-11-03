@@ -1,7 +1,7 @@
 (function () {
 
     angular.module('embryo.nwnm')
-        .controller("NWNMControl", ['$scope', 'NWNMService', 'NWNMEvents', 'NotifyService', function ($scope, NWNMService, NWNMEvents, NotifyService) {
+        .controller("NWNMControl", ['$scope', 'NWNMService', 'NWNMEvents', 'NotifyService', 'Subject', '$timeout', function ($scope, NWNMService, NWNMEvents, NotifyService, Subject, $timeout) {
             NotifyService.notify(NWNMEvents.NWNMFeatureActive);
             $scope.unfilteredMmessages = [];
             $scope.messages = [];
@@ -11,26 +11,39 @@
             $scope.state.showNW = true;
             $scope.state.showNM = false;
 
+            console.log("INITIALIZING NWNM");
 
-            /**
-             * Subscribe to notifications on NW-NM message loading.
-             */
-            NWNMService.subscribe(function (error, messages) {
-                if (error) {
-                    embryo.messagePanel.show({
-                        text: error,
-                        type: "error"
+            initialize();
+
+            function initialize() {
+                if (Subject.isLoggedIn()) {
+                    /**
+                     * Subscribe to notifications on NW-NM message loading.
+                     */
+                    NWNMService.subscribe(function (error, messages) {
+                        if (error) {
+                            embryo.messagePanel.show({
+                                text: error,
+                                type: "error"
+                            });
+                        } else {
+                            $scope.unfilteredMmessages = messages;
+                            var state = NWNMService.getFilterState();
+                            if (state) {
+                                $scope.state = state;
+                            }
+
+                            onStateChange();
+                        }
                     });
                 } else {
-                    $scope.unfilteredMmessages = messages;
-                    var state = NWNMService.getFilterState();
-                    if (state) {
-                        $scope.state = state;
-                    }
-
-                    onStateChange();
+                    $timeout(function () {
+                        $scope.$apply(function () {
+                            initialize();
+                        });
+                    }, 10)
                 }
-            });
+            }
 
             /**
              * Filter messages according to the currently chosen filter criteria.
