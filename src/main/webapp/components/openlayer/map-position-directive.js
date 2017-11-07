@@ -22,6 +22,9 @@
              * Saves the maps position and resolution in cookies with the given names whenever it changes.
              */
             NotifyService.subscribe(scope, OpenlayerEvents.SaveMapState, function (e, data) {
+                if (viewListenerKey) {
+                    ol.Observable.unByKey(viewListenerKey);
+                }
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     var view = map.getView();

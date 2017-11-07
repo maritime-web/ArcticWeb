@@ -54,7 +54,8 @@
                 var controls = ol.control.defaults({rotate: false});
                 var interactions = ol.interaction.defaults({
                     altShiftDragRotate: true,
-                    pinchRotate: true
+                    pinchRotate: true,
+                    zoomDuration: 0
                 });
 
                 var coords = [ol.proj.fromLonLat([-180, -90], undefined), ol.proj.fromLonLat([180, 90], undefined)];
@@ -74,9 +75,7 @@
                 })];
                 var view = new ol.View({
                     resolution: 7000,
-                    minResolution: OpenlayerService.minResolution,
-                    maxResolution: OpenlayerService.maxResolution,
-                    zoomFactor: 1.4,
+                    resolutions: [OpenlayerService.maxResolution, 10000, 7000, 5000, 4000, 3000, 2000, 1000, 600, 200, 80, 30, OpenlayerService.minResolution],
                     center: ol.proj.fromLonLat([-44, 69], undefined),
                     extent: arcticExtent
                 });

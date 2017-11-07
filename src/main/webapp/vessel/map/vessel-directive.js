@@ -16,7 +16,23 @@
         };
 
         function link(scope, element, attrs, ctrl) {
-            var vesselLayer = createVesselLayer();
+            var vesselLayer = new ol.layer.Vector({
+                title: 'Vessels',
+                source: new ol.source.Vector(),
+                context: {
+                    feature: 'Vessel',
+                    name: 'Vessels'
+                }
+            });
+            var clusterLayer = new ol.layer.Vector({
+                source: new ol.source.Vector(),
+                context: {
+                    feature: 'Vessel',
+                    name: 'Clusters'
+                }
+            });
+            var resolution;
+            var viewExtent;
             var vessels = null;
             var clickedMmsi = null;
             var myMmsi = null;
@@ -28,93 +44,94 @@
                 updateContext();
             });
 
-            function createVesselLayer() {
-                return new ol.layer.Vector({
-                    title: 'Vessels',
-                    source: new ol.source.Vector(),
-                    context: {
-                        feature: 'Vessel',
-                        name: 'Vessels'
-                    }
-                });
-            }
-
             function replaceVessels() {
                 if (vessels) {
-                    var source = vesselLayer.getSource();
-                    source.clear();
+                    vesselLayer.getSource().clear();
+                    clusterLayer.getSource().clear();
 
-                    olScope.getMap().then(function (map) {
-                        var zoom = map.getView().getZoom();
-                        createClusterFeatures(vessels, zoom);
-                    });
+                    createClusterFeatures(vessels);
+                    vesselLayer.getSource().refresh();
+                    clusterLayer.getSource().refresh();
                 }
 
-                var clusterColors = [
-                    {color: "rgba(255,221,0,0.3)", densityLimit: 0.0, countLimit: 0},	// Yellow
-                    {color: "rgba(255,136,0,0.3)", densityLimit: 0.00125, countLimit: 50},	// Orange
-                    {color: "rgba(255,0,0,0.3)", densityLimit: 0.004, countLimit: 250},	// Red
-                    {color: "rgba(255,0,255,0.3)", densityLimit: 0.008, countLimit: 1000}	// Purple
-                ];
-
-                /**
-                 * Finds the color of a cluster based on density.
-                 */
-                function findClusterColor(cell) {
-                    for (var i = clusterColors.length - 1; i >= 0; i--) {
-                        if (cell.getDensity() >= clusterColors[i].densityLimit) {
-                            return new ol.style.Fill({color: clusterColors[i].color});
+                function createClusterFeatures(vessels) {
+                    var myVessel;
+                    var newcells = new Map();
+                    var size = resolution * 40;//40px cluster boxes
+                    vessels.forEach(function (v) {
+                        if (v.mmsi === myMmsi) {
+                            myVessel = v;
                         }
-                    }
-
-                    return new ol.style.Fill({color: "#000000"});
-                }
-
-                var clusterSizes = [
-                    {zoom: 0, size: 4.5},
-                    {zoom: 1, size: 4.5},
-                    {zoom: 2, size: 4.1},
-                    {zoom: 3, size: 3.9},
-                    {zoom: 4, size: 3.5},
-                    {zoom: 5, size: 2.7},
-                    {zoom: 6, size: 1.1},
-                    {zoom: 7, size: 0.60},
-                    {zoom: 8, size: 0.4},
-                    {zoom: 9, size: 0.2},
-                    {zoom: 10, size: 0.1},
-                    {zoom: 11, size: 0.05},
-                    {zoom: 12, size: 0.025},
-                    {zoom: 13, size: 0.005},
-                    {zoom: 14, size: 0.0025}
-                ];
-
-                function getClusterSize(zoom) {
-                    for (var index in clusterSizes) {
-                        if (clusterSizes[index].zoom >= zoom) {
-                            return clusterSizes[index].size;
-                        }
-                    }
-
-                    return clusterSizes[clusterSizes.length - 1].size;
-                }
-
-                function createClusterFeatures(vessels, zoom) {
-                    var size = getClusterSize(zoom);
-                    var grid = new Grid(size);
-                    var cluster = new Cluster(vessels, grid, 40);
-                    var cells = cluster.getCells();
-
-                    angular.forEach(cells, function (cell) {
-                        if (cell.items && cell.items.length > 0) {
-                            angular.forEach(cell.items, function (vessel) {
-                                if (vessel.type) {
-                                    vesselLayer.getSource().addFeature(createVesselFeature(vessel));
-                                }
+                        var p = OpenlayerService.createPoint([v.x, v.y]);
+                        var coord = p.getCoordinates();
+                        var x = coord[0];
+                        var y = coord[1];
+                        var cellCoordX = Math.floor(x / size);
+                        var cellCoordY = Math.floor(y / size);
+                        var key = 'x' + cellCoordX + 'y' + cellCoordY;
+                        if (!newcells.get(key)) {
+                            newcells.set(key, {
+                                count: 0,
+                                vessels: [],
+                                bottomLeftCoord: [cellCoordX * size, cellCoordY * size]
                             });
+                        }
+                        var cell = newcells.get(key);
+                        cell.count++;
+                        cell.vessels.push(v);
+                    });
+
+                    var vesselsInClusters = [];
+                    newcells.forEach(function (cell) {
+                        if (cell.count > 40) {
+                            vesselsInClusters = vesselsInClusters.concat(cell.vessels);
+                            clusterLayer.getSource().addFeature(createClusterFeature(cell));
                         } else {
-                            vesselLayer.getSource().addFeature(createCreateClusterFeature(cell));
+                            cell.vessels.forEach(function (v) {
+                                vesselLayer.getSource().addFeature(createVesselFeature(v));
+                            })
                         }
                     });
+
+                    if (!vesselLayer.getSource().getFeatureById(myMmsi) && myVessel) {
+                        vesselLayer.getSource().addFeature(createVesselFeature(myVessel));
+                    }
+
+                    function createClusterFeature(cell) {
+                        var a = cell.bottomLeftCoord;
+                        var b = [a[0], a[1] + size];
+                        var c = [a[0] + size, a[1] + size];
+                        var d = [a[0] + size, a[1]];
+                        var f = new ol.Feature({
+                            geometry: new ol.geom.Polygon([[a, b, c, d, a]])
+                        });
+
+                        f.setStyle(new ol.style.Style({
+                            fill: new ol.style.Fill({
+                                color: getColor()
+                            }),
+                            text: new ol.style.Text({
+                                text: cell.count + '',
+                                fill: new ol.style.Fill({
+                                    color: '#fff'
+                                })
+                            })
+                        }));
+
+                        return f;
+
+                        function getColor() {
+                            if (cell.count < 50) {
+                                return "rgba(255,221,0,0.3)";// Yellow
+                            } else if (cell.count < 250) {
+                                return "rgba(255,136,0,0.3)";// Orange
+                            } else if (cell.count < 500) {
+                                return "rgba(255,0,0,0.3)";// Red
+                            } else {
+                                return "rgba(255,0,255,0.3)"// Purple
+                            }
+                        }
+                    }
 
                     function createVesselFeature(vessel) {
                         var lat = vessel.y;
@@ -127,30 +144,6 @@
 
                         vesselFeature.setStyle(OpenLayerStyleFactory.createVesselStyleFunction(myMmsi, clickedMmsi));
                         return vesselFeature;
-                    }
-
-                    function createCreateClusterFeature(cell) {
-                        var points = [];
-                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
-                        points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.from.lat]));
-                        points.push(OpenlayerService.fromLonLat([cell.to.lon, cell.to.lat]));
-                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.to.lat]));
-                        points.push(OpenlayerService.fromLonLat([cell.from.lon, cell.from.lat]));
-
-                        var cellFeature = new ol.Feature({
-                            geometry: new ol.geom.Polygon([points])
-                        });
-                        cellFeature.set('type', 'cluster', true);
-                        cellFeature.setStyle(new ol.style.Style({
-                            fill: findClusterColor(cell),
-                            text: new ol.style.Text({
-                                text: cell.count + '',
-                                fill: new ol.style.Fill({
-                                    color: '#fff'
-                                })
-                            })
-                        }));
-                        return cellFeature;
                     }
                 }
             }
@@ -178,12 +171,15 @@
             }
 
             var onclickKey = null;
+
             function createVesselClickListener(map) {
                 onclickKey = map.on('singleclick', function (e) {
                     var pixel = map.getEventPixel(e.originalEvent);
-                    var hitThis = map.hasFeatureAtPixel(pixel, {layerFilter : function (layerCandidate) {
-                        return layerCandidate === vesselLayer;
-                    }});
+                    var hitThis = map.hasFeatureAtPixel(pixel, {
+                        layerFilter: function (layerCandidate) {
+                            return layerCandidate === vesselLayer;
+                        }
+                    });
 
                     if (hitThis) {
                         var feature = vesselLayer.getSource().getClosestFeatureToCoordinate(e.coordinate);
@@ -198,9 +194,15 @@
 
             var olScope = ctrl.getOpenlayersScope();
             olScope.getMap().then(function (map) {
+                resolution = map.getView().getResolution();
+                viewExtent = map.getView().calculateExtent();
                 map.addLayer(vesselLayer);
+                map.addLayer(clusterLayer);
 
-                var resolutionHandle = map.getView().on('change:resolution', function () {
+                var resolutionHandle = map.getView().on(['change:resolution'], function (e) {
+                    var view = e.target;
+                    resolution = view.getResolution();
+                    viewExtent = view.calculateExtent();
                     replaceVessels();
                 });
 
@@ -230,6 +232,9 @@
                 scope.$on('$destroy', function () {
                     if (angular.isDefined(vesselLayer)) {
                         map.removeLayer(vesselLayer);
+                    }
+                    if (angular.isDefined(clusterLayer)) {
+                        map.removeLayer(clusterLayer);
                     }
                     if (onclickKey) {
                         ol.Observable.unByKey(onclickKey);
