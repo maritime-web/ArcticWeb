@@ -308,8 +308,8 @@
         ModifyRectangleInteraction.prototype.replaceSelection = function (feature) {
             this.select.getFeatures().clear();
             this.select.getFeatures().insertAt(0, feature);
-            this.select.dispatchEvent(
-                new ol.interaction.Select.Event('select', [feature], null, null));
+            this.select.dispatchEvent({type: 'select', selected: [feature]});
+            //
         };
 
         /**
@@ -317,8 +317,7 @@
          */
         ModifyRectangleInteraction.prototype.clearSelection = function () {
             this.select.getFeatures().clear();
-            this.select.dispatchEvent(
-                new ol.interaction.Select.Event('select', null, null, null));
+            this.select.dispatchEvent('select');
         };
 
         return {

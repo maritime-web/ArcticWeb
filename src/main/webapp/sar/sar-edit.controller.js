@@ -1419,6 +1419,7 @@
             // the copy will replace the active zone, when itself being activated
             // TODO move much of this code into EffortAllocation where easier to unit test.
             var sru = clone($scope.sru);
+            sru.coordinator = $scope.sar.coordinator.userName;
             sru.name = $scope.participant.user.name;
             sru.mmsi = $scope.participant.user.mmsi;
             if (sru.status === embryo.sar.effort.Status.Active) {
