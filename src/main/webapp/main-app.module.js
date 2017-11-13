@@ -24,7 +24,6 @@
         'embryo.decimal',
         'embryo.controller.reporting',
         'embryo.aisinformation',
-        'embryo.areaselect.control',
 
         'vrmt.render',
         'vrmt.map',
@@ -36,6 +35,7 @@
         'embryo.weather',
         'embryo.forecast',
         'embryo.sar',
+        'embryo.areaselect',
 
         /* 3rd-party modules */
         'ui.bootstrap',

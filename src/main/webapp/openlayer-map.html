@@ -45,7 +45,6 @@
     <script src="js/cached/openlayer-map/cdn.cloudflare/numeral.js/1.4.5/numeral.min.js"></script>
     <script src="js/cached/map/cdn.netdna/bootstrap/3.1.1/js/bootstrap.min.js" type="text/javascript"></script>
 
-    <!--<script src="js/cached/openlayer-map/cdn.cloudflare/openlayers/4.4.2/ol.js" type="text/javascript"></script>-->
     <script src="js/cached/openlayer-map/cdn.cloudflare/openlayers/4.4.2/ol.js" type="text/javascript"></script>
     <script src='js/cached/openlayer-map/cdn.cloudflare/pouchdb/6.3.4/pouchdb.js'></script>
 </head>
@@ -68,9 +67,9 @@
     <vessel-zoom></vessel-zoom>
     <div requires-authenticated>
         <route></route>
-        <vessel requires-authenticated></vessel>
-        <distance-to-nearest requires-authenticated></distance-to-nearest>
-        <distance-circles requires-authenticated></distance-circles>
+        <vessel></vessel>
+        <distance-to-nearest></distance-to-nearest>
+        <distance-circles></distance-circles>
 
         <vrmt-route></vrmt-route>
         <vrmt-vessel></vrmt-vessel>
@@ -86,6 +85,7 @@
         <metoc-map></metoc-map>
         <forecast-map></forecast-map>
         <sar-map></sar-map>
+        <select-area-map></select-area-map>
     </div>
 </openlayer-parent>
 
@@ -156,11 +156,11 @@
             <div x-ng-include="'sar/sar-effort-allocation-edit.html'"></div>
             <div x-ng-controller="SARLayerControl"></div>
         </div>
-<!--
         <div e-location-enabled="setup">
-            <div x-ng-include="'partials/select-area-control.html'"></div>
+            <div x-ng-include="'select-area/select-area-control.html'"></div>
         </div>
 
+<!--
         <div x-ng-include="'partials/switch-base-map.html'"></div>
 -->
     </div>
@@ -196,8 +196,11 @@
 <script src="core/core.module.js" type="text/javascript"></script>
 <script src="core/core.controller.js" type="text/javascript"></script>
 
-<script src="select-area/select-area-service.js" type="text/javascript"></script>
-<script src="select-area/select-area-control.js"></script>
+<script src="select-area/select-area.module.js" type="text/javascript"></script>
+<script src="select-area/select-area.constants.js" type="text/javascript"></script>
+<script src="select-area/select-area.service.js" type="text/javascript"></script>
+<script src="select-area/select-area.controller.js"></script>
+<script src="select-area/select-area-map.directive.js"></script>
 
 <script src="vessel/vessel.module.js" type="text/javascript"></script>
 <script src="vessel/vessel.constants.js" type="text/javascript"></script>

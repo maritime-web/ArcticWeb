@@ -1,6 +1,6 @@
 (function () {
 	
-    var module = angular.module('embryo.selectarea.service', []);
+    var module = angular.module('embryo.areaselect');
 
     var selectionGroupPath = 'rest/areasOfInterest/';
     
@@ -12,7 +12,7 @@
             	this.active = false;
             	this.squares = [];
             	this.getStatusLabel = function() {
-            		return this.active ? "Active" : "Inactive";
+            		return this.active ? "Active" : "Click to activate";
             	};
             }
             

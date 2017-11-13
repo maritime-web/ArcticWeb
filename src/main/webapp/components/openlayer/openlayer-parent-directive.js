@@ -75,7 +75,7 @@
                 })];
                 var view = new ol.View({
                     resolution: 7000,
-                    resolutions: [OpenlayerService.maxResolution, 10000, 7000, 5000, 4000, 3000, 2000, 1000, 600, 200, 80, 30, OpenlayerService.minResolution],
+                    resolutions: [OpenlayerService.maxResolution, 10000, 7000, 5000, 4000, 3000, 2000, 1000, 600, 400, 300, 200, 130, 80, 45, 30, 15, OpenlayerService.minResolution],
                     center: ol.proj.fromLonLat([-44, 69], undefined),
                     extent: arcticExtent
                 });
