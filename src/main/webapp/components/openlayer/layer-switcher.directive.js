@@ -35,17 +35,27 @@
             scope.features = [];
             scope.featuresLayers = new Map();
             olScope.getMap().then(function (map) {
-                var layerGroupHandle = map.on('change:layerGroup', function (event) {
+                var layerGroupHandle = map.on('change:layerGroup', function () {
                     updateLayers();
                 });
 
-                var layersInGroupHandle = map.getLayerGroup().on('change:layers', function (event) {
+                var layersInGroupHandle = map.getLayerGroup().on('change:layers', function () {
+                    updateLayers();
+                });
+
+                var layerHandle = map.getLayers().on('change:length', function () {
                     updateLayers();
                 });
 
                 updateLayers();
 
                 function updateLayers() {
+                    if (scope.featuresLayers) {
+                        scope.featuresLayers.forEach(function (layerView) {
+                            ol.Observable.unByKey(layerView.listener);
+                        });
+                    }
+
                     scope.featuresLayers.clear();
                     scope.features.length = 0;
                     map.getLayerGroup().getLayers().forEach(function (layer) {
@@ -94,6 +104,9 @@
                     }
                     if (layersInGroupHandle) {
                         ol.Observable.unByKey(layersInGroupHandle);
+                    }
+                    if (layerHandle) {
+                        ol.Observable.unByKey(layerHandle);
                     }
                     if (scope.featuresLayers) {
                         scope.featuresLayers.forEach(function (layerView) {

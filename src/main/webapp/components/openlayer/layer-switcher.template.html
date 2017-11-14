@@ -9,6 +9,9 @@
     <div class="layer-switcher e-small-font">
         <div ng-hide="hidden" on-escape="hide()" outside-click="hide()">
             <div class="container-fluid">
+                <div class="row" ng-if="!features || features.length === 0">
+                    No layers have been registered
+                </div>
                 <div class="row" ng-repeat="feature in features">
                     <div class="col-xs-12">
 
