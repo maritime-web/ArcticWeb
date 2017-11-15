@@ -783,8 +783,11 @@
             }
 
             function updateSelection() {
-                var selectedFeature = modifyRectangleInteraction.getSelectedFeature();
-                modifyRectangleInteraction.clearSelection();
+                var selectedFeature = null;
+                if (modifyRectangleInteraction) {
+                    selectedFeature = modifyRectangleInteraction.getSelectedFeature();
+                    modifyRectangleInteraction.clearSelection();
+                }
                 if (selectedFeature) {
                     var id = selectedFeature.get("id");
                     var newSelectedFeature = sarEditLayer.getSource().getFeatures().find(function (feature) {
