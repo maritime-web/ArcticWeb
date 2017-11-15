@@ -1,41 +1,11 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.greenpos', [ 'embryo.scheduleService', 'embryo.greenposService',
-        'embryo.course', 'embryo.position', 'embryo.controller.reporting' ]);
+    var module = angular.module('embryo.vessel.vts');
 
-    /*
-     * Inspired by http://jsfiddle.net/zbjLh/2/
-     */
-    module.directive('resize', function ($window) {
-        return {
-            restrict: 'A',
-            link: function (scope, element, attrs) {
-
-                var elemToMatch = $('#' + attrs.resize);
-                scope.getElementDimensions = function () {
-                    return {
-                        'h': elemToMatch.height()
-                    };
-                };
-                scope.$watch(scope.getElementDimensions, function (newValue, oldValue) {
-
-                    scope.style = function () {
-                        return {
-                            'height': (newValue.h) + 'px'
-                        };
-                    };
-                }, true);
-
-                var window = angular.element($window);
-                window.bind('resize', function () {
-                    scope.$apply();
-                });
-            }
-        };
-    });
-
-    embryo.GreenPosCtrl = function ($scope, ScheduleService, GreenposService, VesselService, $timeout, RouteService, VesselInformation) {
+    module.controller('GreenPosCtrl', GreenPosCtrl);
+    GreenPosCtrl.$inject = ['$scope', 'ScheduleService', 'GreenposService', 'VesselService', 'VesselInformation', 'VTSEvents', 'NotifyService', 'OpenlayerEvents'];
+    function GreenPosCtrl($scope, ScheduleService, GreenposService, VesselService, VesselInformation, VTSEvents, NotifyService, OpenlayerEvents) {
         $scope.deactivate = {
             value: false
         };
@@ -52,7 +22,7 @@
         $scope.recipients = {
             coastalcontrol: 'Coastal Control',
             greenpos: 'Greenpos',
-            soundrep : 'SoundRep'
+            soundrep: 'SoundRep'
         };
 
         $scope.reportTypes = [
@@ -99,10 +69,10 @@
         }
 
         $scope.visibility = {
-            "SP": [ "destination", "eta", "personsOnBoard", "course", "speed", "route", "weather", "ice" ],
-            "PR": [ "course", "speed", "weather", "ice" ],
-            "FR": [ "weather", "ice" ],
-            "DR": [ "route" ]
+            "SP": ["destination", "eta", "personsOnBoard", "course", "speed", "route", "weather", "ice"],
+            "PR": ["course", "speed", "weather", "ice"],
+            "FR": ["weather", "ice"],
+            "DR": ["route"]
         };
 
         $scope.$watch("report.type", function () {
@@ -185,41 +155,15 @@
             greenPosForm.$setPristine();
         };
 
-        function getReportPanelUpperRight() {
-            var $reportPanel = $("#greenposReportPanel");
-            var $pos = $reportPanel.position();
-            if (!$pos) {
-                return null;
-            }
-            return {
-                right: $pos.left + $reportPanel.width(),
-                top: $pos.top
-            };
-        }
-
         $scope.updatePositionOnMap = function () {
             var longitude = $scope.report.lon;
             var latitude = $scope.report.lat;
 
-            if (!!longitude && !!latitude) {
-                // layer.draw(longitude, latitude);
-
-                var pixel = embryo.map.getPxFromPosition(longitude, latitude);
-                var reportPanelUpperRight = getReportPanelUpperRight();
-
-                if (!!reportPanelUpperRight && (!embryo.map.isWithinBorders(longitude, latitude) || reportPanelUpperRight.right > pixel.x)) {
-                    var lonLat = embryo.map.transformPosition(longitude, latitude);
-                    var rPanelUpRight = embryo.map.getLonLatFromPixel(reportPanelUpperRight.right, reportPanelUpperRight.top);
-                    var iMap = embryo.map.internalMap;
-                    var destLon = rPanelUpRight.lon
-                        + (iMap.getCenter().lon + iMap.getExtent().getWidth() / 2 - rPanelUpRight.lon) / 2;
-
-                    var diff = embryo.map.lonLatDifference(new OpenLayers.LonLat(destLon, iMap.getCenter().lat), iMap.getCenter());
-                    var newCenter = embryo.map.addToLonLat(lonLat, diff);
-                    iMap.setCenter(newCenter, 4);
-                }
+            if (longitude && latitude) {
+                NotifyService.notify(VTSEvents.Mark, [longitude, latitude]);
+                NotifyService.notify(OpenlayerEvents.ZoomAndCenter, {resolution: 300, lonLat: [longitude, latitude]});
             } else {
-                // layer.clear();
+                NotifyService.notify(VTSEvents.ClearMarks);
             }
         };
 
@@ -284,7 +228,7 @@
                 type: "PR"
             };
             $scope.hasActiveRoute = (vesselDetails.additionalInformation.routeId && vesselDetails.additionalInformation.routeId.length > 0);
-            $scope.inclWps.value = $scope.hasActiveRoute
+            $scope.inclWps.value = $scope.hasActiveRoute;
 
             $scope.editVesselInformation = !vesselOverview || !vesselOverview.name || !vesselOverview.callSign;
 
@@ -320,122 +264,129 @@
         }
     };
 
-    module.directive('sort', function () {
+    module.directive('sort', sort);
+    sort.$inject = [];
+
+    function sort() {
         return {
             restrict: 'A',
             scope: {
                 options: '@',
                 sort: '='
             },
-            link: function (scope, element, attrs) {
-                var sort = null, order = null;
+            link: linkFn
+        };
 
-                element.bind('click',
-                    function () {
+        function linkFn(scope, element, attrs) {
+            var sort = null, order = null;
 
-                        if (!scope.sort || scope.sort != attrs.sort) {
-                            scope.sort = attrs.sort;
-                            scope.order = attrs.options && attrs.options.defaultorder ? attrs.options.defaultorder
-                                : 'DESC';
-                            element.find('i').addClass('icon-chevron-up');
-                        } else {
-                            scope.order = (scope.order == 'ASC' ? 'DESC' : 'ASC');
-                            element.find('i').toggleClass('icon-chevron-up icon-chevron-down');
-                        }
+            element.bind('click',
+                function () {
 
-                        scope.options.fnSort(sort, order);
-                    });
+                    if (!scope.sort || scope.sort != attrs.sort) {
+                        scope.sort = attrs.sort;
+                        scope.order = attrs.options && attrs.options.defaultorder ? attrs.options.defaultorder
+                            : 'DESC';
+                        element.find('i').addClass('icon-chevron-up');
+                    } else {
+                        scope.order = (scope.order == 'ASC' ? 'DESC' : 'ASC');
+                        element.find('i').toggleClass('icon-chevron-up icon-chevron-down');
+                    }
 
-                scope.$watch('sort', function (newValue) {
-                    // elem.find('i').toggleClass('');
+                    scope.options.fnSort(sort, order);
                 });
 
-                element.append(' <i class="" style="vertical-align: middle; margin-bottom: 4px">');
+            scope.$watch('sort', function (newValue) {
+                // elem.find('i').toggleClass('');
+            });
+
+            element.append(' <i class="" style="vertical-align: middle; margin-bottom: 4px">');
+        }
+    }
+
+    module.controller('GreenposListCtrl', GreenposListCtrl);
+    GreenposListCtrl.$inject = ['$scope', 'GreenposService', 'VesselInformation'];
+
+    function GreenposListCtrl($scope, GreenposService, VesselInformation) {
+        $scope.max = 10;
+        $scope.recipient = {
+            coastalcontrol: true,
+            greenpos: true
+        };
+
+        $scope.provider = {
+            title: "Reports",
+            type: "view",
+            doShow: false,
+            available: function (vesselOverview, vesselDetails) {
+                return vesselDetails.additionalInformation.greenpos;
+            },
+            show: function (vesselOverview, vesselDetails) {
+                this.doShow = true;
+                $scope.vessel = vesselDetails;
+
+                GreenposService.findReports({
+                    mmsi: $scope.vessel.mmsi,
+                    start: 0,
+                    max: $scope.max,
+                    sort: 'time'
+                }, function (reports) {
+                    $scope.reports = reports;
+                });
+            },
+            shown: function (vesselOverview, vesselDetails) {
+                return this.doShow;
+            },
+            close: function () {
+                this.doShow = false;
             }
         };
-    });
 
-    module.controller('GreenposListCtrl', [ '$scope', 'GreenposService', 'VesselInformation',
-        function ($scope, GreenposService, VesselInformation) {
-            $scope.max = 10;
-            $scope.recipient = {
-                coastalcontrol: true,
-                greenpos: true
-            };
+        VesselInformation.addInformationProvider($scope.provider);
 
-            $scope.provider = {
-                title: "Reports",
-                type: "view",
-                doShow: false,
-                available: function (vesselOverview, vesselDetails) {
-                    return vesselDetails.additionalInformation.greenpos;
-                },
-                show: function (vesselOverview, vesselDetails) {
-                    this.doShow = true;
-                    $scope.vessel = vesselDetails;
+        $scope.close = function ($event) {
+            $event.preventDefault();
+            $scope.provider.close();
+        };
 
-                    GreenposService.findReports({
-                        mmsi: $scope.vessel.mmsi,
-                        start: 0,
-                        max: $scope.max,
-                        sort: 'time'
-                    }, function (reports) {
-                        $scope.reports = reports;
-                    });
-                },
-                shown: function (vesselOverview, vesselDetails) {
-                    return this.doShow;
-                },
-                close: function () {
-                    this.doShow = false;
-                }
-            };
+        $scope.formatDateTime = function (timeInMillis) {
+            return formatTime(timeInMillis);
+        };
 
-            VesselInformation.addInformationProvider($scope.provider);
+        $scope.formatCourse = function (course) {
+            return formatCourse(course);
+        };
 
-            $scope.close = function ($event) {
-                $event.preventDefault();
-                $scope.provider.close();
-            };
+        $scope.formatRecipient = function (recipient) {
+            switch (recipient) {
+                case 'coastalcontrol':
+                    return 'Coastal Control';
+                case 'greenpos':
+                    return 'Greenpos';
+            }
 
-            $scope.formatDateTime = function (timeInMillis) {
-                return formatTime(timeInMillis);
-            };
+            return '';
+        };
 
-            $scope.formatCourse = function (course) {
-                return formatCourse(course);
-            };
+        $scope.reportText = function (type) {
+            if (type === 'SP') {
+                return 'Sailing plan';
+            }
+            if (type === 'DR') {
+                return 'Deviation';
+            }
+            if (type === 'FR') {
+                return 'Final';
+            }
+            if (type === 'PR') {
+                return 'Position';
+            }
+            return null;
+        };
 
-            $scope.formatRecipient = function (recipient) {
-                switch (recipient) {
-                    case 'coastalcontrol':
-                        return 'Coastal Control';
-                    case 'greenpos':
-                        return 'Greenpos';
-                }
+        $scope.filterReports = function (report) {
+            return $scope.recipient[report.recipient];
+        };
+    }
 
-                return '';
-            };
-
-            $scope.reportText = function (type) {
-                if (type === 'SP') {
-                    return 'Sailing plan';
-                }
-                if (type === 'DR') {
-                    return 'Deviation';
-                }
-                if (type === 'FR') {
-                    return 'Final';
-                }
-                if (type === 'PR') {
-                    return 'Position';
-                }
-                return null;
-            };
-
-            $scope.filterReports = function (report) {
-                return $scope.recipient[report.recipient];
-            };
-        } ]);
-
-}());
+})();

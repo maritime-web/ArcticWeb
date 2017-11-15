@@ -37,11 +37,13 @@
 
             NotifyService.subscribe(scope, OpenlayerEvents.ZoomAndCenter, centerAndZoom);
             function centerAndZoom(e, data) {
+                var center = data.lonLat ? OpenlayerService.fromLonLat(data.lonLat) : data.center;
+                var resolution = data.resolution || OpenlayerService.maxResolution;
                 var olScope = ctrl.getOpenlayersScope();
                 olScope.getMap().then(function (map) {
                     var view = map.getView();
-                    view.setResolution(data.resolution);
-                    view.setCenter(data.center);
+                    view.setResolution(resolution);
+                    view.setCenter(center);
                 })
             }
 

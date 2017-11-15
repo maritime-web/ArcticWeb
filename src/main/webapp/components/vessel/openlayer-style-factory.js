@@ -85,8 +85,15 @@
         }
 
         return {
-            createVesselStyleFunction : function (myMmsi, clickedMmsi) {
+            createVesselStyleFunction : function (myMmsi, clickedMmsi, layer) {
                 return function (feature, resolution) {
+                    var opacity = 0.8;
+                    if (layer) {
+                        var context = layer.get('context');
+                        if (context) {
+                            opacity = context.active ? 0.8 : 0.4;
+                        }
+                    }
 
                     var vesselScale = getVesselScale();
                     var vessel = feature.get('vessel');
@@ -106,7 +113,7 @@
                     styles.push(new ol.style.Style({
                         image: new ol.style.Icon(({
                             anchor: [0.5, 0.5],
-                            opacity: 0.85,
+                            opacity: opacity,
                             src: 'img/' + props.name,
                             rotation: (vessel.angle - 90) * (Math.PI / 180),
                             scale: vesselScale
@@ -118,7 +125,7 @@
                             image: new ol.style.Icon(({
                                 anchor: [0.5, 1.25],
                                 anchorOrigin: 'bottom-left',
-                                opacity: 0.85,
+                                opacity: opacity,
                                 src: 'img/aw-logo.png',
                                 rotation: 0,
                                 scale: vesselScale * 0.4
@@ -142,7 +149,7 @@
                         styles.push(new ol.style.Style({
                             image: new ol.style.Icon(({
                                 anchor: [0.5, 0.5],
-                                opacity: 0.85,
+                                opacity: opacity,
                                 src: 'img/green_marker.png',
                                 rotation: 0,
                                 scale: vesselScale * 1.0

@@ -119,7 +119,7 @@
 
                         // arrows icon
                         var svgArrow = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">' +
-                            '<polyline fill="none" stroke="' + getColor(1) + '" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.8" points="0,0 100,50 0,100" transform="scale(0.1)"/>' +
+                            '<polyline fill="none" stroke="' + getColor(1) + '" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="1.0" points="0,0 100,50 0,100" transform="scale(0.1)"/>' +
                             '</svg>';
                         var arrowImage = new Image();
                         arrowImage.src = 'data:image/svg+xml,' + encodeURI(svgArrow);
@@ -129,6 +129,7 @@
                             geometry: new ol.geom.Point(middle),
                             image: new ol.style.Icon({
                                 img: arrowImage,
+                                opacity: getStrokeOpacity(),
                                 anchor: [0.75, 0.5],
                                 rotateWithView: true,
                                 rotation: -rotation,
@@ -856,6 +857,8 @@
                 newContext = Object.assign({}, sarEditLayer.get('context'));
                 newContext.active = true;
                 sarEditLayer.set('context', newContext);
+                sarLayer.getSource().changed();
+                sarEditLayer.getSource().changed();
             }
 
             function updateContextToInActive() {
@@ -865,6 +868,8 @@
                 newContext = Object.assign({}, sarLayer.get('context'));
                 newContext.active = false;
                 sarEditLayer.set('context', newContext);
+                sarLayer.getSource().changed();
+                sarEditLayer.getSource().changed();
             }
         }
     }

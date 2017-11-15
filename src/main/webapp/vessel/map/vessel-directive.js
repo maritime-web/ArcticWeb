@@ -28,7 +28,7 @@
                 source: new ol.source.Vector(),
                 context: {
                     feature: 'Vessel',
-                    name: 'Clusters'
+                    name: 'Vessel clusters'
                 }
             });
             var resolution;
@@ -93,7 +93,7 @@
                         }
                     });
 
-                    if (!vesselLayer.getSource().getFeatureById(myMmsi) && myVessel) {
+                    if (myMmsi && !vesselLayer.getSource().getFeatureById(myMmsi) && myVessel) {
                         vesselLayer.getSource().addFeature(createVesselFeature(myVessel));
                     }
 
@@ -106,31 +106,42 @@
                             geometry: new ol.geom.Polygon([[a, b, c, d, a]])
                         });
 
-                        f.setStyle(new ol.style.Style({
-                            fill: new ol.style.Fill({
-                                color: getColor()
-                            }),
-                            text: new ol.style.Text({
-                                text: cell.count + '',
-                                fill: new ol.style.Fill({
-                                    color: '#fff'
+                        var styleFunction = function (f, resolution) {
+                            var active = vesselLayer.get('context').active;
+                            var opacity = active ? 0.4 : 0.2;
+                            var styles = [
+                                new ol.style.Style({
+                                    fill: new ol.style.Fill({
+                                        color: getColor()
+                                    }),
+                                    text: new ol.style.Text({
+                                        text: cell.count + '',
+                                        fill: new ol.style.Fill({
+                                            color: '#fff'
+                                        })
+                                    })
                                 })
-                            })
-                        }));
+                            ];
+
+                            return styles;
+
+                            function getColor() {
+                                if (cell.count < 50) {
+                                    return "rgba(255,221,0,"+opacity+")";// Yellow
+                                } else if (cell.count < 250) {
+                                    return "rgba(255,136,0,"+opacity+")";// Orange
+                                } else if (cell.count < 500) {
+                                    return "rgba(255,0,0,"+opacity+")";// Red
+                                } else {
+                                    return "rgba(255,0,255,"+opacity+")"// Purple
+                                }
+                            }
+
+                        };
+                        f.setStyle(styleFunction);
 
                         return f;
 
-                        function getColor() {
-                            if (cell.count < 50) {
-                                return "rgba(255,221,0,0.3)";// Yellow
-                            } else if (cell.count < 250) {
-                                return "rgba(255,136,0,0.3)";// Orange
-                            } else if (cell.count < 500) {
-                                return "rgba(255,0,0,0.3)";// Red
-                            } else {
-                                return "rgba(255,0,255,0.3)"// Purple
-                            }
-                        }
                     }
 
                     function createVesselFeature(vessel) {
@@ -142,7 +153,7 @@
                         vesselFeature.setId(vessel.mmsi);
                         vesselFeature.set("vessel", vessel, true);
 
-                        vesselFeature.setStyle(OpenLayerStyleFactory.createVesselStyleFunction(myMmsi, clickedMmsi));
+                        vesselFeature.setStyle(OpenLayerStyleFactory.createVesselStyleFunction(myMmsi, clickedMmsi, vesselLayer));
                         return vesselFeature;
                     }
                 }
@@ -153,11 +164,7 @@
                 olScope.getMap().then(function (map) {
                     var feature = vesselLayer.getSource().getFeatureById(vessel.mmsi);
                     var view = map.getView();
-                    var featureExtent = feature.getGeometry().getExtent();
-                    var mapExtent = view.calculateExtent(map.getSize());
-                    if (!ol.extent.containsExtent(mapExtent, featureExtent)) {
-                        view.fit(feature.getGeometry(), {size: map.getSize(), maxZoom: 8});
-                    }
+                    view.fit(feature.getGeometry(), {size: map.getSize(), minResolution: 130});
                 });
             }
 
@@ -254,12 +261,16 @@
                 var newContext = Object.assign({}, vesselLayer.get('context'));
                 newContext.active = true;
                 vesselLayer.set('context', newContext);
+                vesselLayer.getSource().changed();
+                clusterLayer.getSource().changed();
             }
 
             function updateContextToInActive() {
                 var newContext = Object.assign({}, vesselLayer.get('context'));
                 newContext.active = false;
                 vesselLayer.set('context', newContext);
+                vesselLayer.getSource().changed();
+                clusterLayer.getSource().changed();
             }
         }
     }

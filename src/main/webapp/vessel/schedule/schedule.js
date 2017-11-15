@@ -66,7 +66,7 @@
                         });
                     }
                 }
-                ;
+
 
                 $scope.provider = {
                     doShow : false,
@@ -124,7 +124,7 @@
                 $scope.close = function($event) {
                     $event.preventDefault();
                     $scope.provider.close();
-                }
+                };
 
                 VesselInformation.addInformationProvider($scope.provider);
 
@@ -191,7 +191,7 @@
                 $scope.resetMessages = function() {
                     $scope.message = null;
                     $scope.alertMessages = null;
-                }
+                };
 
                 $scope.reset = function() {
                     $scope.resetMessages();
@@ -222,9 +222,7 @@
                 };
             } ]);
 
-    module
-            .controller(
-                    'ScheduleEditFormCtrl',
+    module.controller('ScheduleEditFormCtrl',
                     [
                             '$scope',
                             '$q',
@@ -518,14 +516,4 @@
         };
     });
 
-    /*
-     * scheduleModule.directive('eLocationTypeahead', function() { return {
-     * restrict : 'C', require: ['ngModel'], link : function(scope, elm, attr,
-     * ctrls) { elm.bind('click', function() { var ev = $.Event("keydown");
-     * ev.keyCode = ev.which = 40; $(this).trigger(ev); return true; });
-     * elm.bind('keydown', function(e) { if(e.keyCode == 40) {
-     * //if(scope.matches.length < 1) { ctrls[0].$setViewValue(''); //} } }); } };
-     * });
-     */
-
-}());
+})();

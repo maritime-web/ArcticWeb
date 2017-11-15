@@ -99,6 +99,8 @@
                     feature.set('iceDescription', iceDesc, true);
 
                     var styleFunction = function (feature, resolution) {
+                        var active = iceLayer.get('context').active;
+                        var transparancy = active ? 0.5 : 0.25;
                         var strokeColor = "rgba(0, 0, 0, 0.2)";
                         if (feature === selectedFeature) {
                             strokeColor = "rgba(0, 0, 0, 1.0)";
@@ -117,6 +119,22 @@
                                 })
                             })
                         ];
+
+
+                        function colorByDescription(description) {
+
+                            if (description.CT === 92 && parseInt(description.FA) === 8) {
+                                return "rgba(151,151,151,"+transparancy+")";
+                            } else if (description.CT === 79 || description.CT > 80)
+                                return "rgba(255,0,0,"+transparancy+")";
+                            if (description.CT === 57 || description.CT > 60)
+                                return "rgba(255,124,6,"+transparancy+")";
+                            if (description.CT === 24 || description.CT > 30)
+                                return "rgba(255,255,0,"+transparancy+")";
+                            if (description.CT >= 10)
+                                return "rgba(142,255,160,"+transparancy+")";
+                            return "rgba(150,199,255,"+transparancy+")";
+                        }
                     };
 
                     feature.setStyle(styleFunction);
@@ -132,21 +150,6 @@
 
                         drawFragments(shape, fragments);
                     }
-                }
-
-                function colorByDescription(description) {
-
-                    if (description.CT == 92 && parseInt(description.FA) == 8) {
-                        return "#979797";
-                    } else if (description.CT == 79 || description.CT > 80)
-                        return "#ff0000";
-                    if (description.CT == 57 || description.CT > 60)
-                        return "#ff7c06";
-                    if (description.CT == 24 || description.CT > 30)
-                        return "#ffff00";
-                    if (description.CT >= 10)
-                        return "#8effa0";
-                    return "#96C7FF";
                 }
             }
 
@@ -230,12 +233,14 @@
                 var newContext = Object.assign({}, iceLayer.get('context'));
                 newContext.active = true;
                 iceLayer.set('context', newContext);
+                iceLayer.getSource().changed();
             }
 
             function updateContextToInActive() {
                 var newContext = Object.assign({}, iceLayer.get('context'));
                 newContext.active = false;
                 iceLayer.set('context', newContext);
+                iceLayer.getSource().changed();
             }
         }
     }

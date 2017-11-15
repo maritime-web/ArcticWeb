@@ -34,6 +34,7 @@
                 var features = clusterFeature.get('features');
                 var styles = [];
 
+                var active = inshoreIceReportLayer.get('context').active;
                 var isSelected = getIsSelected(clusterFeature);
                 function getIsSelected(feature) {
                     var reportNumbers = extractNumbers(feature);
@@ -42,7 +43,7 @@
                     });
                 }
 
-                var opacity = isSelected ? 1.0 : 0.25;
+                var opacity = isSelected ? 1.0 : active ? 0.5 : 0.25;
                 var description = "";
 
                 if (isSelected || resolution < 100) {
@@ -220,12 +221,14 @@
                 var newContext = Object.assign({}, inshoreIceReportLayer.get('context'));
                 newContext.active = true;
                 inshoreIceReportLayer.set('context', newContext);
+                inshoreIceReportLayer.getSource().changed();
             }
 
             function updateContextToInActive() {
                 var newContext = Object.assign({}, inshoreIceReportLayer.get('context'));
                 newContext.active = false;
                 inshoreIceReportLayer.set('context', newContext);
+                inshoreIceReportLayer.getSource().changed();
             }
         }
     }

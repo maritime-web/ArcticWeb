@@ -12,18 +12,11 @@
 
         /* Feature areas */
         'embryo.vessel',
-        'embryo.yourvessel.control',
-        'embryo.vessel.controller',
-        'embryo.vessel.control',
-        'embryo.vessel.map',
-        'embryo.reporting.control',
-        'embryo.greenpos',
         'embryo.routeUpload',
         'embryo.schedule',
         'embryo.routeEdit',
         'embryo.decimal',
         'embryo.controller.reporting',
-        'embryo.aisinformation',
 
         'vrmt.render',
         'vrmt.map',

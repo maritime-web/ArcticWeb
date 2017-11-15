@@ -46,42 +46,6 @@ embryo.additionalInformation.historicalTrack = {
     }
 };
 
-/*
-embryo.additionalInformation.nearestShips = {
-    title : "Nearest Vessels",
-    layer : null,
-    init : function(map, group) {
-
-    },
-    available : function(vessel, vesselDetails) {
-        var vessels = embryo.vessel.allVessels();
-        for (index in vessels) {
-        	
-            if (embryo.getMaxSpeed(vessels[index])) {
-                return true;
-            }
-        }
-        return false;
-    },
-    show : function(vessel, vesselDetails) {
-        this.layer.drawNearestVessels(vessel, embryo.vessel.allVessels());
-        this.layer.zoomToExtent();
-    },
-    hide : function(vessel, vesselDetails) {
-        this.layer.removeNearestVessel(vessel);
-    },
-    shown : function(vessel, vesselDetails) {
-        if (vessel) {
-            return this.layer && this.layer.containsNearestVessel(vessel);
-        }
-        return this.layer && this.layer.containsFeatures();
-    },
-    hideAll : function() {
-        this.layer.clear();
-    }
-};
-*/
-
 embryo.additionalInformation.distanceCircles = {
     title : "3-6-9 hour distance circle based on SOG",
     layer : null,
