@@ -3,7 +3,7 @@
 
     var scheduleUrl = embryo.baseUrl + 'rest/schedule/';
 
-    var scheduleServiceModule = angular.module('embryo.schedule.services');
+    var scheduleServiceModule = angular.module('embryo.schedule');
 
     scheduleServiceModule.factory('ScheduleService', ScheduleService);
     ScheduleService.$inject = ['$http', 'SessionStorageService', 'RouteService'];

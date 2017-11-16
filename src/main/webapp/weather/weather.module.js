@@ -7,7 +7,7 @@
         'embryo.subscription.service',
         'embryo.storageServices',
         'embryo.control',
-        'embryo.schedule.services',
+        'embryo.route',
 
         /* 3rd-party modules */
         'angular-growl',

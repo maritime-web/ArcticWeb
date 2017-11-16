@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route.model', 'embryo.sar.TimeElapsed', 'embryo.sar.SearchCircle']);
+    var module = angular.module('embryo.sar.service', ['embryo.sar.model', 'embryo.storageServices', 'embryo.authentication.service', 'embryo.geo.services', 'embryo.sar.livePouch', 'embryo.route', 'embryo.sar.TimeElapsed', 'embryo.sar.SearchCircle']);
 
     function findSearchObjectType(id) {
         for (var index in embryo.sar.searchObjectTypes) {

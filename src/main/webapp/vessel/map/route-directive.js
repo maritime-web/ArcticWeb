@@ -1,15 +1,15 @@
 (function () {
     'use strict';
 
-    angular.module('embryo.vessel.map', ['embryo.geo.services', 'embryo.components.vessel']);
+    angular.module('embryo.vessel.map', ['embryo.geo.services', 'embryo.components.vessel', 'embryo.route', 'embryo.components.openlayer']);
 
     angular
         .module('embryo.vessel.map')
         .directive('route', route);
 
-    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents', 'OpenlayerEvents', 'Route', 'OpenlayerService'];
+    route.$inject = ['VesselService', 'Subject', 'RouteService', 'NotifyService', 'VesselEvents', 'OpenlayerEvents', 'Route', 'OpenlayerService', 'OpenLayerStyleFactory'];
 
-    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents, OpenlayerEvents, Route, OpenlayerService) {
+    function route(VesselService, Subject, RouteService, NotifyService, VesselEvents, OpenlayerEvents, Route, OpenlayerService, OpenLayerStyleFactory) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -109,7 +109,7 @@
                     feature.set('routeColor', options.routeColor, true);
                     feature.set('arrowImg', options.arrowImg, true);
                     feature.set('route', route, true);
-                    feature.setStyle(styleFunction);
+                    feature.setStyle(OpenLayerStyleFactory.createRouteStyleFunction());
                     feature.setId(route.id);
                     return feature;
                 }

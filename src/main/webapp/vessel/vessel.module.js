@@ -4,7 +4,7 @@
     angular.module('embryo.vessel', [
         'embryo.vessel.vts',
         'embryo.vessel.schedule',
-        'embryo.schedule.services',
+        'embryo.schedule',
         'embryo.vessel.service',
         'embryo.vessel.map',
         'embryo.controller.reporting'

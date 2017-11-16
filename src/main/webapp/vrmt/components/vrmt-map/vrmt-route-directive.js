@@ -46,6 +46,7 @@
                 routeFeature.setGeometry(OpenlayerService.createLineString(r.createRoutePoints()));
                 routeFeature.set('routeColor', '#FF0000', true);
                 routeFeature.set('arrowImg', 'img/arrow_red_route.svg', true);
+                routeFeature.set('route', arguments[1], true);
                 routeFeature.setStyle(OpenLayerStyleFactory.createRouteStyleFunction());
 
                 var vesselLocationFeature = createVesselLocationFeature();

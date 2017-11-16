@@ -6,7 +6,7 @@
         'embryo.controller.reporting',
         'embryo.vessel.service',
         'embryo.datepicker',
-        'embryo.schedule.services',
+        'embryo.schedule',
 
         'ui.bootstrap',
         'blueimp.fileupload'

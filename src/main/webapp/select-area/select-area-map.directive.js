@@ -92,7 +92,6 @@
                 map.addLayer(selectAreaLayer);
                 boxEndListenerKey = dragBox.on("boxend", function (e) {
                     var extent = dragBox.getGeometry().getExtent();
-                    console.log(extent);
                     var bottomLeft = OpenlayerService.toLonLat(ol.extent.getBottomLeft(extent));
                     var topRight = OpenlayerService.toLonLat(ol.extent.getTopRight(extent));
                     var square = {
@@ -101,7 +100,6 @@
                         top: topRight[1],
                         bottom: bottomLeft[1]
                     };
-                    console.log(square);
                     drawSquare(square);
                     NotifyService.notify(SelectAreaEvents.AreaCreated, square)
                 });

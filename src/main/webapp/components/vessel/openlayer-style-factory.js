@@ -4,9 +4,9 @@
     angular.module('embryo.components.vessel')
         .factory('OpenLayerStyleFactory', OpenLayerStyleFactory);
 
-    OpenLayerStyleFactory.$inject = [];
+    OpenLayerStyleFactory.$inject = ['OpenlayerService'];
 
-    function OpenLayerStyleFactory() {
+    function OpenLayerStyleFactory(OpenlayerService) {
         var vesselScales = [
             {resolution: 200, scale: 1.0},
             {resolution: 500, scale: 0.95},
@@ -175,32 +175,14 @@
                         })
                     ];
 
-                    geometry.forEachSegment(function (start, end) {
-                        var dx = end[0] - start[0];
-                        var dy = end[1] - start[1];
-                        var rotation = Math.atan2(dy, dx);
-
-                        var a = dy / dx;
-                        var b = start[1] - a * start[0];
-                        var middle = [start[0] + dx / 2.0];
-                        middle[1] = a * middle[0] + b;
-
-                        // arrows
+                    var gcCoord;
+                    var route = feature.get("route");
+                    route.wps.forEach(function (wp) {
+                        if (wp.heading === 'GC') {
+                            gcCoord = OpenlayerService.fromLonLat([wp.longitude, wp.latitude]);
+                        }
                         styles.push(new ol.style.Style({
-                            geometry: new ol.geom.Point(middle),
-                            image: new ol.style.Icon({
-                                src: arrowImg,
-                                anchor: [0.75, 0.5],
-                                rotateWithView: true,
-                                rotation: -rotation,
-                                imgSize: [10, 10]
-                            })
-                        }));
-                    });
-
-                    geometry.getCoordinates().forEach(function (coord) {
-                        styles.push(new ol.style.Style({
-                            geometry: new ol.geom.Point(coord),
+                            geometry: OpenlayerService.createPoint([wp.longitude, wp.latitude]),
                             image: new ol.style.Circle({
                                 radius: 4,
                                 stroke: new ol.style.Stroke({
@@ -209,6 +191,43 @@
                                 })
                             })
                         }));
+                    });
+
+                    //expects GC heading segment to contain 100 points
+                    var isGcHeading = false;
+                    var count = 0;
+                    geometry.forEachSegment(function (start, end) {
+                        if (gcCoord && start.toString() === gcCoord.toString()) {
+                            count = 100;
+                            isGcHeading = true;
+                        }
+                        if (!isGcHeading || count%50 === 0) {
+                            var dx = end[0] - start[0];
+                            var dy = end[1] - start[1];
+                            var rotation = Math.atan2(dy, dx);
+
+                            var a = dy / dx;
+                            var b = start[1] - a * start[0];
+                            var middle = [start[0] + dx / 2.0];
+                            middle[1] = a * middle[0] + b;
+
+                            // arrows
+                            styles.push(new ol.style.Style({
+                                geometry: new ol.geom.Point(middle),
+                                image: new ol.style.Icon({
+                                    src: arrowImg,
+                                    anchor: [0.75, 0.5],
+                                    rotateWithView: true,
+                                    rotation: -rotation,
+                                    imgSize: [10, 10]
+                                })
+                            }));
+                        }
+
+                        if (isGcHeading && count === 0) {
+                            isGcHeading = false;
+                        }
+                        count--;
                     });
 
                     return styles;

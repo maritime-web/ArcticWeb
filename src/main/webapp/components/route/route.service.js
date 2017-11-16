@@ -3,7 +3,7 @@
 
     embryo.route = {};
 
-    var module = angular.module('embryo.schedule.services')
+    var module = angular.module('embryo.route')
         .service('RouteService', RouteService);
     RouteService.$inject = ['$http', 'SessionStorageService'];
 
