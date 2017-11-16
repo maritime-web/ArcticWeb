@@ -277,8 +277,8 @@ module.exports = function (grunt) {
                         to: '//cdnjs.cloudflare.com/ajax/libs'
                     },
                     {
-                        from: 'js/cached/openlayer-map/cdn.cloudflare', // string replacement
-                        to: '//cdnjs.cloudflare.com/ajax/libs'
+                        from: 'js/cached/openlayer-map/cdn.googleapis', // string replacement
+                        to: '//ajax.googleapis.com/ajax/libs'
                     },
                     {
                         from: '/css/cached/cdn.netdna', // string replacement
