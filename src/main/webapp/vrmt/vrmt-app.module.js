@@ -15,9 +15,8 @@
 
             'embryo.components.render',
             'embryo.authentication',
-            'embryo.routeService',
+            'embryo.schedule.services',
             'embryo.vessel.service',
-            'embryo.scheduleService',
             'embryo.pouchdb.services',
             'embryo.components.notification',
 

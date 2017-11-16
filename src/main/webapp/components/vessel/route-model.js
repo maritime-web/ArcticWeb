@@ -59,7 +59,7 @@
 
                 var points = [];
                 for (var i in line.geometries) {
-                    for (j in line.geometries[i].coords) {
+                    for (var j in line.geometries[i].coords) {
                         points.push([line.geometries[i].coords[j][0], line.geometries[i].coords[j][1]]);
                     }
                 }

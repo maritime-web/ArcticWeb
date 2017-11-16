@@ -12,9 +12,6 @@
 
         /* Feature areas */
         'embryo.vessel',
-        'embryo.routeUpload',
-        'embryo.schedule',
-        'embryo.routeEdit',
         'embryo.decimal',
         'embryo.controller.reporting',
 

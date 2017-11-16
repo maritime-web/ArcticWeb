@@ -75,7 +75,7 @@
                                 });
                     },
                     clientSideSearch : function(argument, callback) {
-                        if (argument == null || argument == "")
+                        if (!argument || argument === "")
                             return [];
 
                         var result = [];
@@ -85,7 +85,7 @@
                                 return false;
                             }
                             var value = ("" + propertyValue).toLowerCase();
-                            return ((value.indexOf(searchStr) == 0) || (value.indexOf(" " + searchStr) >= 0));
+                            return ((value.indexOf(searchStr) === 0) || (value.indexOf(" " + searchStr) >= 0));
                         }
 
                         $.each(embryo.vessel.allVessels(), function(k, v) {
@@ -124,7 +124,7 @@
                         }
                     },
                     subscribe : function(mmsi, callback) {
-                        if (subscriptions[mmsi] == null)
+                        if (!subscriptions[mmsi])
                             subscriptions[mmsi] = {
                                 callbacks : [],
                                 vesselDetails : null,
@@ -149,7 +149,7 @@
                             })
                         }
 
-                        if (s.interval == null) {
+                        if (s.interval === null) {
                             s.interval = setInterval(lookup, embryo.loadFrequence);
                             lookup(mmsi, callback);
                         }
@@ -165,7 +165,7 @@
                     unsubscribe: function (unsubscription) {
                         var s = subscriptions[unsubscription.mmsi];
                         s.callbacks.splice(unsubscription.id, 1);
-                        var allDead = s.callbacks.length == 0;
+                        var allDead = s.callbacks.length === 0;
                         if (allDead) {
                             clearInterval(s.interval);
                             subscriptions[unsubscription.mmsi] = null

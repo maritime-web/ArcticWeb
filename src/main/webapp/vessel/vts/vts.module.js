@@ -3,7 +3,7 @@
 
     angular.module('embryo.vessel.vts', [
         'embryo.greenposService',
-        'embryo.scheduleService',
+        'embryo.schedule.services',
         'embryo.course',
         'embryo.position',
         'embryo.controller.reporting',
