@@ -27,7 +27,7 @@ embryo.global.vessels = null;
     embryo.vessel.aisToArray = function (aisObject) {
         var result = [];
         $.each(aisObject, function (k, v) {
-            if (v != null && v != "") {
+            if (v !== null && v !== "") {
                 result.push({
                     text: k,
                     value: v

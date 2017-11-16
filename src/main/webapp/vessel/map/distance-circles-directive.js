@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('distanceCircles', distanceCircles);
 
-    distanceCircles.$inject = ['OpenlayerService', 'NotifyService', 'VesselEvents', 'VesselService', 'OpenlayerEvents'];
+    distanceCircles.$inject = ['NotifyService', 'VesselEvents', 'VesselService', 'OpenlayerEvents'];
 
-    function distanceCircles(OpenlayerService, NotifyService, VesselEvents, VesselService, OpenlayerEvents) {
+    function distanceCircles(NotifyService, VesselEvents, VesselService, OpenlayerEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',

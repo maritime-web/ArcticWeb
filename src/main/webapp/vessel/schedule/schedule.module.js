@@ -4,7 +4,7 @@
     angular.module('embryo.vessel.schedule', [
         'embryo.position',
         'embryo.controller.reporting',
-        'embryo.vessel.service',
+        'embryo.components.vessel',
         'embryo.datepicker',
         'embryo.schedule',
 

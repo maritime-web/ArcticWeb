@@ -5,9 +5,9 @@
         .module('embryo.vessel.map')
         .directive('vessel', vessel);
 
-    vessel.$inject = ['VesselService', 'Subject', 'OpenlayerService', 'NotifyService', 'VesselEvents', 'OpenLayerStyleFactory'];
+    vessel.$inject = ['VesselService', 'Subject', 'OpenlayerService', 'NotifyService', 'VesselEvents', 'VesselComponentEvents', 'OpenLayerStyleFactory'];
 
-    function vessel(VesselService, Subject, OpenlayerService, NotifyService, VesselEvents, OpenLayerStyleFactory) {
+    function vessel(VesselService, Subject, OpenlayerService, NotifyService, VesselEvents, VesselComponentEvents, OpenLayerStyleFactory) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -37,7 +37,7 @@
             var clickedMmsi = null;
             var myMmsi = null;
 
-            NotifyService.subscribe(scope, VesselEvents.VesselsLoaded, function () {
+            NotifyService.subscribe(scope, VesselComponentEvents.VesselsLoaded, function () {
                 vessels = VesselService.getLatest();
                 myMmsi = Subject.getDetails().shipMmsi;
                 replaceVessels();
@@ -59,7 +59,7 @@
                     var newcells = new Map();
                     var size = resolution * 40;//40px cluster boxes
                     vessels.forEach(function (v) {
-                        if (v.mmsi === myMmsi) {
+                        if (Number(v.mmsi) === Number(myMmsi)) {
                             myVessel = v;
                         }
                         var p = OpenlayerService.createPoint([v.x, v.y]);

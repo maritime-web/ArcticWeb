@@ -5,7 +5,7 @@
         'embryo.vessel.vts',
         'embryo.vessel.schedule',
         'embryo.schedule',
-        'embryo.vessel.service',
+        'embryo.components.vessel',
         'embryo.vessel.map',
         'embryo.controller.reporting'
     ]);

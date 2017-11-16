@@ -5,7 +5,6 @@
         .constant('VesselEvents', {
             VesselFeatureActive: 'Vessel.FeatureActive',
             VesselFeatureInActive: 'Vessel.FeatureInActive',
-            VesselsLoaded: 'Vessel.VesselsLoaded',
             VesselClicked: 'Vessel.VesselClicked',
             VesselSelected: 'Vessel.VesselSelected',
             ShowNearestVessels: 'Vessel.ShowNearestVessels',

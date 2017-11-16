@@ -5,11 +5,10 @@
 
     var module = angular.module('embryo.vessel');
 
-
     module.controller("AISInformationCtrl", AISInformationCtrl);
-    AISInformationCtrl.$inject = ['$scope', 'VesselService', 'VesselInformation'];
+    AISInformationCtrl.$inject = ['$scope', 'VesselInformation'];
 
-    function AISInformationCtrl($scope, VesselService, VesselInformation) {
+    function AISInformationCtrl($scope, VesselInformation) {
         var convertTable = {
             'mmsi': 'MMSI',
             'class': 'Class',
@@ -39,15 +38,15 @@
         function updateInfo(data) {
             $scope.vessel = [];
             for (var x in convertTable) {
-                if (data[x] && data[x] != 'N/A' && data[x] != 'Undefined') {
+                if (data[x] && data[x] !== 'N/A' && data[x] !== 'Undefined') {
                     var value = data[x];
-                    if (x == "eta" || x == "lastReport") {
+                    if (x === "eta" || x === "lastReport") {
                         value = formatTime(data[x]) + " UTC";
-                    } else if (x == "lat") {
+                    } else if (x === "lat") {
                         value = formatLatitude(data[x]);
-                    } else if (x == "lon") {
+                    } else if (x === "lon") {
                         value = formatLongitude(data[x]);
-                    } else if (x == 'navStatus') {
+                    } else if (x === 'navStatus') {
                         value = embryo.vessel.navStatusText(data[x]);
                     }
                     $scope.vessel.push({'key': convertTable[x], 'value': value});
