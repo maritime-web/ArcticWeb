@@ -10,15 +10,17 @@ describe('RiskFactorAssessorService', function () {
     //angular stuf
     var $rootScope;
 
+/*
     beforeEach(module('embryo.geo.services'));
     beforeEach(module('embryo.components.openlayer'));
     beforeEach(module('vrmt.model'));
+*/
     beforeEach(module('vrmt.app'));
     beforeEach(createTestData);
-    beforeEach(inject(function (RiskFactorAssessorService, _$rootScope_, NotifyService, Events) {
+    beforeEach(inject(function (RiskFactorAssessorService, _$rootScope_, NotifyService, VrmtEvents) {
         cut = RiskFactorAssessorService;
         $rootScope = _$rootScope_;
-        NotifyService.notify(Events.RouteChanged, route);
+        NotifyService.notify(VrmtEvents.RouteChanged, route);
     }));
 
 

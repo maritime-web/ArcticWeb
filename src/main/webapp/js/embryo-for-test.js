@@ -46,3 +46,7 @@ embryo.eventbus.PostLayerInitialize = function () {
 
 embryo.eventbus.registerShorthand(embryo.eventbus.MapInitialized, "mapInitialized");
 embryo.eventbus.registerShorthand(embryo.eventbus.PostLayerInitialize, "postLayerInitialization");
+
+(function () {
+    angular.module('embryo.base', []);
+})();

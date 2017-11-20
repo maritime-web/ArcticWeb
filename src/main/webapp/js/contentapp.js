@@ -1,7 +1,7 @@
 (function() {
     "use strict";
 
-    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'ui.bootstrap', 'embryo.components.version', 'angular-growl']);
+    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'embryo.user', 'ui.bootstrap', 'embryo.components.version', 'angular-growl']);
 
     indexApp.config([ '$routeProvider', 'growlProvider', function($routeProvider, growlProvider) {
         growlProvider.globalTimeToLive(10000);
@@ -14,9 +14,9 @@
         }).when('/cookies', {
             templateUrl: 'partials/front/cookies.html'
         }).when('/requestAccess', {
-            templateUrl: 'partials/common/access.html'
+            templateUrl: 'authentication/access.html'
         }).when('/changePassword/:uuid', {
-            templateUrl: 'partials/common/changepassword.html'
+            templateUrl: 'authentication/changepassword.html'
         }).otherwise({
 		    controller : function(){
 		        window.location.replace('/');

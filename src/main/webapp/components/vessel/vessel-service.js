@@ -40,7 +40,8 @@
 
                 $http.get(embryo.baseUrl + "rest/vessel/list", {
                     timeout: embryo.defaultTimeout
-                }).success(function (vessels) {
+                }).then(function (response) {
+                    var vessels = response.data;
                     embryo.messagePanel.replace(messageId, {
                         text: vessels.length + " vessels loaded.",
                         type: "success"
@@ -48,7 +49,9 @@
                     service.latestVessels = vessels;
                     NotifyService.notify(VesselComponentEvents.VesselsLoaded);
                     success(vessels);
-                }).error(function (data, status) {
+                }).catch(function (response) {
+                    var data = response.data;
+                    var status = response.status;
                     var errorMsg = embryo.ErrorService.errorStatus(data, status, "loading vessels");
                     embryo.messagePanel.replace(messageId, {
                         text: errorMsg,
@@ -65,15 +68,28 @@
                     params: {
                         mmsi: mmsi
                     }
-                }).success(success).error(function (data, status, headers, config) {
-                    error(embryo.ErrorService.errorStatus(data, status, "loading vessel data"), status);
-                });
+                })
+                    .then(function (response) {
+                        success(response.data);
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+                        error(embryo.ErrorService.errorStatus(data, status, "loading vessel data"), status);
+                    });
             },
             saveDetails: function (details, success, error) {
-                $http.post(embryo.baseUrl + "rest/vessel/save-details", details).success(success).error(
-                    function (data, status, headers, config) {
-                        error(embryo.ErrorService.extractError(data, status, config), status);
-                    });
+                $http.post(embryo.baseUrl + "rest/vessel/save-details", details)
+                    .then(function (response) {
+                        success(response.data);
+                    })
+                    .catch(
+                        function (response) {
+                            var data = response.data;
+                            var status = response.status;
+                            var config = response.config;
+                            error(embryo.ErrorService.extractError(data, status, config), status);
+                        });
             },
             clientSideSearch: function (argument, callback) {
                 if (!argument || argument === "")
@@ -195,9 +211,16 @@
                     params: {
                         mmsi: vesselId
                     }
-                }).success(success).error(function (data, status, headers, config) {
-                    error(embryo.ErrorService.errorStatus(data, status, "loading historical track"), status);
-                });
+                })
+                    .then(function (response) {
+                        success(response.data);
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+
+                        error(embryo.ErrorService.errorStatus(data, status, "loading historical track"), status);
+                    });
             }
         };
         return service;

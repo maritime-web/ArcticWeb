@@ -59,10 +59,13 @@
             $http.get(url, {
                 timeout : embryo.defaultTimeout,
                 params : r
-            }).success(function(data) {
+            }).then(function(response) {
+                var data = response.data;
                 convert(data, r.delta, !data.exponent ? r.exponent : data.exponent);
                 success(data);
-            }).error(function(data, status, headers, config) {
+            }).catch(function(response) {
+                var data = response.data;
+                var status = response.status;
                 if(error){
                     error(embryo.ErrorService.errorStatus(data, status, "requesting shape data"), status);
                 }

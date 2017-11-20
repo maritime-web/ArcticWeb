@@ -17,20 +17,34 @@
         return {
             getActiveMeta: function (mmsi, success, error) {
                 var url = embryo.baseUrl + 'rest/route/active/meta/' + mmsi;
-                $http.get(url).success(success).error(error);
+                $http.get(url)
+                    .then(function (response) {
+                        success(response.data);
+                    })
+                    .catch(error);
             },
             setActiveRoute: function (routeId, activity, callback, error) {
                 $http.put(embryo.baseUrl + 'rest/route/activate/', {
                     routeId: routeId,
                     active: activity
-                }).success(callback).error(function (data, status, headers, config) {
-                    error(embryo.ErrorService.extractError(data, status, config));
-                });
+                })
+                    .then(function (response) {
+                        callback(response.data);
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+                        var config = response.config;
+                        error(embryo.ErrorService.extractError(data, status, config));
+                    });
             },
             getRoute: function (routeId, callback) {
                 // should routes be cached?
                 var remoteCall = function (onSuccess) {
-                    $http.get(embryo.baseUrl + 'rest/route/' + routeId).success(onSuccess);
+                    $http.get(embryo.baseUrl + 'rest/route/' + routeId)
+                        .then(function (response) {
+                            onSuccess(response.data);
+                        });
                 };
                 SessionStorageService.getItem(routeKey(routeId), callback, remoteCall);
             },
@@ -45,13 +59,19 @@
                     }
                     ids += routeIds[index];
                 }
-                $http.get(embryo.baseUrl + 'rest/route/list/' + ids).success(function (routes) {
-                    embryo.messagePanel.replace(messageId, {
-                        text: routes.length + " routes loaded.",
-                        type: "success"
-                    });
-                    onSuccess(routes);
-                }).error(function () {
+                $http.get(embryo.baseUrl + 'rest/route/list/' + ids)
+                    .then(function (response) {
+                        var routes = response.data;
+                        embryo.messagePanel.replace(messageId, {
+                            text: routes.length + " routes loaded.",
+                            type: "success"
+                        });
+                        onSuccess(routes);
+                    }).catch(function (response) {
+                    var data = response.data;
+                    var status = response.status;
+                    var config = response.config;
+
                     var errorMsg = embryo.ErrorService.extractError(data, status, config);
                     embryo.messagePanel.replace(messageId, {
                         text: errorMsg,
@@ -66,10 +86,14 @@
                 $http.put(embryo.baseUrl + 'rest/route/save', {
                     route: route,
                     voyageId: voyageId
-                }).success(function () {
+                }).then(function () {
                     SessionStorageService.setItem(routeKey(route.id), route);
                     success();
-                }).error(function (data, status, headers, config) {
+                }).catch(function (response) {
+                    var data = response.data;
+                    var status = response.status;
+                    var config = response.config;
+
                     error(embryo.ErrorService.extractError(data, status, config));
                 });
             },
@@ -77,10 +101,14 @@
                 $http.put(embryo.baseUrl + 'rest/route/save/activate', {
                     route: route,
                     voyageId: voyageId
-                }).success(function () {
+                }).then(function () {
                     SessionStorageService.setItem(routeKey(route.id), route);
                     callback();
-                }).error(function (data, status, headers, config) {
+                }).catch(function (response) {
+                    var data = response.data;
+                    var status = response.status;
+                    var config = response.config;
+
                     error(embryo.ErrorService.getText(data, status, config));
                 });
             },

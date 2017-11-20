@@ -145,6 +145,7 @@
                 if (districtFeature) {
                     selectedFeature = districtFeature;
                     NotifyService.notify(OpenlayerEvents.ZoomToFeature, {feature: districtFeature, minResolution: 2500, padding: [20,20,20,20]});
+                    NotifyService.notify(WeatherEvents.DistrictSelected, selectedFeature.get('district'));
                 }
             });
 

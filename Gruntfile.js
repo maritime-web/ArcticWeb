@@ -42,10 +42,12 @@ var polyfills = [
 ];
 var vrmtFiles = [
     {src: ['src/**/js/embryo-for-test.js']},
+    {src: ['src/**/components/render/*.module.js']},
     {src: ['src/**/components/geo/geo-service.js']},
     {src: ['src/**/components/openlayer/openlayer.module.js']},
     {src: ['src/**/components/openlayer/openlayer-service.js']},
-    {src: ['src/**/vrmt/**/app.js']},
+    {src: ['src/**/vrmt/**/vrmt-app.module.js']},
+    {src: ['src/**/vrmt/**/*.module.js']},
     {src: ['src/**/vrmt/**/*.js']},
     {src: ['src/**/js/authentication.js']}
 ];
@@ -438,6 +440,13 @@ module.exports = function (grunt) {
             continuous: {
                 port: 5678,
                 singleRun: true,
+                browsers: [ 'PhantomJS' ],
+                reporters : [ 'spec' ],
+            },
+            continuous_old: {
+                configFile: 'src/test/resources/karma.conf-old.js',
+                port: 5678,
+                singleRun: true,
                 browsers: [ 'PhantomJS' ]
             },
             unit: {
@@ -489,6 +498,7 @@ module.exports = function (grunt) {
     // 'autoprefixer', 'connect:test', 'karma' ]);
 
     grunt.registerTask('test', [ 'karma:continuous' ]);
+    grunt.registerTask('test_old', [ 'karma:continuous_old' ]);
 
     //grunt.registerTask('build', [ 'useminPrepare', 'copy:unMod2Build', 'concat', 'usemin',
     //   'copy:gen2Build', 'copy:toTarget', 'appcache:map', 'appcache:front']);

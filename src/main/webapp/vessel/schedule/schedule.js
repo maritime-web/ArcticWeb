@@ -183,17 +183,12 @@
         };
 
         $scope.save = function () {
-            var index;
             // remove last empty element
             var scheduleRequest = {
                 mmsi: $scope.mmsi,
                 voyages: $scope.voyages.slice(0, $scope.voyages.length - 1),
                 toDelete: $scope.idsOfVoyages2Delete
             };
-
-            for (index in scheduleRequest.voyages) {
-                delete scheduleRequest.voyages[index].route;
-            }
 
             $scope.resetMessages();
             ScheduleService.save(scheduleRequest, function () {

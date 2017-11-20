@@ -16,9 +16,9 @@
     <!-- endbuild -->
 
     <script src="js/cached/common/cdn.cloudflare/jquery/1.11.0/jquery.min.js"></script>
-    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.14/angular.js"></script>
-    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.14/angular-cookies.js"></script>
-    <script src="js/cached/front/cdn.googleapis/angularjs/1.2.14/angular-route.js"></script>
+    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular.js"></script>
+    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-cookies.js"></script>
+    <script src="js/cached/common/cdn.googleapis/angularjs/1.2.27/angular-route.js"></script>
 
     <!-- replace by modal specific file -->
     <script src="js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js"></script>
@@ -27,9 +27,11 @@
     <script src="libs/growl2-lib/angular-growl.min.js" defer="defer"></script>
     <script src="js/utils.js" defer="defer"></script>
     <script src="js/embryo.js" defer="defer"></script>
-    <script src="js/authentication.js" defer="defer" type="text/javascript"></script>
+    <script src="authentication/authentication.js" defer="defer" type="text/javascript"></script>
     <script src="js/feedback.js" defer="defer" type="text/javascript"></script>
-    <script src="js/menu.js" defer="defer"></script>
+    <script src="menu/menu.js" defer="defer"></script>
+    <script src="user/user.module.js" defer="defer"></script>
+    <script src="user/reset-password-control.js" defer="defer"></script>
     <script src="js/contentapp.js" defer="defer"></script>
     <script src="components/version/version.module.js" defer="defer" type="text/javascript"></script>
     <script src="components/version/version-service.js" defer="defer" type="text/javascript"></script>
@@ -45,6 +47,7 @@
 <div growl></div>
 <div x-ng-include="'partials/common/authentication.html'"></div>
 <div x-ng-include="'partials/common/menu.html'"></div>
+<div x-ng-include="'user/reset-password-modal.html'"></div>
 <div class="menuDivider"></div>
 
 <!-- ============================================= -->

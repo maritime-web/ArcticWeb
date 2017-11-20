@@ -1,9 +1,12 @@
-(function() {
+(function () {
     var module = angular.module('embryo.forecast');
 
     var forecastPath = 'rest/forecasts/';
-    
-    module.service('ForecastService', [ '$http', function($http) {
+
+    module.service('ForecastService', ForecastService);
+    ForecastService.$inject = ['$http'];
+
+    function ForecastService($http) {
         var service = {
             forecastSelected: null,
             replaceAllButSelected: function (existingForecasts, newForecasts) {
@@ -36,93 +39,93 @@
 
                 return existingForecasts;
             },
-            listWaveForecasts : function(success, error) {
+            listWaveForecasts: function (success, error) {
                 var messageId = embryo.messagePanel.show({
-                    text : "Requesting wave forecasts..."
+                    text: "Requesting wave forecasts..."
                 });
                 $http.get(embryo.baseUrl + forecastPath + 'waves', {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecasts) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
                     embryo.messagePanel.replace(messageId, {
-                        text : "Wave forecasts downloaded.",
-                        type : "success"
+                        text: "Wave forecasts downloaded.",
+                        type: "success"
                     });
-                    success(forecasts);
-                }).error(function(data, status, headers, config) {
-                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting wave forecasts");
+                    success(response.data);
+                }).catch(function (response) {
+                    var errorMsg = embryo.ErrorService.errorStatus(response.data, response.status, "requesting wave forecasts");
                     embryo.messagePanel.replace(messageId, {
-                        text : errorMsg,
-                        type : "error"
+                        text: errorMsg,
+                        type: "error"
                     });
                     error(errorMsg, status);
                 });
             },
-            getWaveForecast : function(id, success, error) {
+            getWaveForecast: function (id, success, error) {
                 $http.get(embryo.baseUrl + forecastPath + 'waves/' + id, {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecast) {
-                    success(forecast);
-                }).error(function(data, status, headers, config) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
+                    success(response.data);
+                }).catch(function (response) {
 
                 });
             },
-            listIceForecasts : function(success, error) {
+            listIceForecasts: function (success, error) {
                 var messageId = embryo.messagePanel.show({
-                    text : "Requesting ice forecasts..."
+                    text: "Requesting ice forecasts..."
                 });
                 $http.get(embryo.baseUrl + forecastPath + 'ice', {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecasts) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
                     embryo.messagePanel.replace(messageId, {
-                        text : "Ice forecasts downloaded.",
-                        type : "success"
+                        text: "Ice forecasts downloaded.",
+                        type: "success"
                     });
-                    success(forecasts);
-                }).error(function(data, status, headers, config) {
-                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting ice forecasts");
+                    success(response.data);
+                }).catch(function (response) {
+                    var errorMsg = embryo.ErrorService.errorStatus(response.data, response.status, "requesting ice forecasts");
                     embryo.messagePanel.replace(messageId, {
-                        text : errorMsg,
-                        type : "error"
+                        text: errorMsg,
+                        type: "error"
                     });
                     error(errorMsg, status);
                 });
             },
-            getIceForecast : function(id, success, error) {
+            getIceForecast: function (id, success, error) {
                 $http.get(embryo.baseUrl + forecastPath + 'ice/' + id, {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecast) {
-                    success(forecast);
-                }).error(function(data, status, headers, config) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
+                    success(response.data);
+                }).catch(function (response) {
 
                 });
             },
-            listCurrentForecasts : function(success, error) {
+            listCurrentForecasts: function (success, error) {
                 var messageId = embryo.messagePanel.show({
-                    text : "Requesting current forecasts..."
+                    text: "Requesting current forecasts..."
                 });
                 $http.get(embryo.baseUrl + forecastPath + 'currents', {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecasts) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
                     embryo.messagePanel.replace(messageId, {
-                        text : "Current forecasts downloaded.",
-                        type : "success"
+                        text: "Current forecasts downloaded.",
+                        type: "success"
                     });
-                    success(forecasts);
-                }).error(function(data, status, headers, config) {
-                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting current forecasts");
+                    success(response.data);
+                }).catch(function (response) {
+                    var errorMsg = embryo.ErrorService.errorStatus(response.data, response.status, "requesting current forecasts");
                     embryo.messagePanel.replace(messageId, {
-                        text : errorMsg,
-                        type : "error"
+                        text: errorMsg,
+                        type: "error"
                     });
                     error(errorMsg, status);
                 });
             },
-            getCurrentForecast : function(id, success, error) {
+            getCurrentForecast: function (id, success, error) {
                 $http.get(embryo.baseUrl + forecastPath + 'currents/' + id, {
-                    timeout : embryo.defaultTimeout
-                }).success(function(forecast) {
-                    success(forecast);
-                }).error(function(data, status, headers, config) {
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
+                    success(response.data);
+                }).catch(function (response) {
 
                 });
             }
@@ -130,5 +133,5 @@
         };
 
         return service;
-    } ]);
+    }
 })();

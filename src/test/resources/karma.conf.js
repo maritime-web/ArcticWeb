@@ -1,65 +1,65 @@
 module.exports = function(config) {
-	config.set({
+    var libFiles = [
+        'src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js',
+        'src/**/js/cached/openlayer-map/cdn.cloudflare/openlayers/4.4.2/ol-debug.js',
+        'src/**/js/cached/openlayer-map/cdn.cloudflare/pouchdb/6.3.4/pouchdb.js',
+        'src/**/js/cached/openlayer-map/cdn.googleapis/angularjs/1.6.4/angular.js',
+        'src/**/js/cached/openlayer-map/cdn.googleapis/angularjs/1.6.4/!(*min*).js',
+        'src/**/js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js',
+        'src/**/js/ext/angular-pouchdb-5.0.1.js',
+        'src/**/js/ext/moment.min.js',
+        'src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.min.js',
+        'src/**/js/ext/arc.js',
+        'src/**/libs/growl2-lib/*.min.js'
+    ];
+    var testUtilityFiles = [
+        'src/test/**/utilities/*.js'
+    ];
+    var testDataFiles = [
+        'src/test/**/testData/*.js'
+    ];
+    var polyfills = [
+        'src/**/js/cached/openlayer-map/cdn.cloudflare/core-js/2.5.0/*.js'
+    ];
+    var srcFiles = [
+        'src/**/js/embryo-for-test.js',
+        'src/**/*.module.js',
+        'src/**/components/**/*.js',
+        'src/**/authentication/**/*.js',
+        'src/**/core/**/*.js',
+        // 'src/**/forecast/**/*.js',
+        // 'src/**/ice/**/*.js',
+        // 'src/**/menu/**/*.js',
+        // 'src/**/nwnm/**/*.js',
+        // 'src/**/sar/**/*.js',
+        // 'src/**/select-area/**/*.js',
+        // 'src/**/user/**/*.js',
+        // 'src/**/vessel/**/*.js',
+        'src/**/vrmt/vrmt-app.module.js',
+        'src/**/vrmt/**/*.js',
+        // 'src/**/weather/**/*.js',
+    ];
+
+    config.set({
 		// base path, that will be used to resolve files and exclude
 		basePath : '../../../',
 
 		frameworks : [ 'jasmine', 'jasmine-matchers' ],
 
+
 		// list of files / patterns to load in the browser
-		files : [
-		        'src/test/jsUnit/polyfills.js',
-		        'src/main/webapp/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js',
-		        'src/main/webapp/js/ext/cdn.cloudflare/openlayers/2.13.1/OpenLayers.js',
-		        'src/main/webapp/js/ext/cdn.cloudflare/jqueryui/1.9.1/jquery-ui.min.js',
-		        'src/main/webapp/js/ext/cdn.googleapis/angularjs/1.2.14/angular.js',
-                'src/main/webapp/js/ext/cdn.googleapis/angularjs/1.2.14/angular-cookies.js',
-                'src/main/webapp/js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js',
-                'src/main/webapp/js/ext/moment.min.js',
-				'src/main/webapp/js/ext/*.js',
-				'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.iframe-transport.js',
-                'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload.js',
-                'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-process.js',
-                'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-validate.js',
-                'src/main/webapp/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-angular.js',
-				'src/main/webapp/js/ext/turf.min.js',
-				'src/main/webapp/js/cached/map/cdn.cloudflare/pouchdb/5.1.0/pouchdb.min.js',
-            	'src/test/lib/angularjs/1.2.14/angular-mocks.js',
-                'src/main/webapp/js/utils.js',
-				'src/main/webapp/js/embryo-for-test.js',
-				'src/main/webapp/js/menu.js',
-                'src/main/webapp/js/authentication.js', 
-                'src/main/webapp/js/control/control.js',
-                'src/main/webapp/components/geo/geo-service.js',
-				'src/main/webapp/components/sar/sar-model.js',
-                'src/main/webapp/components/sar/sar-service.js',
-                'src/main/webapp/js/layer/embryo-layer.js',
-                'src/main/webapp/js/layer/metoc-layer.js',
-                'src/main/webapp/js/service/greenpos-service.js',
-            	'src/main/webapp/js/reporting/validation.js',
-                'src/main/webapp/js/reporting/datetimepicker.js',
-                'src/main/webapp/js/reporting/reporting-panel.js',
-                'src/main/webapp/js/reporting/course.js',
-				'src/main/webapp/js/reporting/position.js',
-                'src/main/webapp/js/reporting/decimal.js',
-				'src/main/webapp/js/reporting/route-upload.js',
-				'src/main/webapp/js/layer/embryo-layer.js',
-				'src/main/webapp/js/layer/metoc-layer.js',
-                'src/main/webapp/js/service/*.js',
-                'src/main/webapp/js/control/additional-information.js',
-				'src/main/webapp/components/**/*-constant.js',
-				'src/main/webapp/components/**/*.module.js',
-			    'src/main/webapp/components/**/*-model.js',
-			    'src/main/webapp/components/**/*-directive.js',
-				'src/main/webapp/components/**/*-service.js',
-				'src/main/webapp/components/**/*-test.js',
-			    'src/test/jsUnit/*Test.js',
-			    'src/test/jsUnit/*-test.js'],
+		files : libFiles.concat(testUtilityFiles).concat(polyfills).concat(srcFiles).concat(testDataFiles),
 
 
 		// list of files to exclude
 		exclude : [
 			'src/main/webapp/js/ext/jquery.fileupload*.js',
-            'src/main/webapp/components/openlayer/*'
+            'src/main/webapp/components/sar-deprecated/*',
+            'src/main/webapp/components/**/*.spec.js',
+            'src/main/webapp/components/**/*-test.js',
+            'src/main/webapp/components/utils/embryo.js',
+            'src/main/webapp/vrmt/app.js',
+            'src/main/webapp/main-app.module.js',
         ],
 
 		// use dots reporter, as travis terminal does not support escaping
@@ -87,6 +87,7 @@ module.exports = function(config) {
 		// config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
 		// CLI --log-level debug
 		logLevel : config.LOG_INFO,
+		// logLevel : config.LOG_DEBUG,
 
 		// enable / disable watching file and executing tests whenever any file
 		// changes

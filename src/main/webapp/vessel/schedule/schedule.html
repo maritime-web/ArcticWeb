@@ -9,7 +9,7 @@
 				<button id="load-all" class="btn btn-primary btn-sm" x-ng-click="loadAll()">Load all</button>
 			</span>
 		</div>
-		<div x-ng-if="alertMessages" class="alert alert-danger">
+		<div x-ng-if="alertMessages && alertMessages.length > 0" class="alert alert-danger">
 			<span x-ng-repeat="msg in alertMessages">{{msg}}<br /></span>
 		</div>
 		<div x-ng-if="message" class="alert alert-info">{{message}}</div>

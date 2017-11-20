@@ -1,14 +1,17 @@
-(function() {
+(function () {
     var module = angular.module('embryo.nwnm');
 
-    module.service('NWNMService', [ '$http', 'CookieService', '$interval', function($http, CookieService, $interval) {
+    module.service('NWNMService', NWNMService);
+    NWNMService.$inject = ['$http', 'CookieService', '$interval'];
+
+    function NWNMService($http, CookieService, $interval) {
         var subscription = null;
         var service = null;
         var interval = 60 * 1000 * 60;
 
         function notifySubscribers() {
             if (subscription) {
-                for ( var i in subscription.callbacks) {
+                for (var i in subscription.callbacks) {
                     if (subscription.callbacks[i]) {
                         if (subscription.error) {
                             subscription.callbacks[i](subscription.error);
@@ -24,11 +27,11 @@
             subscription.error = null;
             getMessages();
 
-            function getMessages(){
-                service.list(function(messages){
+            function getMessages() {
+                service.list(function (messages) {
                     subscription.messages = messages;
                     notifySubscribers();
-                }, function(error, status){
+                }, function (error, status) {
                     subscription.error = error;
                     notifySubscribers();
                 });
@@ -60,7 +63,7 @@
             }
 
             /** Returns the list of GeoJson features of all message parts **/
-            function getMessagePartFeatures (message) {
+            function getMessagePartFeatures(message) {
                 var g = [];
                 if (message && message.parts) {
                     angular.forEach(message.parts, function (part) {
@@ -73,7 +76,7 @@
             }
 
             /** Returns the area heading for the given message, i.e. two root-most areas **/
-            function getAreaHeading (message) {
+            function getAreaHeading(message) {
                 if (message && message.areas && message.areas.length > 0) {
                     var area = message.areas[0];
                     while (area.parent && area.parent.parent) {
@@ -108,45 +111,46 @@
         }
 
         service = {
-            list : function(success, error) {
+            list: function (success, error) {
                 var messageId = embryo.messagePanel.show({
-                    text : "Requesting active NW and NM messages ..."
+                    text: "Requesting active NW and NM messages ..."
                 });
-                
+
                 var params = 'lang=en';
 
                 params += '&instanceId=' + encodeURIComponent('NWNM');
 
                 $http.get(embryo.baseUrl + "/rest/nw-nm/messages?" + params, {
-                    timeout : embryo.defaultTimeout
-                }).success(function(messages){
+                    timeout: embryo.defaultTimeout
+                }).then(function (response) {
+                    var messages = response.data;
                     embryo.messagePanel.replace(messageId, {
-                        text : messages.length + " NW-NM messages returned.",
-                        type : "success"
+                        text: messages.length + " NW-NM messages returned.",
+                        type: "success"
                     });
                     success(toViewType(messages));
-                }).error(function(data, status, headers, config) {
-                    var errorMsg = embryo.ErrorService.errorStatus(data, status, "requesting NW-NM messagess");
+                }).catch(function (response) {
+                    var errorMsg = embryo.ErrorService.errorStatus(response.data, response.status, "requesting NW-NM messagess");
                     embryo.messagePanel.replace(messageId, {
-                        text : errorMsg,
-                        type : "error"
+                        text: errorMsg,
+                        type: "error"
                     });
-                    error(errorMsg, status);
+                    error(errorMsg, response.status);
                 });
             },
-            getFilterState : function() {
+            getFilterState: function () {
                 return CookieService.get("dma-msi-filters-" + embryo.authentication.userName);
             },
-            setFilterState : function(state) {
+            setFilterState: function (state) {
                 CookieService.set("dma-msi-filters-" + embryo.authentication.userName, state, 30);
             },
-            subscribe : function(callback) {
+            subscribe: function (callback) {
                 if (subscription === null) {
                     subscription = {
-                        callbacks : [],
-                        regions : null,
-                        messagess : null,
-                        interval : null
+                        callbacks: [],
+                        regions: null,
+                        messagess: null,
+                        interval: null
                     };
                 }
                 var id = subscription.callbacks.push(callback);
@@ -154,27 +158,27 @@
                 if (subscription.interval === null) {
                     subscription.interval = $interval(getNWNMData, interval);
                     getNWNMData();
-                }else if (subscription.error) {
+                } else if (subscription.error) {
                     callback(subscription.error, null);
                 } else if (subscription.messages) {
                     callback(null, subscription.messages);
                 }
                 return {
-                    id : id
+                    id: id
                 };
             },
-            unsubscribe : function(id) {
+            unsubscribe: function (id) {
                 subscription.callbacks[id.id] = null;
                 var allDead = true;
-                for ( var i in subscription.callbacks)
+                for (var i in subscription.callbacks)
                     allDead &= subscription.callbacks[i] === null;
                 if (allDead) {
                     clearInterval(subscription.interval);
                     subscription = null;
                 }
             },
-            update : function(){
-                if(subscription.interval){
+            update: function () {
+                if (subscription.interval) {
                     $interval.cancel(subscription.interval);
                     subscription.interval = $interval(getNWNMData, interval);
                 }
@@ -183,5 +187,5 @@
         };
 
         return service;
-    } ]);
+    }
 })();

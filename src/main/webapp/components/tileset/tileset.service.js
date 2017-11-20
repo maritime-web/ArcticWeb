@@ -45,7 +45,13 @@
 
                     $http.get(embryo.baseUrl + "rest/tileset/list/" + type, {
                         timeout: embryo.defaultTimeout
-                    }).success(onSuccess).error(onError);
+                    })
+                        .then(function (response) {
+                            onSuccess(response.data);
+                        })
+                        .catch(function (response) {
+                            onError(response.data, response.status);
+                        });
                 },
                 addQualifiers: function (tileSets) {
                     for (var index in tileSets) {

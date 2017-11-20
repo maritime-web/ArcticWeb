@@ -79,12 +79,15 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
         embryoAuthenticated = true;
     });
 
-    embryo.MenuCtrl = function($scope, Subject, $location, VersionService) {
+    menuModule.controller('MenuCtrl', MenuCtrl);
+    MenuCtrl.$inject = ['$scope', '$location', 'VersionService'];
+    function MenuCtrl($scope, $location, VersionService) {
         var clientVersion = '##timestamp##';
         $scope.versionConflict = false;
 
         VersionService.serverVersion()
-            .success(function (serverVersion) {
+            .then(function (response) {
+                var serverVersion = response.data;
                 console.log('clientVersion: ' + clientVersion);
                 console.log('serverVersion: ' + serverVersion);
                 $scope.versionConflict = clientVersion !== serverVersion && !clientVersion.includes('timestamp');
@@ -103,5 +106,5 @@ embryo.eventbus.registerShorthand(embryo.eventbus.GroupChangedEvent, "groupChang
                 authenticated();
             }
         });
-    };
+    }
 })();

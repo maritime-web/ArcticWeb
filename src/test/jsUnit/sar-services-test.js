@@ -1004,7 +1004,7 @@ describe('embryo.sar.service', function () {
                 })
             };
 
-            var result = SarService.generateSearchPattern(zone, sp)
+            var result = SarService.generateSearchPattern(zone, sp);
 
             expect(result).toBeDefined();
             // TODO: write better expectation

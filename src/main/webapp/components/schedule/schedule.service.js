@@ -58,9 +58,13 @@
             },
             getYourSchedule: function (mmsi, callback, error) {
                 var remoteCall = function (onSuccess) {
-                    $http.get(scheduleUrl + mmsi).success(onSuccess).error(function (data, status, headers, config) {
-                        error(embryo.ErrorService.extractError(data, status, config));
-                    });
+                    $http.get(scheduleUrl + mmsi)
+                        .then(function (response) {
+                            onSuccess(response.data);
+                        })
+                        .catch(function (data, status, headers, config) {
+                            error(embryo.ErrorService.extractError(data, status, config));
+                        });
                 };
                 SessionStorageService.getItem(currentSchedule, callback, remoteCall);
             },
@@ -68,9 +72,16 @@
                 SessionStorageService.removeItem(currentSchedule);
             },
             getSchedule: function (mmsi, callback, error) {
-                $http.get(scheduleUrl + mmsi).success(callback).error(function (data, status, headers, config) {
-                    error(embryo.ErrorService.extractError(data, status, config));
-                });
+                $http.get(scheduleUrl + mmsi)
+                    .then(function (response) {
+                        callback(response);
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+                        var config = response.config;
+                        error(embryo.ErrorService.extractError(data, status, config));
+                    });
             },
             getVoyageInfo: function (mmsi, voyageId, callback, error) {
                 function findVoyageIndex(voyageId, schedule) {
@@ -106,13 +117,18 @@
                     delete schedule.voyages[index].route;
                 }
 
-                $http.put(scheduleUrl + 'save', schedule).success(function () {
-                    SessionStorageService.removeItem(currentSchedule);
-                    RouteService.clearFromCache(routeIds);
-                    callback();
-                }).error(function (data, status, headers, config) {
-                    error(embryo.ErrorService.extractError(data, status, config));
-                });
+                $http.put(scheduleUrl + 'save', schedule)
+                    .then(function () {
+                        SessionStorageService.removeItem(currentSchedule);
+                        RouteService.clearFromCache(routeIds);
+                        callback();
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+                        var config = response.config;
+                        error(embryo.ErrorService.extractError(data, status, config));
+                    });
             }
         };
     }

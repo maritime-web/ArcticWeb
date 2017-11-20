@@ -26,14 +26,16 @@
 
             function reset(result) {
                 Subject.changePassword(result.password, username)
-                    .then(function (result) {
+                    .then(function (response) {
                         var user = "";
-                        if (result && result.config && result.config.data) {
-                            user = result.config.data.username;
+                        if (response && response.config && response.config.data) {
+                            user = response.config.data.username;
                         }
                         growl.success("Password changed successfully for user: '" + user +"'");
                     })
-                    .catch(function (err, status) {
+                    .catch(function (response) {
+                        var err = response.data;
+                        var status = response.status;
                         var errorMsg = status ? embryo.ErrorService.extractError(err, status) : err;
                         growl.error("Failed to change password. " + errorMsg);
                     });
