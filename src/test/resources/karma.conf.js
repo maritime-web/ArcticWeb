@@ -1,6 +1,7 @@
 module.exports = function(config) {
     var libFiles = [
         'src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js',
+        'src/**/js/ext/cdn.cloudflare/jqueryui/1.9.1/jquery-ui.min.js',
         'src/**/js/cached/openlayer-map/cdn.cloudflare/openlayers/4.4.2/ol-debug.js',
         'src/**/js/cached/openlayer-map/cdn.cloudflare/pouchdb/6.3.4/pouchdb.js',
         'src/**/js/cached/openlayer-map/cdn.googleapis/angularjs/1.6.4/angular.js',
@@ -10,6 +11,7 @@ module.exports = function(config) {
         'src/**/js/ext/moment.min.js',
         'src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.min.js',
         'src/**/js/ext/arc.js',
+        'src/**/js/ext/bootstrap-datetimepicker.js',
         'src/**/libs/growl2-lib/*.min.js'
     ];
     var testUtilityFiles = [
@@ -27,17 +29,17 @@ module.exports = function(config) {
         'src/**/components/**/*.js',
         'src/**/authentication/**/*.js',
         'src/**/core/**/*.js',
-        // 'src/**/forecast/**/*.js',
-        // 'src/**/ice/**/*.js',
-        // 'src/**/menu/**/*.js',
-        // 'src/**/nwnm/**/*.js',
-        // 'src/**/sar/**/*.js',
-        // 'src/**/select-area/**/*.js',
-        // 'src/**/user/**/*.js',
-        // 'src/**/vessel/**/*.js',
+        'src/**/forecast/**/*.js',
+        'src/**/ice/**/*.js',
+        'src/**/menu/**/*.js',
+        'src/**/nwnm/**/*.js',
+        'src/**/webapp/sar/**/*.js',
+        'src/**/select-area/**/*.js',
+        'src/**/user/**/*.js',
+        'src/**/vessel/**/*.js',
         'src/**/vrmt/vrmt-app.module.js',
         'src/**/vrmt/**/*.js',
-        // 'src/**/weather/**/*.js',
+        'src/**/weather/**/*.js',
     ];
 
     config.set({
@@ -55,8 +57,6 @@ module.exports = function(config) {
 		exclude : [
 			'src/main/webapp/js/ext/jquery.fileupload*.js',
             'src/main/webapp/components/sar-deprecated/*',
-            'src/main/webapp/components/**/*.spec.js',
-            'src/main/webapp/components/**/*-test.js',
             'src/main/webapp/components/utils/embryo.js',
             'src/main/webapp/vrmt/app.js',
             'src/main/webapp/main-app.module.js',

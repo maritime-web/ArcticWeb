@@ -8,15 +8,15 @@
 
         Attribute.prototype.valueOf = function () {
             return this.value;
-        }
+        };
         Attribute.build = function (scope, path) {
+
             var value = scope;
-            for (var index in path) {
-                var v = path[index];
+            angular.forEach(path, function (v) {
                 value = value[v];
-            }
+            });
             return new Attribute(value);
-        }
+        };
         return Attribute;
     });
 })();

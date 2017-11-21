@@ -447,7 +447,8 @@ module.exports = function (grunt) {
                 configFile: 'src/test/resources/karma.conf-old.js',
                 port: 5678,
                 singleRun: true,
-                browsers: [ 'PhantomJS' ]
+                browsers: [ 'PhantomJS' ],
+                reporters : [ 'spec' ],
             },
             unit: {
                 browsers: [ 'PhantomJS' ],

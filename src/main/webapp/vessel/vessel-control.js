@@ -1,4 +1,6 @@
-embryo.vessel = {};
+if (!embryo.vessel) {
+    embryo.vessel = {};
+}
 
 //TODO REMOVE ASAP
 embryo.global = {};

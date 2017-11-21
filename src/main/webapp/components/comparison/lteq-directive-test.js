@@ -108,7 +108,7 @@ describe('embryo.lteq.directive', function () {
             var span = elm.find("span");
             expect(span.length).toEqual(0);
 
-            changeValues(null, 2)
+            changeValues(null, 2);
 
             var span = elm.find("span");
             expect(span.length).toEqual(0);
@@ -124,7 +124,6 @@ describe('embryo.lteq.directive', function () {
             expect(span.length).toEqual(0);
         });
 
-        /*
         it('If number2 is greater than number 1, then $error.lteq should be true', function () {
             var span = elm.find("span");
             expect(span.length).toEqual(0);
@@ -134,7 +133,7 @@ describe('embryo.lteq.directive', function () {
             var span = elm.find("span");
             expect(span.length).toEqual(1);
             expect(span.text()).toBe("Value2 must be smaller than or equal to value1");
-        });*/
+        });
     });
 
     describe('Validation works with datepicker', function () {
@@ -152,7 +151,6 @@ describe('embryo.lteq.directive', function () {
             compileDirective(tpl);
         }));
 
-        /*
         it('If value2 is greater than value1, then $error.lteq should be true', function () {
             var span = elm.find("span");
             expect(span.length).toEqual(0);
@@ -162,6 +160,6 @@ describe('embryo.lteq.directive', function () {
             var span = elm.find("span");
             expect(span.length).toEqual(1);
             expect(span.text()).toBe("Value2 must be smaller than or equal to value1");
-        });*/
+        });
     });
 });
