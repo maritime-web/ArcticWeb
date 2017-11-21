@@ -10,10 +10,6 @@ describe("embryo.common.service", function () {
             $log = _$log_;
         }));
 
-        afterEach(function () {
-            console.log($log.debug.logs);
-        });
-
         describe("adding subscribers", function () {
 
             it("should register subscribers returning a subscribtion id", function () {

@@ -12,7 +12,12 @@ module.exports = function(config) {
         'src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.min.js',
         'src/**/js/ext/arc.js',
         'src/**/js/ext/bootstrap-datetimepicker.js',
-        'src/**/libs/growl2-lib/*.min.js'
+        'src/**/libs/growl2-lib/*.min.js',
+        'src/**/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload.js',
+        'src/**/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-process.js',
+        'src/**/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-validate.js',
+        'src/**/js/ext/jquery-file-upload-9.5.7/js/jquery.fileupload-angular.js',
+
     ];
     var testUtilityFiles = [
         'src/test/**/utilities/*.js'
@@ -37,7 +42,7 @@ module.exports = function(config) {
         'src/**/select-area/**/*.js',
         'src/**/user/**/*.js',
         'src/**/vessel/**/*.js',
-        'src/**/vrmt/vrmt-app.module.js',
+        // 'src/**/vrmt/vrmt-app.module.js',
         'src/**/vrmt/**/*.js',
         'src/**/weather/**/*.js',
     ];
@@ -57,16 +62,14 @@ module.exports = function(config) {
 		exclude : [
 			'src/main/webapp/js/ext/jquery.fileupload*.js',
             'src/main/webapp/components/sar-deprecated/*',
-            'src/main/webapp/components/utils/embryo.js',
-            'src/main/webapp/vrmt/app.js',
-            'src/main/webapp/main-app.module.js',
+            'src/main/webapp/components/utils/embryo.js'
         ],
 
 		// use dots reporter, as travis terminal does not support escaping
 		// sequences
 		// possible values: 'dots', 'progress'
 		// CLI --reporters progress
-		reporters : [ 'progress', 'junit' ],
+		reporters : [ 'spec', 'junit' ],
 
 		junitReporter : {
 			// will be resolved to basePath (in the same way as files/exclude

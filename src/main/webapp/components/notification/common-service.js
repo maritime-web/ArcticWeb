@@ -45,7 +45,7 @@
 
         function validateSubscriber(subscriberWanabe) {
             if (subscriberWanabe.name === undefined) throw "Subscribers must have a name";
-            if (subscriberWanabe.onNewProvider === undefined || typeof subscriberWanabe.onNewProvider != 'function') throw "onNewProvider function required";
+            if (subscriberWanabe.onNewProvider === undefined || typeof subscriberWanabe.onNewProvider !== 'function') throw "onNewProvider function required";
 
             if (subscriptions.hasOwnProperty(subscriberWanabe.name)) {
                 $log.warn("Overwriting existing subscriber (" + subscriberWanabe.name);

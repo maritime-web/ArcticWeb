@@ -8,12 +8,10 @@
         'embryo.user',
         'embryo.components.openlayer',
         'embryo.components.notification',
-        'embryo.control',
 
         /* Feature areas */
         'embryo.vessel',
         'embryo.decimal',
-        'embryo.controller.reporting',
 
         'vrmt.render',
         'vrmt.map',

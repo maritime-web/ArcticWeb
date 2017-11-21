@@ -19,39 +19,6 @@ var mountFolder = function (connect, dir) {
     return connect.static(require('path').resolve(dir));
 };
 
-var libFiles = [
-    {src: ['src/**/js/ext/cdn.cloudflare/jquery/1.11.0/jquery.js']},
-    {src: ['src/**/js/ext/cdn.cloudflare/openlayers/v3.19.0-dist/ol.js']},
-    {src: ['src/**/js/cached/map/cdn.cloudflare/pouchdb/5.1.0/pouchdb.js']},
-    {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/angular.js']},
-    {src: ['src/**/js/ext/cdn.googleapis/angularjs/1.2.14/!(*min*).js']},
-    {src: ['src/test/lib/angularjs/1.2.14/angular-mocks.js']},
-    {src: ['src/**/js/ext/moment.min.js']},
-    {src: ['src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.js']},
-    {src: ['src/**/js/ext/arc.js']},
-    {src: ['src/**/libs/growl2-lib/*.min.js']}
-];
-var testUtilityFiles = [
-    {src: ['src/test/**/utilities/*.js']}
-];
-var testDataFiles = [
-    {src: ['src/test/**/testData/*.js']}
-];
-var polyfills = [
-    {src: ['src/**/js/ext/cdn.cloudflare/core-js/*.js']}
-];
-var vrmtFiles = [
-    {src: ['src/**/js/embryo-for-test.js']},
-    {src: ['src/**/components/render/*.module.js']},
-    {src: ['src/**/components/geo/geo-service.js']},
-    {src: ['src/**/components/openlayer/openlayer.module.js']},
-    {src: ['src/**/components/openlayer/openlayer-service.js']},
-    {src: ['src/**/vrmt/**/vrmt-app.module.js']},
-    {src: ['src/**/vrmt/**/*.module.js']},
-    {src: ['src/**/vrmt/**/*.js']},
-    {src: ['src/**/js/authentication.js']}
-];
-
 module.exports = function (grunt) {
     // Project configuration.
     grunt.initConfig({
@@ -440,8 +407,7 @@ module.exports = function (grunt) {
             continuous: {
                 port: 5678,
                 singleRun: true,
-                browsers: [ 'PhantomJS' ],
-                reporters : [ 'spec' ],
+                browsers: [ 'PhantomJS' ]
             },
             continuous_old: {
                 configFile: 'src/test/resources/karma.conf-old.js',
@@ -456,17 +422,6 @@ module.exports = function (grunt) {
                 autoWatch: true,
                 keepalive: true
             },
-            vrmt_unit: {
-                browsers: [ 'PhantomJS' ],
-                reporters : [ 'spec' ],
-                singleRun: false,
-                autoWatch: true,
-                keepalive: true,
-                files: libFiles.concat(testUtilityFiles).concat(polyfills).concat(vrmtFiles).concat(testDataFiles),
-                exclude : [
-                    'src/main/webapp/js/ext/jquery.fileupload*.js'
-                ]
-            }
         }
     });
 

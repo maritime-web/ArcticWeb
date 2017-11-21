@@ -6,7 +6,7 @@
         'embryo.components.notification',
         'embryo.subscription.service',
         'embryo.storageServices',
-        'embryo.control',
+        'embryo.components.render',
         'embryo.route',
 
         /* 3rd-party modules */

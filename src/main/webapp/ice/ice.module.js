@@ -6,7 +6,7 @@
         'embryo.components.notification',
         'embryo.storageServices',
         'embryo.subscription.service',
-        'embryo.control',
+        'embryo.components.render',
         'embryo.shape',
         'embryo.tileSet',
 

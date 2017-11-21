@@ -5,7 +5,7 @@
         /* Shared modules */
         'embryo.components.notification',
         'embryo.subscription.service',
-        'embryo.control',
+        'embryo.components.render',
 
         /* 3rd-party modules */
         'angular-growl',

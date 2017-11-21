@@ -7,6 +7,6 @@
         'embryo.schedule',
         'embryo.components.vessel',
         'embryo.vessel.map',
-        'embryo.controller.reporting'
+        'embryo.components.render'
     ]);
 })();

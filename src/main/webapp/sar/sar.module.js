@@ -16,7 +16,7 @@
         /* Shared modules */
         'embryo.components.notification',
         'embryo.subscription.service',
-        'embryo.control',
+        'embryo.components.render',
         'embryo.common.service',
         'embryo.storageServices',
         'embryo.lteq.directive',

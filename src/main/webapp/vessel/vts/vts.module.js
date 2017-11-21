@@ -6,7 +6,7 @@
         'embryo.schedule',
         'embryo.course',
         'embryo.position',
-        'embryo.controller.reporting',
+        'embryo.components.render',
         'embryo.components.openlayer'
     ]);
 })();

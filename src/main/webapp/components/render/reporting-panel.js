@@ -1,6 +1,6 @@
 $(function() {
 
-    var module = angular.module('embryo.controller.reporting', []);
+    var module = angular.module('embryo.components.render');
 
     module.directive('eReportingPanel', [ '$window', function($window) {
         return {

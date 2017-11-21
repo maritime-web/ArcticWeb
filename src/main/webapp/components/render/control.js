@@ -1,6 +1,6 @@
 $(function() {
 
-    var module = angular.module('embryo.control', [ 'ui.bootstrap.accordion' ]);
+    var module = angular.module('embryo.components.render');
 
     module.controller("LeftBarController", [ '$scope', function($scope) {
         this.setSelected = function(selected) {

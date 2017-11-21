@@ -18,7 +18,7 @@ describe('e-left-bar-x directives', function() {
 //        module('embryo.authentication.service', function($provide) {
 //            $provide.value('Subject', mockSubject);
 //        });
-        module('embryo.control');
+        module('embryo.components.render');
 
     });
     beforeEach(module('ui.bootstrap.accordion'));
