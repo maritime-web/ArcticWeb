@@ -16,7 +16,7 @@
         </p>
 		<div x-ng-controller="SelectAreaController">
 		    <div id="shortdesc">
-		    	<div x-ng-if="alertMessages" class="alert alert-danger">
+		    	<div x-ng-if="alertMessages && alertMessages.length > 0" class="alert alert-danger">
 					<span x-ng-repeat="msg in alertMessages">{{msg}}<br /></span>
 				</div>
 		
