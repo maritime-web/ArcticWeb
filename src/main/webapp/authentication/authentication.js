@@ -450,9 +450,9 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
         };
 
         $scope.cancel = function (cb) {
-            var path = location.pathname;
+            var path = window.location.pathname;
             if (path.indexOf("index.html") < 0 && path.indexOf(".html") >= 0) {
-                location = "../";
+                window.location = "../";
             }
             cb('aborted');
         };
@@ -466,9 +466,9 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
         });
 
         embryo.security.Subject.logout(function () {
-            var path = location.pathname;
+            var path = window.location.pathname;
             if (path.indexOf("index.html") < 0 && path.indexOf(".html") >= 0) {
-                location = "../";
+                window.location = "../";
                 // setTimeout(function() {
                 // location = ".";
                 // }, 100);
@@ -543,7 +543,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                             clearSessionData($cookieStore, $rootScope);
                             var path = location.pathname;
                             if (path.indexOf("index.html") < 0 && path.indexOf(".html") >= 0) {
-                                location = "../";
+                                window.location = "../";
                             }
                             return $q.reject(response);
                         } else {
@@ -552,8 +552,8 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                     }
 
                     return {
-                        response: success,
-                        responseError: error
+                        'response': success,
+                        'responseError': error
                     }
                 }]);
         }]);
@@ -597,7 +597,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                     deferred.resolve();
                     return deferred.promise;
                 } else {
-                    location.href = "/";
+                    window.location.href = "/";
                 }
             }
         };
