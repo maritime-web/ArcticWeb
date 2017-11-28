@@ -282,10 +282,10 @@ module.exports = function (grunt) {
             cdn: {
                 options: {
                     rewriter: function (url) {
-                        url = url.replace("js/ext/cdn.cloudflare", "//cdnjs.cloudflare.com/ajax/libs");
-                        url = url.replace("js/ext/cdn.googleapis", "//ajax.googleapis.com/ajax/libs");
-                        url = url.replace("js/ext/cdn.netdna", "//netdna.bootstrapcdn.com");
-                        url = url.replace("css/ext/cdn.netdna", "//netdna.bootstrapcdn.com");
+                        url = url.replace("js/ext/cdn.cloudflare", "https://cdnjs.cloudflare.com/ajax/libs");
+                        url = url.replace("js/ext/cdn.googleapis", "https://ajax.googleapis.com/ajax/libs");
+                        url = url.replace("js/ext/cdn.netdna", "https://netdna.bootstrapcdn.com");
+                        url = url.replace("css/ext/cdn.netdna", "https://netdna.bootstrapcdn.com");
                         return url;
                     }
                 },
@@ -343,11 +343,11 @@ module.exports = function (grunt) {
                         'rest/shapefile/static/multiple/static.world_merc?delta=true&exponent=2'
                     ],
                     patterns: [
-                        'src/main/webapp/css/cached/**',
-                        'src/main/webapp/js/cached/common/**',
+                        'src/main/webapp/css/cached/cdn.netdna/bootstrap/3.3.7/**',
+                        'src/main/webapp/css/cached/cdn.netdna/font-awesome/4.7.0/**',
+                        'src/main/webapp/js/cached/common/cdn.cloudflare/**',
                         'src/main/webapp/js/cached/openlayer-map/**',
                         'src/main/webapp/js/cached/map/cdn.cloudflare/jqueryui/**',
-                        'src/main/webapp/js/cached/map/cdn.cloudflare/pouchdb/**',
                         'src/main/webapp/js/cached/map/cdn.cloudflare/bootstrap/**',
                         'src/main/webapp/partials/common/*.html',
                         'src/main/webapp/vessel/**/*.html',
@@ -380,10 +380,11 @@ module.exports = function (grunt) {
                     ],
                     patterns: [
                         'src/main/webapp/css/cached/**',
-                        'src/main/webapp/js/cached/common/**',
+                        'src/main/webapp/js/cached/common/cdn.cloudflare/**',
                         'src/main/webapp/js/cached/front/**',
                         'src/main/webapp/partials/common/*',
                         'src/main/webapp/partials/front/*',
+                        'src/main/webapp/authentication/!(*.spec*).html',
                         'src/main/webapp/img/front/*.png',
                         'src/main/webapp/img/front/*.jpg',
                         'src/main/webapp/img/front/*.gif',

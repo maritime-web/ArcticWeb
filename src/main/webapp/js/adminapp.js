@@ -3,7 +3,9 @@
 	    var app = angular.module('embryo.administration', [ 'ui.bootstrap', 'ngRoute', 'embryo.administration.log',
 	            'embryo.administration.users', 'embryo.menu', 'embryo.components.version', 'embryo.user', 'angular-growl']);
 	
-	    app.config([ '$routeProvider', 'growlProvider', function($routeProvider, growlProvider) {
+	    app.config([ '$routeProvider', 'growlProvider', '$locationProvider', function($routeProvider, growlProvider, $locationProvider) {
+            $locationProvider.hashPrefix("");
+
             growlProvider.globalTimeToLive(10000);
             growlProvider.globalPosition('bottom-left');
 

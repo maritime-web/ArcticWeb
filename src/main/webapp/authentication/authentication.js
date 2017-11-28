@@ -26,43 +26,6 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
 
     var serviceModule = angular.module('embryo.authentication.service', ['ngCookies']);
 
-    embryo.RequestAccessCtrl = function ($scope, $http) {
-        $scope.request = {};
-        $scope.message = null;
-        $scope.alertMessages = null;
-        $("#rPreferredLogin").focus();
-
-        $scope.sendRequest = function () {
-            $scope.message = null;
-            $scope.alertMessages = null;
-            if ($scope.request.mmsiNumber) {
-                var x = $scope.request.mmsiNumber;
-                $scope.request.mmsiNumber = parseInt(x);
-                if ($scope.request.mmsiNumber != x) {
-                    $scope.alertMessages = ["MMSI must be only digits."];
-                    return;
-                }
-            }
-
-            if (!$scope.request.emailAddress) {
-                $scope.alertMessages = ["A proper email address is required."];
-            } else {
-                $scope.message = "Sending request for access.";
-
-                $http.post(embryo.baseUrl + "rest/request-access/save", $scope.request)
-                    .then(function () {
-                        $scope.message = "Request for access has been sent. We will get back to you via email.";
-                    })
-                    .catch(function (response) {
-                        var data = response.data;
-                        var status = response.status;
-                        $scope.alertMessages = embryo.ErrorService.extractError(data, status);
-                        $scope.alertMessages.push("Request for access has failed. Please try again.");
-                    });
-            }
-        };
-    };
-
     embryo.ChangePasswordCtrl = function ($scope, $http, $routeParams) {
         $scope.request = {};
         $scope.message = null;
@@ -422,7 +385,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
             Subject.login($scope.user.name, $scope.user.pwd, function () {
                 var path = location.pathname;
                 if (path.indexOf("index.html") >= 0 || path.indexOf("content.html") >= 0 || path.indexOf(".html") < 0) {
-                    location.href = "../vessel";
+                    window.location.href = "openlayer-map.html#/vessels";
                 }
 
                 embryo.messagePanel.replace(messageId, {
@@ -521,6 +484,46 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
     var module = angular.module('embryo.authentication', ['embryo.base', 'ui.bootstrap.modal', 'ui.bootstrap.tpls',
         'embryo.authentication.service', 'embryo.authentication.directives']);
 
+    module.controller('RequestAccessCtrl', RequestAccessCtrl);
+    RequestAccessCtrl.$inject = ['$scope', '$http'];
+    function RequestAccessCtrl($scope, $http) {
+        $scope.request = {};
+        $scope.message = null;
+        $scope.alertMessages = null;
+        $("#rPreferredLogin").focus();
+
+        $scope.sendRequest = function () {
+            $scope.message = null;
+            $scope.alertMessages = null;
+            if ($scope.request.mmsiNumber) {
+                var x = $scope.request.mmsiNumber;
+                $scope.request.mmsiNumber = parseInt(x);
+                if ($scope.request.mmsiNumber != x) {
+                    $scope.alertMessages = ["MMSI must be only digits."];
+                    return;
+                }
+            }
+
+            if (!$scope.request.emailAddress) {
+                $scope.alertMessages = ["A proper email address is required."];
+            } else {
+                $scope.message = "Sending request for access.";
+
+                $http.post(embryo.baseUrl + "rest/request-access/save", $scope.request)
+                    .then(function () {
+                        $scope.message = "Request for access has been sent. We will get back to you via email.";
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+                        $scope.alertMessages = embryo.ErrorService.extractError(data, status);
+                        $scope.alertMessages.push("Request for access has failed. Please try again.");
+                    });
+            }
+        };
+    }
+
+
     module.config([
         '$httpProvider',
         function ($httpProvider) {
@@ -553,34 +556,6 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                         responseError: error
                     }
                 }]);
-            /*
-                        $httpProvider.responseInterceptors.push([ '$location', '$q', '$cookieStore', '$rootScope',
-                            function ($location, $q, $cookieStore, $rootScope) {
-                                function success(response) {
-                                    return response;
-                                }
-
-                                function error(response) {
-                                    if (response.status === 401 && !(response.data.error && response.data.error == 'login failed')) {
-                                        embryo.messagePanel.show({
-                                            text: "Session Lost. You will be logged out ..."
-                                        });
-                                        clearSessionData($cookieStore, $rootScope);
-                                        var path = location.pathname;
-                                        if (path.indexOf("index.html") < 0 && path.indexOf(".html") >= 0) {
-                                            location = ".";
-                                        }
-                                        return $q.reject(response);
-                                    } else {
-                                        return $q.reject(response);
-                                    }
-                                }
-
-                                return function (promise) {
-                                    return promise.then(success, error);
-                                };
-                            } ]);
-            */
         }]);
 
     module.run(['Subject', '$rootScope', '$location', '$modal', function (Subject, $rootScope, $location, $modal) {
@@ -627,4 +602,4 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
             }
         };
     };
-}());
+})();

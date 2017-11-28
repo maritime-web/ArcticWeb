@@ -3,7 +3,8 @@
 
     var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'embryo.user', 'ui.bootstrap', 'embryo.components.version', 'angular-growl']);
 
-    indexApp.config([ '$routeProvider', 'growlProvider', function($routeProvider, growlProvider) {
+    indexApp.config([ '$routeProvider', 'growlProvider', '$locationProvider', function($routeProvider, growlProvider, $locationProvider) {
+        $locationProvider.hashPrefix("");
         growlProvider.globalTimeToLive(10000);
         growlProvider.globalPosition('bottom-left');
 

@@ -1,11 +1,13 @@
-$(function() {
+(function() {
     "use strict";
 
     angular.module('embryo.administration.users', [ 'embryo.userService', 'ui.bootstrap.modal',
             'ui.bootstrap.tpls', 'embryo.authentication' ])
-        .controller('UserEmailController', UserEmailController);
+        .controller('UserEmailController', UserEmailController)
+        .controller('UsersCtrl', UsersCtrl);
 
-    embryo.UsersCtrl = function($scope, UserService, $modal) {
+    UsersCtrl.$inject = ['$scope', 'UserService', '$modal'];
+    function UsersCtrl($scope, UserService, $modal) {
         var vm = this;
 
         var editUser;
@@ -227,4 +229,4 @@ $(function() {
     }
     $(window).resize(fixScrollables);
     setTimeout(fixScrollables, 100);
-}());
+})();

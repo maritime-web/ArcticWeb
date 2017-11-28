@@ -39,7 +39,7 @@ public class TestDataRestService {
     }
 
     @PUT
-    public String reInitializeTestData() {
+    public void reInitializeTestData() {
         logger.debug("reInitializeTestData()");
         
         testService.resetTestData();
@@ -48,8 +48,6 @@ public class TestDataRestService {
         // String result = "Product created : " + product;
         // return Response.status(201).entity(result).build();
         logger.debug("reInitializeTestData(): {}", result);
-        
-        return result;
     }
 
 }

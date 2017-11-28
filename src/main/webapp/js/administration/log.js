@@ -1,9 +1,11 @@
-$(function() {
+(function() {
     "use strict";
 
-    angular.module('embryo.administration.log', [ 'embryo.logService', 'embryo.authentication', 'embryo.datepicker' ]);
+    angular.module('embryo.administration.log', [ 'embryo.logService', 'embryo.authentication', 'embryo.datepicker' ])
+        .controller("LogCtrl", LogCtrl);
 
-    embryo.LogCtrl = function($scope, $timeout, LogService) {
+    LogCtrl.$inject = ['$scope', '$timeout', 'LogService'];
+    function LogCtrl($scope, $timeout, LogService) {
         $scope.services = [];
 
         $scope.searchRequest = {
@@ -59,5 +61,5 @@ $(function() {
         $scope.search = function() {
             refreshLogEntries();
         };
-    };
-}());
+    }
+})();
