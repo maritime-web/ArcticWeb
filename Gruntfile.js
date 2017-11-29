@@ -242,7 +242,7 @@ module.exports = function (grunt) {
                         to: '//netdna.bootstrapcdn.com'
                     },
                     {
-                        from: '/js/cached/openlayer-map/cdn.cloudflare', // string replacement
+                        from: 'js/cached/openlayer-map/cdn.cloudflare', // string replacement
                         to: '//cdnjs.cloudflare.com/ajax/libs'
                     },
                     {
@@ -335,10 +335,10 @@ module.exports = function (grunt) {
                 dest: 'target/build/map-openlayer.appcache',
                 cache: {
                     literals: [//as is in the "CACHE:" section
-                        'openlayer-map.html',
-                        'css/arcticweb-openlayer-map.css',
-                        'css/arcticweb-openlayer-map-ext-lib.css',
-                        'js/arcticweb-openlayer-map.js',
+                        // 'openlayer-map.html',
+                        // 'css/arcticweb-openlayer-map.css',
+                        // 'css/arcticweb-openlayer-map-ext-lib.css',
+                        // 'js/arcticweb-openlayer-map.js',
                         'css/cached/cdn.netdna/font-awesome/4.3.0/fonts/fontawesome-webfont.woff2?v=4.3.0',
                         'rest/shapefile/static/multiple/static.world_merc?delta=true&exponent=2'
                     ],
@@ -349,9 +349,9 @@ module.exports = function (grunt) {
                         'src/main/webapp/js/cached/openlayer-map/**',
                         'src/main/webapp/js/cached/map/cdn.cloudflare/jqueryui/**',
                         'src/main/webapp/js/cached/map/cdn.cloudflare/bootstrap/**',
-                        'src/main/webapp/partials/common/*.html',
-                        'src/main/webapp/vessel/**/*.html',
-                        'src/main/webapp/vrmt/**/*.html',
+                        // 'src/main/webapp/partials/common/*.html',
+                        // 'src/main/webapp/vessel/**/*.html',
+                        // 'src/main/webapp/vrmt/**/*.html',
                         'src/main/webapp/img/**/*.png',
                         'src/main/webapp/img/**/*.jpg',
                         'src/main/webapp/img/**/*.gif',
@@ -368,12 +368,12 @@ module.exports = function (grunt) {
                 dest: 'target/build/front.appcache',
                 cache: {
                     literals: [//as is in the "CACHE:" section
-                        'index.html',
-                        'content.html',
-                        'css/arcticweb-front.css',
-                        'css/arcticweb-content.css',
-                        'js/arcticweb-front.js',
-                        'js/arcticweb-content.js',
+                        // 'index.html',
+                        // 'content.html',
+                        // 'css/arcticweb-front.css',
+                        // 'css/arcticweb-content.css',
+                        // 'js/arcticweb-front.js',
+                        // 'js/arcticweb-content.js',
                         'css/cached/cdn.netdna/font-awesome/4.3.0/fonts/fontawesome-webfont.woff2?v=4.3.0',
                         'rest/shapefile/static/multiple/static.world_merc?delta=true&exponent=2'
 
@@ -382,9 +382,9 @@ module.exports = function (grunt) {
                         'src/main/webapp/css/cached/**',
                         'src/main/webapp/js/cached/common/cdn.cloudflare/**',
                         'src/main/webapp/js/cached/front/**',
-                        'src/main/webapp/partials/common/*',
-                        'src/main/webapp/partials/front/*',
-                        'src/main/webapp/authentication/!(*.spec*).html',
+                        // 'src/main/webapp/partials/common/*',
+                        // 'src/main/webapp/partials/front/*',
+                        // 'src/main/webapp/authentication/!(*.spec*).html',
                         'src/main/webapp/img/front/*.png',
                         'src/main/webapp/img/front/*.jpg',
                         'src/main/webapp/img/front/*.gif',
