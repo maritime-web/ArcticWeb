@@ -5,14 +5,14 @@
         .controller('ResetPasswordController', ResetPasswordController)
         .controller('ResetPasswordModalController', ResetPasswordModalController);
 
-    ResetPasswordController.$inject = ['$modal', 'Subject', 'growl'];
+    ResetPasswordController.$inject = ['$uibModal', 'Subject', 'growl'];
 
-    function ResetPasswordController($modal, Subject, growl) {
+    function ResetPasswordController($uibModal, Subject, growl) {
         var vm = this;
         vm.changePasswordDialog = function (event, username) {
             event.preventDefault();
 
-            var modalInstance = $modal.open({
+            var modalInstance = $uibModal.open({
                 controller : 'ResetPasswordModalController',
                 templateUrl : "reset-password.html",
                 resolve : {

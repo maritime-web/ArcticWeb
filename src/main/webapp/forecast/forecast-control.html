@@ -1,7 +1,7 @@
 <div x-ng-controller="ForecastController">
-<div id="forecastControlPanel" accordion close-others="true" e-left-bar
+<div id="forecastControlPanel" uib-accordion close-others="true" e-left-bar
 		open-first="true" class="controlPanel2">
-		<div accordion-group heading="Wave forecasts">
+		<div uib-accordion-group heading="Wave forecasts">
             <div x-ng-controller="WaveForecastsCtrl as wfc">
                 <h4>Wave forecasts</h4>
 				<table class="table table-condensed">
@@ -45,7 +45,7 @@
 			</div>
 		</div>
 
-		<div accordion-group heading="Ice forecasts">
+		<div uib-accordion-group heading="Ice forecasts">
 			<div x-ng-controller="IceForecastsCtrl">
 				<h4>Ice forecasts</h4>
 				<table class="table table-condensed">
@@ -108,7 +108,7 @@
 			</div>
 		</div>
 
-		<div accordion-group heading="Ocean current forecasts">
+		<div uib-accordion-group heading="Ocean current forecasts">
             <div x-ng-controller="CurrentForecastsCtrl as cfc">
                 <h4>Ocean current forecasts</h4>
 				<table class="table table-condensed">
@@ -152,7 +152,7 @@
 			</div>
 		</div>
 
-		<div accordion-group heading="Legends">
+		<div uib-accordion-group heading="Legends">
 			<div class="legends">
 				<h5>Wave height</h5>
 				<table class="table table-condensed">

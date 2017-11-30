@@ -6,7 +6,7 @@ module.exports = function(config) {
         'src/**/js/cached/openlayer-map/cdn.cloudflare/pouchdb/6.3.4/pouchdb.js',
         'src/**/js/cached/openlayer-map/cdn.googleapis/angularjs/1.6.4/angular.js',
         'src/**/js/cached/openlayer-map/cdn.googleapis/angularjs/1.6.4/!(*min*).js',
-        'src/**/js/cached/common/cdn.cloudflare/angular-ui-bootstrap/0.11.0/ui-bootstrap-tpls.min.js',
+        'src/**/js/cached/common/cdn.cloudflare/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.min.js',
         'src/**/js/ext/angular-pouchdb-5.0.1.js',
         'src/**/js/ext/moment.min.js',
         'src/**/js/ext/cdn.cloudflare/turf/4.6.1/turf.min.js',

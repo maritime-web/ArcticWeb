@@ -6,8 +6,8 @@
         .controller('UserEmailController', UserEmailController)
         .controller('UsersCtrl', UsersCtrl);
 
-    UsersCtrl.$inject = ['$scope', 'UserService', '$modal'];
-    function UsersCtrl($scope, UserService, $modal) {
+    UsersCtrl.$inject = ['$scope', 'UserService', '$uibModal'];
+    function UsersCtrl($scope, UserService, $uibModal) {
         var vm = this;
 
         var editUser;
@@ -127,7 +127,7 @@
         };
 
         function showModal(title, messages) {
-            return $modal.open({
+            return $uibModal.open({
                 controller : embryo.ConfirmModalCtrl,
                 templateUrl : "confirmDialog.html",
                 resolve : {
@@ -146,7 +146,7 @@
             angular.forEach(vm.users, function (user) {
                 emails += user.email+',';
             });
-            $modal.open({
+            $uibModal.open({
                 controller : 'UserEmailController',
                 templateUrl : "emailAdresses.html",
                 resolve : {
@@ -210,13 +210,13 @@
         };
     };
 
-    embryo.ConfirmModalCtrl = function($scope, $modalInstance, title, messages) {
+    embryo.ConfirmModalCtrl = function($scope, $uibModalInstance, title, messages) {
         $scope.title = title;
         $scope.messages = messages;
     };
 
-    UserEmailController.$inject = ['$scope', '$modalInstance', 'emails'];
-    function UserEmailController ($scope, $modalInstance, emails) {
+    UserEmailController.$inject = ['$scope', '$uibModalInstance', 'emails'];
+    function UserEmailController ($scope, $uibModalInstance, emails) {
         $scope.emails = emails;
     }
 

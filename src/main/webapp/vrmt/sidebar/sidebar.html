@@ -60,16 +60,16 @@
                 </div>
             </div>
 
-            <accordion close-others="true">
+            <uib-accordion close-others="true">
                 <div class="panel" style="border: none" ng-controller="AssessController as assess">
-                    <accordion-group is-open="assess.active">
-                        <accordion-heading>
+                    <div uib-accordion-group is-open="assess.active">
+                        <uib-accordion-heading>
                             <span data-ng-show="!assess.assessing">START NEW ASSESSMENT</span> <span
                                 data-ng-show="assess.assessing">ASSESSMENT IN PROGRESS <span class="label label-primary">Started
                             {{assess.assessmentStartedAt}}</span></span>
                             <span class="pull-right glyphicon"
                                   ng-class="{'glyphicon-menu-down': !assess.active, 'glyphicon-menu-up': assess.active}"></span>
-                        </accordion-heading>
+                        </uib-accordion-heading>
 
                         <div class="table-responsive">
                             <table class="table table-condensed">
@@ -144,13 +144,13 @@
                             </div>
                         </div>
                         </div>
-                    </accordion-group>
+                    </div>
                 </div>
-                <accordion-group is-open="sidebar.safetyMeasuresActive">
-                    <accordion-heading>
+                <div uib-accordion-group is-open="sidebar.safetyMeasuresActive">
+                    <uib-accordion-heading>
                         SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
                                                                   ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
-                    </accordion-heading>
+                    </uib-accordion-heading>
                     <div class="container-fluid sidebar-grid">
                         <div class="row sidebar-grid-heading sidebar-grid-row">
                             <div class="col-xs-12">SUGGESTED MEASURES</div>
@@ -188,12 +188,12 @@
                             </div>
                         </div>
                     </div>
-                </accordion-group>
-                <accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
-                    <accordion-heading>
+                </div>
+                <div uib-accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
+                    <uib-accordion-heading>
                         LOG OF MEASURES AND REPORTS <span class="pull-right glyphicon"
                                                           ng-class="{'glyphicon-menu-down': !sidebar.logOfMeasuresAndReportsActive, 'glyphicon-menu-up': sidebar.logOfMeasuresAndReportsActive}"></span>
-                    </accordion-heading>
+                    </uib-accordion-heading>
 
                     <div class="container-fluid sidebar-grid">
                         <div class="row sidebar-grid-heading sidebar-grid-row">
@@ -214,8 +214,8 @@
                         </div>
                     </div>
 
-                </accordion-group>
-            </accordion>
+                </div>
+            </uib-accordion>
         </div>
     </div>
 

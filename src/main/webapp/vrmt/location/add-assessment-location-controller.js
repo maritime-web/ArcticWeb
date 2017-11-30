@@ -7,13 +7,13 @@
         .controller("ModalInstanceCtrl", ModalInstanceCtrl);
 
 
-    AssessmentLocationController.$inject = ['$scope', '$modal', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', 'growl'];
+    AssessmentLocationController.$inject = ['$scope', '$uibModal', 'RiskAssessmentService', 'NotifyService', 'VrmtEvents', 'growl'];
 
-    function AssessmentLocationController($scope, $modal, RiskAssessmentService, NotifyService, VrmtEvents, growl) {
+    function AssessmentLocationController($scope, $uibModal, RiskAssessmentService, NotifyService, VrmtEvents, growl) {
 
         NotifyService.subscribe($scope, VrmtEvents.AddRouteLocation, onAddAssessmentLocation);
         function onAddAssessmentLocation(event, newAssessmentLocationEvent) {
-            var modalInstance = $modal.open({
+            var modalInstance = $uibModal.open({
                 templateUrl: "addAssessmentLocation",
                 controller: 'ModalInstanceCtrl',
                 resolve: {
@@ -57,8 +57,8 @@
         }
     }
 
-    ModalInstanceCtrl.$inject = ['$scope', '$modalInstance', 'event'];
-    function ModalInstanceCtrl($scope, $modalInstance, event) {
+    ModalInstanceCtrl.$inject = ['$scope', '$uibModalInstance', 'event'];
+    function ModalInstanceCtrl($scope, $uibModalInstance, event) {
         $scope.loc = event;
     }
 

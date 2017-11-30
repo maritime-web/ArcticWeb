@@ -1,7 +1,7 @@
 <div x-ng-controller="VesselController">
 	
-	<div id="vesselControlPanel" accordion close-others="true" e-left-bar open-first="true" class="controlPanel2">
-		<div requires-permissions="Reporting,Administration" accordion-group heading="Reports">
+	<div id="vesselControlPanel" uib-accordion close-others="true" e-left-bar open-first="true" class="controlPanel2">
+		<div requires-permissions="Reporting,Administration" uib-accordion-group heading="Reports">
 			<div x-ng-controller="ReportingController">
 				<p>Vessel that have reported within the last 7 days.</p>
 
@@ -25,7 +25,7 @@
 			</div>
 		</div>
 		
-		<div accordion-group heading="Your Vessel {{vesselScope.yourVesselName ? ' - ' + vesselScope.yourVesselName : ''}}" requires-permissions="Sailor">
+		<div uib-accordion-group heading="Your Vessel {{vesselScope.yourVesselName ? ' - ' + vesselScope.yourVesselName : ''}}" requires-permissions="Sailor">
 			<div x-ng-controller="YourVesselControl">
 				<h4>
 					AIS Information<small style="float: right"><a href="#" x-ng-click="viewAis($event)">view all</a></small>
@@ -66,7 +66,7 @@
 
 			</div>
 		</div>
-		<div accordion-group heading="Search Vessels">
+		<div uib-accordion-group heading="Search Vessels">
 			<form x-ng-controller="SearchVesselController">
 				<p>
 					<input type="text" x-ng-model="searchField" placeholder="Enter search term"
@@ -88,7 +88,7 @@
 		<!-- 
 		e-left-bar-content-change="{{selected}}"
 		 -->
-		<div accordion-group heading="Selected Vessel {{selected.vesselName ? ' - ' + selected.vesselName : ''}}" is-open="selected.open" >
+		<div uib-accordion-group heading="Selected Vessel {{selected.vesselName ? ' - ' + selected.vesselName : ''}}" is-open="selected.open" >
 			<div x-ng-if="selected.vesselAis || selected.sections">
 				<h4>
 					AIS Information<small style="float: right"><a href="#" x-ng-click="viewAis($event)">view all</a></small>
@@ -127,7 +127,7 @@
 			</div>
 		</div>
 
-		<div accordion-group heading="Legends">
+		<div uib-accordion-group heading="Legends">
 			<table class="table table-condensed">
 				<tr>
 					<td><img src="img/vessel_blue.png" /></td>

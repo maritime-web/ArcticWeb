@@ -40,7 +40,7 @@
 				</thead>
 				<tbody x-ng-repeat="voyage in voyages" class="content" x-ng-controller="VoyageCtrl">
 					<tr class="voyage" x-ng-class="{warning : activeRouteId && activeRouteId == voyage.route.id}">
-						<td><input x-ng-model="voyage.location" x-typeahead="berth.value for berth in getBerths($viewValue)"
+						<td><input x-ng-model="voyage.location" x-uib-typeahead="berth.value for berth in getBerths($viewValue)"
 							x-typeahead-on-select="getCoords($item, $model, $value)" class="input-sm form-control e-location-typeahead"
 							type="text" x-ng-required="!$parent.$last" /></td>
                         <td><input latitude x-ng-model="voyage.latitude" type="text" class="form-control input-sm lat"

@@ -92,7 +92,7 @@
 
                         <div class="col-xs-4" x-ng-controller="SARUsersController">
                             <input placeholder="user / mmsi" x-ng-model="participant.search"
-                                   x-typeahead="user.name for user in getUsersAndVessels($viewValue)"
+                                   x-uib-typeahead="user.name for user in getUsersAndVessels($viewValue)"
                                    x-typeahead-on-select="participant.user = $item"
                                    x-typeahead-template-url="userTemplate.html"
                                    class="input-sm form-control e-location-typeahead" type="text"/>

@@ -1,6 +1,6 @@
 <div x-ng-controller="NWNMControl">
-	<div e-left-bar accordion close-others="true" class="controlPanelWide">
-		<div accordion-group heading="Message Filtering">
+	<div e-left-bar uib-accordion close-others="true" class="controlPanelWide">
+		<div uib-accordion-group heading="Message Filtering">
 			<table class="table">
 				<tr class="e-iceprovider">
 					<td><input type="checkbox" x-ng-change="stateChanged()" x-ng-model="state.showOnlyActive" name="Active today"
@@ -31,7 +31,7 @@
 				</tr>
 			</table>
 		</div>
-		<div accordion-group heading="Active Messages" e-left-bar-open-on-init>
+		<div uib-accordion-group heading="Active Messages" e-left-bar-open-on-init>
 			<div x-ng-if="!messages || messages.length === 0">No active messages</div>
 			<table class="table table-condensed" x-ng-if="messages">
 				<tr>
@@ -46,7 +46,7 @@
 				</tr>
 			</table>
 		</div>
-		<div accordion-group heading="Selected Message" is-open="selected.open" e-left-bar-content-change="{{selected.msg}}">
+		<div uib-accordion-group heading="Selected Message" is-open="selected.open" e-left-bar-content-change="{{selected.msg}}">
 
             <div ng-if="selected.msg.originalInformation">&#10029;</div>
             <message-id-badge msg="selected.msg" show-blank="true"></message-id-badge>
@@ -120,7 +120,7 @@
 
 			</table>
 		</div>
-		<div accordion-group heading="Legends">
+		<div uib-accordion-group heading="Legends">
 			<table class="table table-condensed">
 				<tr>
 					<td style="vertical-align: middle;"><img src="img/nwnm/nm.png" style="width: 24px; height: 24px"></td>

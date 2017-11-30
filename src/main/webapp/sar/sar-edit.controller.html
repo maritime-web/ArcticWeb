@@ -19,7 +19,7 @@
         <div>
             <form x-ng-if="page.name == 'typeSelection'" name="sarTypeForm" class="form-horizontal" novalidate>
                 <hr/>
-                <div x-ng-show="alertMessages" class="alert alert-danger">
+                <div x-ng-show="alertMessages && alertMessages.length > 0" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
@@ -82,7 +82,7 @@
             </form>
             <form x-ng-if="page.name == 'sarInputs'" name="sarOperationForm" class="form-horizontal" novalidate>
                 <hr/>
-                <div x-ng-show="alertMessages" class="alert alert-danger">
+                <div x-ng-show="alertMessages && alertMessages.length > 0" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
@@ -237,14 +237,14 @@
                                 <td>
                                     <input x-ng-model="surfaceDriftPoint.twcDirection" type="text"
                                            class="form-control input-sm"
-                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                            typeahead-template-url="directionTemplate.html" placeholder="W/270°" required/>
                                 </td>
                                 <td><input x-ng-model="surfaceDriftPoint.leewaySpeed" type="text"
                                            class="form-control input-sm" placeholder="15 knots" required/></td>
                                 <td><input x-ng-model="surfaceDriftPoint.leewayDirection" type="text"
                                            class="form-control input-sm"
-                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                            typeahead-template-url="directionTemplate.html" placeholder="NE/45°" required/>
                                 </td>
                             </tr>
@@ -299,10 +299,10 @@
                         </button>
                     </span>
                 </div>
-            </form>
+            x</form>
             <form x-ng-if="page.name == 'drift'" name="btForm" class="form-horizontal" novalidate>
                 <hr/>
-                <div x-ng-show="alertMessages" class="alert alert-danger">
+                <div x-ng-show="alertMessages && alertMessages.length > 0" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
@@ -395,14 +395,14 @@
                                 <td>
                                     <input x-ng-model="surfaceDrift.twcDirection" type="text"
                                            class="form-control input-sm"
-                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                            typeahead-template-url="directionTemplate.html" placeholder="W/270°" required/>
                                 </td>
                                 <td><input x-ng-model="surfaceDrift.leewaySpeed" type="text"
                                            class="form-control input-sm" placeholder="15 knots" required/></td>
                                 <td><input x-ng-model="surfaceDrift.leewayDirection" type="text"
                                            class="form-control input-sm"
-                                           x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                           x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                            typeahead-template-url="directionTemplate.html" placeholder="NE/45°" required/>
                                 </td>
                             </tr>
@@ -439,7 +439,7 @@
 
             <form x-ng-if="page.name == 'route'" name="routeForm" class="form-horizontal" novalidate>
                 <hr/>
-                <div x-ng-show="alertMessages" class="alert alert-danger">
+                <div x-ng-show="alertMessages && alertMessages.length > 0" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
@@ -508,7 +508,7 @@
             </form>
             <form x-ng-if="page.name == 'lkp'" name="lkpForm" class="form-horizontal" novalidate>
                 <hr/>
-                <div x-ng-show="alertMessages" class="alert alert-danger">
+                <div x-ng-show="alertMessages && alertMessages.length > 0" class="alert alert-danger">
                     <span x-ng-repeat="msg in alertMessages">{{msg}}<br/></span>
                 </div>
                 <div x-ng-show="message" class="alert alert-info">{{message}}</div>
@@ -661,14 +661,14 @@
                             <td>
                                 <input x-ng-model="surfaceDrift.twcDirection" type="text"
                                        class="form-control input-sm"
-                                       x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                       x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                        typeahead-template-url="directionTemplate.html" placeholder="W/270°" required/>
                             </td>
                             <td><input x-ng-model="surfaceDrift.leewaySpeed" type="text"
                                        class="form-control input-sm" placeholder="15 knots" required/></td>
                             <td><input x-ng-model="surfaceDrift.leewayDirection" type="text"
                                        class="form-control input-sm"
-                                       x-typeahead="direction.name for direction in getDirections($viewValue)"
+                                       x-uib-typeahead="direction.name for direction in getDirections($viewValue)"
                                        typeahead-template-url="directionTemplate.html" placeholder="NE/45°" required/>
                             </td>
                         </tr>
@@ -956,7 +956,7 @@
 
                         <div class="col-xs-4" x-ng-controller="SARUsersController">
                             <input placeholder="user / mmsi" x-ng-model="coordinator.search"
-                                   x-typeahead="user.name for user in getUsers($viewValue)"
+                                   x-uib-typeahead="user.name for user in getUsers($viewValue)"
                                    x-typeahead-on-select="coordinator.user = $item"
                                    x-typeahead-template-url="userTemplate.html"
                                    class="input-sm form-control e-location-typeahead" type="text"/>

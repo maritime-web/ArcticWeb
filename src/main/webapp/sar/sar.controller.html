@@ -1,6 +1,6 @@
 <div x-ng-controller="SARControl">
-    <div accordion close-others="true" e-left-bar open-first="true" class="controlPanel2">
-        <div accordion-group heading="SAR operations">
+    <div uib-accordion close-others="true" e-left-bar open-first="true" class="controlPanel2">
+        <div uib-accordion-group heading="SAR operations">
             <!-- style="height: 300px;" -->
             <div x-ng-controller="OperationsControl">
                 <div id="shortdesc">
@@ -40,7 +40,7 @@
         </div>
 
 
-        <div accordion-group heading="Operation{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}"
+        <div uib-accordion-group heading="Operation{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}"
              is-open="selected.open">
             <div x-ng-controller="OperationControl" class="sar-operation-control">
 
@@ -250,7 +250,7 @@
         </div>
 
 
-        <div accordion-group heading="Message log{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}" x-ng-if="isCoordinator() || !isBackTrack()">
+        <div uib-accordion-group heading="Message log{{selected.sarIdentifier ? ' - ' + selected.sarIdentifier : ''}}" x-ng-if="isCoordinator() || !isBackTrack()">
             <!-- style="height: 300px;" -->
             <div x-ng-if="selected.sar && !isBackTrack()">
                 <div x-ng-controller="LogControl">

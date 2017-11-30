@@ -101,7 +101,10 @@
                 $scope.provider.close();
             };
 
-            $scope.searchObjects = SarService.searchObjectTypes();
+            $scope.searchObjects = SarService.searchObjectTypes().map(function (obj) {
+                return Object.assign({}, obj);
+            });
+
             $scope.sarTypes = embryo.sar.Operation;
 
             function SarTypeData(group, text, img) {

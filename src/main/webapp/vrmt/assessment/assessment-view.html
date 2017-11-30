@@ -10,15 +10,15 @@
                 <h4>Details for assessment finished on {{assess.finished}}</h4>
             </div>
         </div>
-        <accordion close-others="true">
+        <div close-others="true">
             <div class="panel" style="border: none" ng-repeat="locationAssessment in assess.locationAssessments">
-                <accordion-group is-open="locationAssessment.active">
-                    <accordion-heading>
+                <div uib-accordion-group is-open="locationAssessment.active">
+                    <uib-accordion-heading>
                         <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}} with index score
                         <index-color index="locationAssessment.index"></index-color>
                         <span class="pull-right glyphicon"
                               ng-class="{'glyphicon-menu-down': !locationAssessment.active, 'glyphicon-menu-up': locationAssessment.active}"></span>
-                    </accordion-heading>
+                    </uib-accordion-heading>
 
                     <div class="container-fluid">
                         <div class="row">
@@ -47,8 +47,8 @@
                             </div>
                         </div>
                     </div>
-                </accordion-group>
+                </divuib-accordion-group>
             </div>
-        </accordion>
+        </div>
     </div>
 </div>

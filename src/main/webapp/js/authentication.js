@@ -353,7 +353,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
         }
     }
 
-    embryo.LoginModalCtrl = function ($scope, $http, $uibModalInstance, $location, Subject, msg) {
+    embryo.LoginModalCtrl = function ($scope, $http, $modalInstance, $location, Subject, msg) {
         function resetMsgs() {
             $scope.infoMsg = null;
             $scope.msg = null;
@@ -558,7 +558,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
                 }]);
         }]);
 
-    module.run(['Subject', '$rootScope', '$location', '$uibModal', function (Subject, $rootScope, $location, $uibModal) {
+    module.run(['Subject', '$rootScope', '$location', '$modal', function (Subject, $rootScope, $location, $modal) {
         embryo.security.Subject = Subject;
 
         embryo.ready(function () {
@@ -566,7 +566,7 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
             $rootScope.logout = logout;
 
             $rootScope.loginDlg = function (config) {
-                return $uibModal.open({
+                return $modal.open({
                     controller: embryo.LoginModalCtrl,
                     templateUrl: "loginDialog.html",
                     windowClass: "embryo-small-modal",

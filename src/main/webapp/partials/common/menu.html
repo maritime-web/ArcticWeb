@@ -54,13 +54,13 @@
                     Setup
                 </a>
             </li>
-            <li class="dropdown" uib-dropdown style="background-color: rgba(0,128,192,0.3);">
-                <a class="dropdown-toggle" uib-dropdown-toggle href="#">
+            <li class="dropdown" style="background-color: rgba(0,128,192,0.3);">
+                <a class="dropdown-toggle" data-toggle="collapse" href="#">
                     <i class="fa fa-hourglass-half" aria-hidden="true"></i>
                     <span style="color: crimson">Beta Features</span>
                     <span class="caret"></span>
                 </a>
-                <ul class="dropdown-menu" uib-dropdown-menu  role="menu" aria-labelledby="dropdownMenu">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
                     <li class="dropdown-header" style="white-space: nowrap"> <i class="fa fa-rocket" aria-hidden="true"></i> Performance enhancements</li>
                     <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/vessels"><i class="fa fa-anchor"></i> Vessels</a></li>
                     <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/nwnm"><i class="fa fa-bullhorn"></i> Maritime Safety</a></li>
@@ -103,24 +103,23 @@
 				</span>
         </p>
         <ul class="nav navbar-nav navtabs navbar-right" style="padding-right: 20px;">
-            <li class="dropdown" uib-dropdown>
-                <a class="dropdown-toggle" uib-dropdown-toggle href="#" role="button">About <span class="caret"></span></a>
-                <ul class="dropdown-menu" uib-dropdown-menu  role="menu" aria-labelledby="dropdownMenu">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="collapse" href="#">About <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
                     <li><a tabindex="-1" href="content.html#feedback">Feedback</a></li>
                     <li><a tabindex="-1" href="content.html#cookies">Cookies</a></li>
                     <li><a tabindex="-1" href="content.html#disclaimer">Disclaimer</a></li>
                 </ul>
             </li>
-            <li class="dropdown" uib-dropdown x-requires-authenticated>
-                <a class="dropdown-toggle" uib-dropdown-toggle href="#" role="button">
+            <li class="dropdown" x-requires-authenticated>
+                <a class="dropdown-toggle" data-toggle="collapse" href="#">
                     <i class="fa fa-user" style="vertical-align: middle; margin-bottom: 4px"></i>
                     {{authentication.userName}}
                     <span class="caret"></span>
                 </a>
-                <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="dropdownMenu" x-ng-controller="ResetPasswordController as resetPasswd">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
                     <li><a tabindex="-1" href="docs/" target="_blank">Manual as HTML (10 MB)</a></li>
                     <li class="divider"></li>
-                    <li><a tabindex="-1" href="#" x-ng-click="resetPasswd.changePasswordDialog($event)">Change Password</a></li>
                     <li><a tabindex="-1" href="#" x-ng-click="logout($event)">Log Out</a></li>
                 </ul>
             </li>

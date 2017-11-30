@@ -1,6 +1,6 @@
 <div x-ng-controller="IceController">
-    <div id="iceControlPanel" accordion close-others="true" e-left-bar class="controlPanel2">
-        <div accordion-group heading="Ice Charts" e-left-bar-open-on-init>
+    <div id="iceControlPanel" uib-accordion close-others="true" e-left-bar class="controlPanel2">
+        <div uib-accordion-group heading="Ice Charts" e-left-bar-open-on-init>
             <table class="table table-condensed">
                 <tbody x-ng-repeat="chart in iceCharts">
                 <tr x-ng-if="!chart.ts">
@@ -23,7 +23,7 @@
             </table>
         </div>
 
-        <div accordion-group heading="Icebergs">
+        <div uib-accordion-group heading="Icebergs">
             <table class="table table-condensed">
                 <tbody x-ng-repeat="chart in icebergs">
                 <tr x-ng-if="!chart.ts">
@@ -44,7 +44,7 @@
             </table>
         </div>
 
-        <div accordion-group heading="Inshore ice report">
+        <div uib-accordion-group heading="Inshore ice report">
             <p>
                 <span x-ng-repeat="header in inshoreIceReport.header">{{header}}<br/></span> <span
                     x-ng-if="inshoreIceReport && inshoreIceReport.latestReportDate">Latest report:
@@ -64,10 +64,10 @@
             <p x-ng-repeat="footer in inshoreIceReport.footer">{{footer}}</p>
         </div>
 
-        <div accordion-group is-open="satellite.open" heading="Satellite images">
+        <div uib-accordion-group is-open="satellite.open" heading="Satellite images">
             <div x-ng-if="satellite.open" x-ng-include="'ice/ice-satellite-control.html'"></div>
         </div>
-        <div accordion-group heading="Selected Ice Observation" is-open="selected.open"
+        <div uib-accordion-group heading="Selected Ice Observation" is-open="selected.open"
              e-left-bar-content-change="{{selected.observation}}">
             <div x-ng-if="!selected.observation">Nothing selected</div>
             <div id="icpSelectedIce" x-ng-show="!selected.inshore">
@@ -98,8 +98,8 @@
             </div>
         </div>
 
-        <div accordion-group heading="Providers" x-ng-if="providers && providers.length > 1">
-            <div class="e-accordion-inner panel-body">
+        <div uib-accordion-group heading="Providers" x-ng-if="providers && providers.length > 1">
+            <div class="e-uib-accordion-inner panel-body">
                 <table class="table">
                     <tr x-ng-repeat="provider in providers" class="e-iceprovider">
                         <td><input type="radio" x-ng-model="$parent.selectedProvider" x-ng-value="provider"
@@ -111,7 +111,7 @@
                 </table>
             </div>
         </div>
-        <div accordion-group heading="Legends">
+        <div uib-accordion-group heading="Legends">
             <div id="icpLegends">
                 <h4>Ice charts</h4>
                 <table class="table table-condensed">
