@@ -13,43 +13,43 @@
     <div class="navbar-collapse collapse" ng-class="{'version-mismatch': versionConflict}" id="navigationBar">
         <ul class="nav navbar-nav navtabs" show-active>
             <li>
-                <a href="map.html#/vessel">
+                <a href="openlayer-map.html#/vessels">
                     <i class="fa fa-anchor" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Vessels
                 </a>
             </li>
             <li>
-                <a href="map.html#/ice">
+                <a href="openlayer-map.html#/ice">
                     <i class="fa fa-asterisk" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Ice
                 </a>
             </li>
             <li>
-                <a href="map.html#/nwnm">
+                <a href="openlayer-map.html#/nwnm">
                     <i class="fa fa-bullhorn" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Maritime Safety
                 </a>
             </li>
             <li>
-                <a href="map.html#/weather">
+                <a href="openlayer-map.html#/weather">
                     <i class="fa fa-cloud" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Weather
                 </a>
             </li>
             <li>
-                <a href="map.html#/forecasts">
+                <a href="openlayer-map.html#/forecasts">
                     <i class="fa fa-bar-chart" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Forecasts
                 </a>
             </li>
             <li>
-                <a href="map.html#/sar">
+                <a href="openlayer-map.html#/sar">
                     <i class="fa fa-life-ring" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Search and Rescue
                 </a>
             </li>
             <li x-requires-authenticated>
-                <a href="map.html#/setup">
+                <a href="openlayer-map.html#/setup">
                     <i class="fa fa-wrench" style="vertical-align: middle; margin-bottom: 4px"></i>
                     Setup
                 </a>
@@ -61,14 +61,6 @@
                     <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu" uib-dropdown-menu  role="menu" aria-labelledby="dropdownMenu">
-                    <li class="dropdown-header" style="white-space: nowrap"> <i class="fa fa-rocket" aria-hidden="true"></i> Performance enhancements</li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/vessels"><i class="fa fa-anchor"></i> Vessels</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/nwnm"><i class="fa fa-bullhorn"></i> Maritime Safety</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/ice"><i class="fa fa-asterisk"></i> Ice</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/weather"><i class="fa fa-cloud"></i> Weather</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/forecasts"><i class="fa fa-bar-chart"></i> Forecasts</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/sar"><i class="fa fa-life-ring"></i> Search and Rescue</a></li>
-                    <li style="padding: 3px 20px;"><a tabindex="-1" href="openlayer-map.html#/setup"><i class="fa fa-wrench"></i> Setup</a></li>
                     <li class="dropdown-header" style="white-space: nowrap"> <i class="fa fa-check" aria-hidden="true"></i> New features</li>
                     <li style="padding: 3px 20px;">
                         <a href="openlayer-map.html#/vrmt">
@@ -97,7 +89,7 @@
                 </a>
             </li>
         </ul>
-        <p class="navbar-text navbar-right" x-requires-unauthenticated>
+        <p class="navbar-text navbar-right" style="margin-right: 0; padding-right: 10px;" x-requires-unauthenticated>
 				<span> <a href="" x-ng-click="loginDlg()">Log In</a> | <a
                         href="content.html#/requestAccess">Request Access</a>
 				</span>

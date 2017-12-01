@@ -109,10 +109,14 @@
                         var styleFunction = function (f, resolution) {
                             var active = vesselLayer.get('context').active;
                             var opacity = active ? 0.4 : 0.2;
+                            var strokeOpacity = active ? 0.6 : 0.3;
                             var styles = [
                                 new ol.style.Style({
                                     fill: new ol.style.Fill({
-                                        color: getColor()
+                                        color: getColor(opacity)
+                                    }),
+                                    stroke: new ol.style.Stroke({
+                                        color: getColor(strokeOpacity)
                                     }),
                                     text: new ol.style.Text({
                                         text: cell.count + '',
@@ -125,7 +129,7 @@
 
                             return styles;
 
-                            function getColor() {
+                            function getColor(opacity) {
                                 if (cell.count < 50) {
                                     return "rgba(255,221,0,"+opacity+")";// Yellow
                                 } else if (cell.count < 250) {

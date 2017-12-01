@@ -1,5 +1,4 @@
-<div class="col-xs-12 col-lg-4 e-reporting-panel-wide" style="z-index: 999" ng-hide="assess.hide"
-     ng-controller="AssessmentViewController as assess">
+<div class="col-xs-12 col-lg-4 e-reporting-panel-wide assessment-view" ng-hide="assess.hide" ng-controller="AssessmentViewController as assess">
 
     <div class="panel-group">
         <div class="panel panel-default">
@@ -10,11 +9,11 @@
                 <h4>Details for assessment finished on {{assess.finished}}</h4>
             </div>
         </div>
-        <div close-others="true">
+        <uib-accordion close-others="true">
             <div class="panel" style="border: none" ng-repeat="locationAssessment in assess.locationAssessments">
                 <div uib-accordion-group is-open="locationAssessment.active">
                     <uib-accordion-heading>
-                        <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}} with index score
+                        <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}}
                         <index-color index="locationAssessment.index"></index-color>
                         <span class="pull-right glyphicon"
                               ng-class="{'glyphicon-menu-down': !locationAssessment.active, 'glyphicon-menu-up': locationAssessment.active}"></span>
@@ -47,8 +46,8 @@
                             </div>
                         </div>
                     </div>
-                </divuib-accordion-group>
+                </div>
             </div>
-        </div>
+        </uib-accordion>
     </div>
 </div>

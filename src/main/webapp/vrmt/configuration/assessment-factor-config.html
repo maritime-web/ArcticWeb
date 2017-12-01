@@ -1,4 +1,4 @@
-<div class="e-reporting-panel-wide" ng-hide="factorConfig.hide" ng-controller="AssessmentFactorConfigController as factorConfig">
+<div class="e-reporting-panel-wide assessment-factor-config" ng-hide="factorConfig.hide" ng-controller="AssessmentFactorConfigController as factorConfig">
     <div class="container-fluid">
     <div class="row">
     <div class="col-xs-12">
@@ -21,30 +21,34 @@
 
                     <div class="form-horizontal">
                         <div class="form-group">
-                            <div class="col-xs-4">Name</div>
-                            <div class="col-xs-2">Index</div>
-                            <div class="col-xs-2">Min. index</div>
-                            <div class="col-xs-2">Max. index</div>
+                            <div ng-if="riskFactor.hasScoreOptions()">
+                                <div class="col-xs-6">Name</div>
+                                <div class="col-xs-5">Index</div>
+                            </div>
+                            <div ng-if="!riskFactor.hasScoreOptions()">
+                                <div class="col-xs-3">Min. index</div>
+                                <div class="col-xs-3">Max. index</div>
+                            </div>
                         </div>
                         <div class="form-group" ng-repeat="scoreOption in riskFactor.scoreOptions">
-                            <div class="col-xs-4">
+                            <div class="col-xs-6">
                                 <input type="text" class="form-control input-sm" ng-model="scoreOption.name"/>
                             </div>
-                            <div class="col-xs-2">
+                            <div class="col-xs-5">
                                 <input type="number" class="form-control input-sm" ng-model="scoreOption.index"/>
                             </div>
-                            <div class="col-xs-offset-4 col-xs-1">
+                            <div class="col-xs-1">
                                 <button type="button" class="close"
                                         x-ng-click="riskFactor.deleteScoreOption(scoringOption)">x
                                 </button>
                             </div>
                         </div>
                         <div class="form-group" ng-if="!riskFactor.hasScoreOptions()">
-                            <div class="col-xs-offset-6 col-xs-2">
+                            <div class="col-xs-3">
                                 <input type="number" class="form-control input-sm"
                                        ng-model="riskFactor.scoreInterval.minIndex"/>
                             </div>
-                            <div class="col-xs-2">
+                            <div class="col-xs-3">
                                 <input type="number" class="form-control input-sm"
                                        ng-model="riskFactor.scoreInterval.maxIndex"/>
                             </div>

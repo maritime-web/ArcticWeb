@@ -2,7 +2,7 @@
 
     <div class="sidebar-visibility-button"
          ng-class="{'sidebar-visibility-button-shown': !sidebar.hidden, 'sidebar-visibility-button-hidden': sidebar.hidden}">
-        <i ng-click="sidebar.toggleVisibility()" class="fa"
+        <i ng-click="sidebar.toggleVisibility()" class="fa" uib-tooltip="{{sidebar.hidden ? 'Show side bar' : 'Hide side bar'}}" tooltip-placement="right" tooltip-append-to-body="true"
            ng-class="{'fa-chevron-left': !sidebar.hidden, 'fa-chevron-right': sidebar.hidden}" aria-hidden="true"></i>
     </div>
 
@@ -64,11 +64,9 @@
                 <div class="panel" style="border: none" ng-controller="AssessController as assess">
                     <div uib-accordion-group is-open="assess.active">
                         <uib-accordion-heading>
-                            <span data-ng-show="!assess.assessing">START NEW ASSESSMENT</span> <span
-                                data-ng-show="assess.assessing">ASSESSMENT IN PROGRESS <span class="label label-primary">Started
+                            <span data-ng-show="!assess.assessing">Start new assessment</span> <span
+                                data-ng-show="assess.assessing">Assessment in progress <span class="label label-primary">Started
                             {{assess.assessmentStartedAt}}</span></span>
-                            <span class="pull-right glyphicon"
-                                  ng-class="{'glyphicon-menu-down': !assess.active, 'glyphicon-menu-up': assess.active}"></span>
                         </uib-accordion-heading>
 
                         <div class="table-responsive">
@@ -148,8 +146,7 @@
                 </div>
                 <div uib-accordion-group is-open="sidebar.safetyMeasuresActive">
                     <uib-accordion-heading>
-                        SAFETY MEASURES AND DECISION MAKING <span class="pull-right glyphicon"
-                                                                  ng-class="{'glyphicon-menu-down': !sidebar.safetyMeasuresActive, 'glyphicon-menu-up': sidebar.safetyMeasuresActive}"></span>
+                        Safety measures and decision making
                     </uib-accordion-heading>
                     <div class="container-fluid sidebar-grid">
                         <div class="row sidebar-grid-heading sidebar-grid-row">
@@ -191,8 +188,7 @@
                 </div>
                 <div uib-accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
                     <uib-accordion-heading>
-                        LOG OF MEASURES AND REPORTS <span class="pull-right glyphicon"
-                                                          ng-class="{'glyphicon-menu-down': !sidebar.logOfMeasuresAndReportsActive, 'glyphicon-menu-up': sidebar.logOfMeasuresAndReportsActive}"></span>
+                        Log of measures and reports
                     </uib-accordion-heading>
 
                     <div class="container-fluid sidebar-grid">

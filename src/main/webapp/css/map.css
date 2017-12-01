@@ -251,6 +251,8 @@ body {
 .e-reporting-panel-wide {
     background-color: transparent;
     width: 100%;
+    max-height: 95%;
+    overflow-y: auto;
 }
 
 @media (min-width: 768px) {
@@ -265,6 +267,7 @@ body {
     .e-reporting-panel-wide {
         left: 415px;
         width: 400px;
+        max-width: calc(100% - 415px);
     }
 }
 
@@ -511,9 +514,14 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
 
 .sidebar-visibility-button {
     position: absolute;
-    top: 25px;
+    top: 10px;
     width: 20px;
     height: 20px;
+    cursor: pointer;
+    background-color: rgba(0, 60, 136, 0.5);
+    padding-left: 6px;
+    padding-top: 3px;
+    border-radius: 4px;
 }
 .sidebar-visibility-button-shown {
     right: 10px;
@@ -521,9 +529,6 @@ table.table > tbody.e-noborder > tr > td.e-bottomborder {
 
 .sidebar-visibility-button-hidden {
     left: 0;
-    background-color: rgba(0, 60, 136, 0.5);
-    border-radius: 4px;
-    padding-left: 5px;
     margin-left: 1px;
 }
 
