@@ -174,9 +174,9 @@ function RiskFactor(parameters) {
     angular.module('vrmt.model')
         .factory('RouteFactory', RouteFactory);
 
-    RouteFactory.$inject = ['Position', 'OpenlayerService'];
+    RouteFactory.$inject = ['Position', 'OpenlayerService', 'Route'];
 
-    function RouteFactory(Position, OpenlayerService) {
+    function RouteFactory(Position, OpenlayerService, Route) {
 
         embryo.vrmt.Route = function (route) {
             Object.assign(this, route);
@@ -231,9 +231,8 @@ function RiskFactor(parameters) {
              * @return {embryo.geo.Position} Closest point.
              */
             function getClosestPointOnRoute(givenPosition) {
-                var coords = that.wps.map(function (wp) {
-                    return [wp.longitude, wp.latitude];
-                });
+
+                var coords = Route.build(that).createRoutePoints();
 
                 /** @type {ol.geom.LineString} */
                 var lineString = OpenlayerService.createLineString(coords);
@@ -330,7 +329,11 @@ function RiskFactor(parameters) {
                     leg.from = Position.create(wp1.longitude, wp1.latitude);
                     /** @type {embryo.geo.Position} */
                     leg.to = Position.create(wp2.longitude, wp2.latitude);
-                    leg.length = leg.from.rhumbLineDistanceTo(leg.to);//TODO depends on heading
+                    if (leg.heading === 'GC') {
+                        leg.length = leg.from.geodesicDistanceTo(leg.to);
+                    } else {
+                        leg.length = leg.from.rhumbLineDistanceTo(leg.to);
+                    }
                     leg.lineString = turf.lineString([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
                     leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
                     leg.startTime = moment(wp1.eta);
@@ -355,8 +358,17 @@ function RiskFactor(parameters) {
                     leg.getVesselPositionAt = function (dateTime) {
                         var secondsFromStart = moment.duration(moment(dateTime).diff(this.startTime)).asSeconds();
                         var lengthInNm = embryo.geo.Converter.metersToNm(embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart);
-
-                        var lineString = OpenlayerService.createLineString([this.from.asLonLatArray(), this.to.asLonLatArray()]);
+                        var points = [this.from.asLonLatArray(), this.to.asLonLatArray()];
+                        if (this.heading === 'GC') {
+                            points = this.createGeoDesicLineAsGeometryPoints({
+                                y: this.from.lat,
+                                x: this.from.lon
+                            }, {
+                                y: this.to.lat,
+                                x: this.to.lon
+                            });
+                        }
+                        var lineString = OpenlayerService.createLineString(points);
 
                         return Position.create(OpenlayerService.toLonLat(lineString.getCoordinateAt(lengthInNm/this.length)));
                     };
@@ -365,6 +377,25 @@ function RiskFactor(parameters) {
                         var bearing = this.from.bearingTo(this.to, this.heading);
                         return embryo.Math.toRadians(bearing);
                     };
+
+                    leg.createGeoDesicLineAsGeometryPoints = function (p1, p2) {
+                        var generator = new arc.GreatCircle(p1, p2, {
+                            'foo': 'bar'
+                        });
+                        var line = generator.Arc(100, {
+                            offset: 10
+                        });
+
+                        var points = [];
+                        for (var i in line.geometries) {
+                            for (var j in line.geometries[i].coords) {
+                                points.push([line.geometries[i].coords[j][0], line.geometries[i].coords[j][1]]);
+                            }
+                        }
+
+                        return points;
+                    };
+
                     return leg;
                 }
 
