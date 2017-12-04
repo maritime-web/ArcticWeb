@@ -103,9 +103,6 @@ describe('RiskAssessmentService', function () {
     }
 
     beforeEach(initializeTestData);
-    // beforeEach(module('embryo.geo.services'));
-    // beforeEach(module('embryo.components.openlayer'));
-    // beforeEach(module('vrmt.model'));
     beforeEach(function () {
             try {
                 module('vrmt.app');

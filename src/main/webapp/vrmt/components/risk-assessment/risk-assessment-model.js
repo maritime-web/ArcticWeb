@@ -170,7 +170,7 @@ function RiskFactor(parameters) {
 (function () {
     'use strict';
 
-    angular.module('vrmt.model', ['embryo.components.openlayer', 'embryo.geo.services']);
+    angular.module('vrmt.model', ['embryo.components.openlayer', 'embryo.geo.services', 'embryo.route']);
     angular.module('vrmt.model')
         .factory('RouteFactory', RouteFactory);
 

@@ -91,8 +91,6 @@ describe('Risk Assessment Classes', function () {
     describe('Route', function () {
         var RouteFactory, Position;
         beforeEach(module('vrmt.model'));
-        beforeEach(module('embryo.geo.services'));
-        beforeEach(module('embryo.components.openlayer'));
         beforeEach(inject(function (_RouteFactory_, _Position_) {
             RouteFactory = _RouteFactory_;
             Position = _Position_;

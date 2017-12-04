@@ -28,14 +28,14 @@
             var previousWps = null;
             var points = [];
 
-            for (var index in this.wps) {
+            this.wps.forEach(function (wp) {
                 if (!firstPoint && previousWps.heading === 'GC') {
                     var linePoints = createGeoDesicLineAsGeometryPoints({
                         y: previousWps.latitude,
                         x: previousWps.longitude
                     }, {
-                        y: this.wps[index].latitude,
-                        x: this.wps[index].longitude
+                        y: wp.latitude,
+                        x: wp.longitude
                     });
 
                     linePoints.shift();
@@ -43,12 +43,13 @@
                 }
 
                 points = points.concat(toGeometryPoints([{
-                    y: this.wps[index].latitude,
-                    x: this.wps[index].longitude
+                    y: wp.latitude,
+                    x: wp.longitude
                 }]));
                 firstPoint = false;
-                previousWps = this.wps[index];
-            }
+                previousWps = wp;
+
+            });
 
             return points;
 
@@ -72,9 +73,9 @@
 
             function toGeometryPoints(points) {
                 var geometryPoints = [];
-                for (var index in points) {
-                    geometryPoints.push([points[index].x, points[index].y]);
-                }
+                points.forEach(function (p) {
+                    geometryPoints.push([p.x, p.y]);
+                });
                 return geometryPoints;
             }
         };
