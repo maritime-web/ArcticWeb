@@ -147,11 +147,19 @@
                 console.log(err);
             });
 
-            local.sync(remote, {
+            var syncHandler = local.sync(remote, {
                 live: true,
-                retry: true
+                retry: true,
+                timeout: 30000
             });
 
+            syncHandler.on('error', function (err) {
+                console.error("Sync failed for document");
+                console.error(err)
+            }).on('denied', function (err) {
+                console.error("Sync failed for document due to validation or authorization errors");
+                console.error(err)
+            });
             return local;
         }
     }
