@@ -84,7 +84,10 @@
 
         function loadRoute(routeId) {
             RouteService.getRoute(routeId, function (r) {
-                RiskAssessmentService.updateCurrentRoute(r);
+                RiskAssessmentService.updateCurrentRoute(r).catch(function (e) {
+                    var message = e.message ? e.message : e;
+                    growl.error("Could not activate route with name: '" + r.name +"'. Error message was: " + message);
+                });
             })
         }
 

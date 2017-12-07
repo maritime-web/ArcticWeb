@@ -179,5 +179,23 @@ describe('Risk Assessment Classes', function () {
             });
         });
 
+        describe('route validation', function () {
+            it('should reject route with zero or negative speed on a leg', function () {
+                var route = {
+                    etaDep: new Date(2016, 3, 30),
+                    wps: [
+                        {latitude: -20, longitude: 70, speed: 0, eta: new Date(2016, 3, 30)},
+                        {latitude: -22, longitude: 75, speed: 4, eta: new Date(2016, 4, 1, 13)},
+                        {latitude: -23, longitude: 78, eta: new Date(2016, 4, 2, 8)}
+                    ]
+                };
+
+                expect(function () {
+                   return RouteFactory.create(route);
+                }).toThrowError(Error);
+
+            });
+        });
+
     });
 });

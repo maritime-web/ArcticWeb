@@ -195,6 +195,8 @@ function RiskFactor(parameters) {
             var routeAsLinestring = toLineString(this.wps);
             var legs = toLegs(this.wps);
 
+            validate();
+
             function getTimeAtPosition(aPosition) {
                 var hours = getHoursToReachPosition(aPosition);
                 var departure = moment(this.etaDep).utc();
@@ -400,6 +402,19 @@ function RiskFactor(parameters) {
                 }
 
                 return res;
+            }
+
+            function validate() {
+                verifyPositiveSpeedForAllLegs();
+
+                function verifyPositiveSpeedForAllLegs() {
+                    var isPositiveSpeed = legs.every(function (leg) {
+                        return leg.speed > 0;
+                    });
+                    if (!isPositiveSpeed) {
+                        throw new Error("A vessels speed on a route can't be zero between waypoints");
+                    }
+                }
             }
         };
 
