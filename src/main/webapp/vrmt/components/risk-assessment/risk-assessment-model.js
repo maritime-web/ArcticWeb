@@ -197,7 +197,7 @@ function RiskFactor(parameters) {
 
             function getTimeAtPosition(aPosition) {
                 var hours = getHoursToReachPosition(aPosition);
-                var departure = moment(this.etaDep);
+                var departure = moment(this.etaDep).utc();
 
                 return departure.add(hours, "h");
             }
@@ -336,8 +336,8 @@ function RiskFactor(parameters) {
                     }
                     leg.lineString = turf.lineString([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
                     leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
-                    leg.startTime = moment(wp1.eta);
-                    leg.endTime = moment(wp2.eta);
+                    leg.startTime = moment(wp1.eta).utc();
+                    leg.endTime = moment(wp2.eta).utc();
 
                     leg.contains = function (position) {
                         var turfPoint = turf.point([position.lon, position.lat]);
@@ -356,7 +356,7 @@ function RiskFactor(parameters) {
                     };
 
                     leg.getVesselPositionAt = function (dateTime) {
-                        var secondsFromStart = moment.duration(moment(dateTime).diff(this.startTime)).asSeconds();
+                        var secondsFromStart = moment.duration(moment(dateTime).utc().diff(this.startTime)).asSeconds();
                         var lengthInNm = embryo.geo.Converter.metersToNm(embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart);
                         var points = [this.from.asLonLatArray(), this.to.asLonLatArray()];
                         if (this.heading === 'GC') {

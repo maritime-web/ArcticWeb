@@ -21,14 +21,14 @@
         function LocationAssessmentview(locationAssessment) {
             Object.assign(this, locationAssessment);
             this.active = false;
-            this.time = moment(locationAssessment.time).format("YYYY-MM-DD HH:mm");
+            this.time = moment(locationAssessment.time).utc().format("YYYY-MM-DD HH:mm UTC");
         }
 
         NotifyService.subscribe($scope, VrmtEvents.OpenAssessmentView, onOpen);
 
         function onOpen(event, assessment) {
             vm.hide = false;
-            vm.finished = assessment.finished.format("YYYY-MM-DD HH:mm");
+            vm.finished = assessment.finished.format("YYYY-MM-DD HH:mm UTC");
             vm.locationAssessments = assessment.getLocationAssessments().map(function (locationAssessment) {
                 return new LocationAssessmentview(locationAssessment);
             });

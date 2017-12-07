@@ -51,7 +51,7 @@
 
         function CompletedAssessmentView(completedAssessment) {
             this.assessment = completedAssessment;
-            this.finished = completedAssessment.finished.format("YYYY-MM-DD HH:mm");
+            this.finished = completedAssessment.finished.format("YYYY-MM-DD HH:mm UTC");
             this.maxIndex = completedAssessment.getMaxScore();
         }
 

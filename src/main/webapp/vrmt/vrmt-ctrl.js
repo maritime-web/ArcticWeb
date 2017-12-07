@@ -40,7 +40,7 @@
         function initialize() {
             if (embryo.authentication.shipMmsi) {
                 $scope.mmsi = embryo.authentication.shipMmsi;
-                NotifyService.notify(VrmtEvents.VRMTFeatureActive, moment());
+                NotifyService.notify(VrmtEvents.VRMTFeatureActive, moment().utc());
                 //Make sure that all subscribers for vessel and route data have been registered before loading data
                 $timeout(function () {
                     $scope.$apply(function () {
@@ -176,7 +176,7 @@
             $interval.cancel(stop);
             stop = undefined;
 
-            NotifyService.notify(VrmtEvents.VRMTFeatureInActive, moment());
+            NotifyService.notify(VrmtEvents.VRMTFeatureInActive, moment().utc());
         });
     }
 })();

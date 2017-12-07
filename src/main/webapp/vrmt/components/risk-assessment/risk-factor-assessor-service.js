@@ -54,11 +54,11 @@
             return res || defaultOption();
 
             function getArrivalMonthAtLocation() {
-                return moment(routeLocation.eta).month();
+                return moment(routeLocation.eta).utc().month();
             }
 
             function monthToNumber(monthString) {
-                return moment().month(monthString).month();
+                return moment().utc().month(monthString).month();
             }
         }
 

@@ -126,7 +126,7 @@ describe('Risk Assessment Classes', function () {
 
                 var cut = RouteFactory.create(routeData);
 
-                expect(cut.getTimeAtPosition(destinationPosition).hours()).toEqual(moment(lastWayPoint.eta).hours());
+                expect(cut.getTimeAtPosition(destinationPosition).hours()).toEqual(moment(lastWayPoint.eta).utc().hours());
             });
 
             it('should verify that Object.assign can be used for decorators', function () {
@@ -152,7 +152,7 @@ describe('Risk Assessment Classes', function () {
             });
 
             it('should verify that moment adds hours correctly', function () {
-                var aDate = moment("2016-04-01 13:00:00+02:00");
+                var aDate = moment("2016-04-01 13:00:00+02:00").utc();
                 aDate.add(2.5, "h");
                 expect(aDate.hours()).toEqual(15);
                 expect(aDate.minutes()).toEqual(30);

@@ -91,7 +91,7 @@
                         if (data.assessments.length === 0) return null;
 
                         return data.assessments.reduce(function (cur, prev) {
-                            return moment(cur.finished).isAfter(prev.finished) ? cur : prev;
+                            return moment(cur.finished).utc().isAfter(prev.finished) ? cur : prev;
                         });
                     }
                 });

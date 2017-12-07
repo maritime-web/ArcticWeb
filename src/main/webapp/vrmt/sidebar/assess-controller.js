@@ -45,7 +45,7 @@
 
             var addRouteLocationEvent = {
                 introduction: "Before the new assessment can start you need to create a new assessment location on your vessels current position. Please override the given ais position if it isn't correct. The ais position was last recieved " + moment().utc().to(vessel.aisVessel.lastReport),
-                name: "Position at " + moment().utc().format("MM-DD HH:mm"),
+                name: "Position at " + moment().utc().format("MM-DD HH:mm UTC"),
                 vessel: {
                     ais: vessel ? vessel.aisVessel : {},
                     override: vessel ? Object.assign({}, vessel.aisVessel) : {}
@@ -161,9 +161,9 @@
         }
 
         function byEta(a, b) {
-            if (moment(a.eta).isAfter(b.eta)) {
+            if (moment(a.eta).utc().isAfter(b.eta)) {
                 return 1;
-            } else if (moment(a.eta).isSame(b.eta)) {
+            } else if (moment(a.eta).utc().isSame(b.eta)) {
                 return 0;
             } else {
                 return -1;
