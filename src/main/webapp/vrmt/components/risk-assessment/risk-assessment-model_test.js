@@ -153,8 +153,9 @@ describe('Risk Assessment Classes', function () {
 
             it('should verify that moment adds hours correctly', function () {
                 var aDate = moment("2016-04-01 13:00:00+02:00").utc();
+
                 aDate.add(2.5, "h");
-                expect(aDate.hours()).toEqual(15);
+                expect(aDate.hours()).toEqual(13);
                 expect(aDate.minutes()).toEqual(30);
             });
 
