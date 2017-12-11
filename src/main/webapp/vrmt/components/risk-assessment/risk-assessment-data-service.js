@@ -23,6 +23,7 @@
                 riskFactorId = "mmsi_" + Subject.getDetails().shipMmsi;
                 pouch = initializePouch();
                 that.getAssessmentData = getAssessmentData;
+                that.getAssessmentDataForAllRoutes = getAssessmentDataForAllRoutes;
                 that.storeAssessmentData = storeAssessmentData;
                 that.getRiskFactorData = getRiskFactorData;
                 that.storeRiskFactorData = storeRiskFactorData;
@@ -56,6 +57,22 @@
                         return $q.reject(err);
                     }
                 });
+        }
+
+        function getAssessmentDataForAllRoutes() {
+            return pouch.allDocs({
+                include_docs: true
+            })
+                .then(function (res) {
+                    console.log(res);
+                    return res.rows.filter(routeFilter).map(function (doc) {
+                        return angular.fromJson(doc.doc);
+                    });
+                });
+
+            function routeFilter(doc) {
+                return doc.id !== riskFactorId;
+            }
         }
 
         function storeAssessmentData(routeId, assessmentData) {

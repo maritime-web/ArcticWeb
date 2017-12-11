@@ -178,6 +178,40 @@ div.date.ng-invalid input, input.ng-invalid {
     z-index: 9999;
 }
 
+/*
+ * Not implemented marker
+ */
+#not-implemented {
+    position: absolute;
+    left: 0;
+    overflow: visible;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(243, 0, 0, 0.7);
+    z-index: 100
+}
+
+#not-implemented:after {
+    content: "Not Implemented Yet";
+    position: absolute;
+    width: 70%;
+    height: 15%;
+    background: transparent;
+    top: 45%;
+    left: 15%;
+    text-align: center;
+    font-size: 20px;
+    font-family: sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #fff;
+    line-height: 18px;
+    -ms-transform: rotate(25deg);
+    -webkit-transform: rotate(25deg);
+    transform: rotate(25deg);
+    z-index: 9999;
+}
+
 .version-mismatch {
     background-color: red;
 }

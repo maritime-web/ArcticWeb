@@ -62,29 +62,14 @@ describe('RiskAssessmentService', function () {
             locationAssessments: [[location.id, locationAssessment]]
         });
 
-        assessmentTwo = {
-            "id": 2,
-            "time": "2016-06-27T13:19:37.235Z",
-            "location": location,
-            "scores": [
-                {
-                    "riskFactor": {
-                        "vesselId": "220443000",
-                        "name": "1. Regions",
-                        "scoringOptions": [
-                            {
-                                "name": "Region AA",
-                                "index": 40
-                            }
-                        ]
-                    },
-                    "index": 0,
-                    "factorName": "1. Regions",
-                    "name": "-"
-                }
-            ],
-            "index": 120
-        };
+        assessmentTwo = new Assessment({
+            id: 2,
+            routeId: location.routeId,
+            started: moment().utc(),
+            finished: moment().utc(),
+            locationsToAssess: [location],
+            locationAssessments: [[location.id, locationAssessment]]
+        });
         emptyData = {
             routeLocationSequence: 1,
             routeLocations: [],
@@ -260,6 +245,42 @@ describe('RiskAssessmentService', function () {
             $rootScope.$apply();
 
             expect(theNewlocation).toBeDefined();
+        });
+
+    });
+
+    describe('getCompletedAssessmentsAllRoutes', function () {
+        it('should sort with latest departure first', function () {
+            var assessmentDataDepartureLatest = {
+                currentRoute: {
+                    id: 1,
+                    etaDep: new Date(2016, 3, 30)
+                },
+                assessments: [assessmentOne]
+
+            };
+            var assessmentDataDepartureOldest = {
+                currentRoute: {
+                    id: 2,
+                    etaDep: new Date(2015, 3, 30)
+                },
+                assessments: [assessmentTwo]
+
+            };
+            dataService.getAssessmentDataForAllRoutes = getFunctionResolving([assessmentDataDepartureOldest, assessmentDataDepartureLatest]);
+
+            var result = [];
+            cut.getCompletedAssessmentsAllRoutes().then(function (res) {
+                result = res;
+            }).catch(function (e) {
+                console.log(e.message);
+                console.log(e);
+            });
+
+            $rootScope.$apply();
+
+            expect(result[0].route.id).toEqual(1);
+            expect(result[1].route.id).toEqual(2);
         });
 
     });

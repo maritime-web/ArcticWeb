@@ -5,9 +5,9 @@
         .module('vrmt.app')
         .controller("SidebarController", SidebarController);
 
-    SidebarController.$inject = ['$scope', 'RiskAssessmentService', 'RouteService', 'ScheduleService', 'NotifyService', 'VrmtEvents'];
+    SidebarController.$inject = ['$scope', 'RiskAssessmentService', 'RouteService', 'ScheduleService', 'NotifyService', 'VrmtEvents', 'growl'];
 
-    function SidebarController($scope, RiskAssessmentService, RouteService, ScheduleService, NotifyService, VrmtEvents) {
+    function SidebarController($scope, RiskAssessmentService, RouteService, ScheduleService, NotifyService, VrmtEvents, growl) {
         var vm = this;
         vm.monitorAndReportActive = false;
         vm.safetyMeasuresActive = false;
@@ -31,7 +31,8 @@
          * Log of measures and reports
          */
         vm.assessments = [];
-
+        vm.showHistoricalOtherRoutes = false;
+        vm.otherRoutes = [];
 
         function RouteView(params) {
             var originalRoute = params.route ? params.route : params;
@@ -93,12 +94,14 @@
         }
 
         NotifyService.subscribe($scope, VrmtEvents.RouteChanged, onRouteChange);
+
         function onRouteChange(event, newRoute) {
             vm.meta.routeView = new RouteView(newRoute);
             loadCompletedAssessments();
         }
 
         NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, onVesselLoaded);
+
         function onVesselLoaded(event, newVessel) {
             vm.meta.vesselName = newVessel.aisVessel.name || $scope.mmsi;
         }
@@ -111,7 +114,36 @@
                     vm.assessments = completedAssessments.map(function (assessment) {
                         return new CompletedAssessmentView(assessment);
                     });
+                })
+                .catch(function (err) {
+                    growl.error("Unable to load historical assessments. Error: " + err);
                 });
         }
+
+        function AssessmentRouteView(assessmentRoute) {
+            Object.assign(this, assessmentRoute.route);
+            this.departureDate = moment(assessmentRoute.route.etaDep).utc().format("YYYY-MM-DD");
+            this.assessments = assessmentRoute.assessments.map(function (assessment) {
+                return new CompletedAssessmentView(assessment);
+            });
+            this.isCollapsed = true;
+        }
+
+        $scope.$watch(function () {return vm.showHistoricalOtherRoutes;}, function () {
+            if (vm.showHistoricalOtherRoutes) {
+                RiskAssessmentService.getCompletedAssessmentsAllRoutes()
+                    .then(function (routeData) {
+                        vm.otherRoutes = routeData.map(function (route) {
+                            return new AssessmentRouteView(route);
+                        });
+
+                    })
+                    .catch(function (err) {
+                        growl.error("Unable to load historical assessments. Error: " + err);
+                    });
+
+
+            }
+        });
     }
 })();

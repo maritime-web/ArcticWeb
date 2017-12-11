@@ -6,7 +6,7 @@
                 <div>
                     <button type="button" class="close" x-ng-click="assess.dismiss()">x</button>
                 </div>
-                <h4>Details for assessment finished on {{assess.finished}}</h4>
+                <h4>Assessment finished on {{assess.finished}}</h4>
             </div>
         </div>
         <uib-accordion close-others="true">
@@ -14,9 +14,10 @@
                 <div uib-accordion-group is-open="locationAssessment.active">
                     <uib-accordion-heading>
                         <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}}
-                        <index-color index="locationAssessment.index"></index-color>
-                        <span class="pull-right glyphicon"
-                              ng-class="{'glyphicon-menu-down': !locationAssessment.active, 'glyphicon-menu-up': locationAssessment.active}"></span>
+
+                        <span class="pull-right glyphicon">
+                            <index-color index="locationAssessment.index"></index-color>
+                        </span>
                     </uib-accordion-heading>
 
                     <div class="container-fluid">

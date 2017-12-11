@@ -2,7 +2,9 @@
 
     <div class="sidebar-visibility-button"
          ng-class="{'sidebar-visibility-button-shown': !sidebar.hidden, 'sidebar-visibility-button-hidden': sidebar.hidden}">
-        <i ng-click="sidebar.toggleVisibility()" class="fa" uib-tooltip="{{sidebar.hidden ? 'Show side bar' : 'Hide side bar'}}" tooltip-placement="right" tooltip-append-to-body="true"
+        <i ng-click="sidebar.toggleVisibility()" class="fa"
+           uib-tooltip="{{sidebar.hidden ? 'Show side bar' : 'Hide side bar'}}" tooltip-placement="right"
+           tooltip-append-to-body="true"
            ng-class="{'fa-chevron-left': !sidebar.hidden, 'fa-chevron-right': sidebar.hidden}" aria-hidden="true"></i>
     </div>
 
@@ -12,7 +14,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h4 class="panel-title">
-                        <i class="fa fa-ship" aria-hidden="true" style="border: thin solid;border-radius: 3px;margin-right: 5px;"></i>VOYAGE RISK MANAGEMENT TOOL
+                        <img src="img/vrmt/vrmt-icon.svg" aria-hidden="true"/><span style="padding-left: 5px;">Voyage Risk Management Tool</span>
                     </h4>
                 </div>
                 <div class="panel-body">
@@ -30,8 +32,7 @@
                         </div>
                         <div class="text-with-button" ng-if="sidebar.meta.routeView.routeId">
                             <div class="col-xs-8">
-                                Route from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with
-                                estimated
+                                Voyage from {{sidebar.meta.routeView.from}} to {{sidebar.meta.routeView.to}} with
                                 departure on {{sidebar.meta.routeView.etaDep}}
                             </div>
                             <div class="col-xs-4">
@@ -49,12 +50,13 @@
                             </div>
                         </div>
                         <div class="col-xs-12" ng-if="!sidebar.meta.routeView.routeId">
-                            Please create a voyage with routes in the Schedule menu.
+                            Please create a voyage with an assosiated route in the Schedule menu.
                         </div>
                     </div>
                     <div ng-if="!sidebar.meta.mmsi">
                         <div class="col-xs-12">
-                            To make Risk Assessments attach an MMSI to the ArcticWeb account and define one or more routes.
+                            To make Risk Assessments you need to have the Sailor role i.e. have an MMSI number attached
+                            to the ArcticWeb account.
                         </div>
                     </div>
                 </div>
@@ -65,7 +67,8 @@
                     <div uib-accordion-group is-open="assess.active">
                         <uib-accordion-heading>
                             <span data-ng-show="!assess.assessing">Start new assessment</span> <span
-                                data-ng-show="assess.assessing">Assessment in progress <span class="label label-primary">Started
+                                data-ng-show="assess.assessing">Assessment in progress <span
+                                class="label label-primary">Started
                             {{assess.assessmentStartedAt}}</span></span>
                         </uib-accordion-heading>
 
@@ -132,15 +135,16 @@
                             </div>
                         </div>
                         <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-xs-12 text-warning" data-ng-show="assess.assessing">
-                                <p></p>
-                                <p>
-                                    Please note that if the assessment is not completed by
-                                    <strong class="text-nowrap">{{assess.discardTime}}</strong> it will automatically be discarded.
-                                </p>
+                            <div class="row">
+                                <div class="col-xs-12 text-warning" data-ng-show="assess.assessing">
+                                    <p></p>
+                                    <p>
+                                        Please note that if the assessment is not completed by
+                                        <strong class="text-nowrap">{{assess.discardTime}}</strong> it will
+                                        automatically be discarded.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -148,28 +152,29 @@
                     <uib-accordion-heading>
                         Safety measures and decision making
                     </uib-accordion-heading>
-                    <div class="container-fluid sidebar-grid">
+                    <div class="container-fluid sidebar-grid" style="position: relative">
+                        <div id="not-implemented"></div>
                         <div class="row sidebar-grid-heading sidebar-grid-row">
-                            <div class="col-xs-12">SUGGESTED MEASURES</div>
+                            <div class="col-xs-12">Suggested Measures</div>
                         </div>
                         <div class="row sidebar-grid-row">
-                            <div class="col-xs-6">CHANGE OF ROUTE</div>
+                            <div class="col-xs-6">Change of Route</div>
                             <div class="col-xs-6">
                                 <div class="pull-right">
-                                    <button class="btn btn-primary btn-xs">DETAILS</button>
+                                    <button class="btn btn-primary btn-xs">Details</button>
                                 </div>
                             </div>
                         </div>
                         <div class="row sidebar-grid-row">
-                            <div class="col-xs-6">CHANGE OF LANDINGSITE</div>
+                            <div class="col-xs-6">Change of Landingsite</div>
                             <div class="col-xs-6">
                                 <div class="pull-right">
-                                    <button class="btn btn-primary btn-xs">DETAILS</button>
+                                    <button class="btn btn-primary btn-xs">Details</button>
                                 </div>
                             </div>
                         </div>
                         <div class="row sidebar-grid-row">
-                            <div class="col-xs-6">ASSESSMENT OF RISK IN ROUTE CHANGE</div>
+                            <div class="col-xs-6">Assessment of Risk in Route Change</div>
                             <div class="col-xs-6">
                                 <div class="pull-right">
                                     <button class="btn btn-primary btn-xs">Assessment</button>
@@ -177,7 +182,7 @@
                             </div>
                         </div>
                         <div class="row sidebar-grid-row">
-                            <div class="col-xs-6">ASSESSMENT OF RISK IN ENTERING HARBOUR</div>
+                            <div class="col-xs-6">Assesment of risk in Entering Harbour</div>
                             <div class="col-xs-6">
                                 <div class="pull-right">
                                     <button class="btn btn-primary btn-xs">Assessment</button>
@@ -186,14 +191,15 @@
                         </div>
                     </div>
                 </div>
-                <div uib-accordion-group is-open="sidebar.logOfMeasuresAndReportsActive">
+                <div uib-accordion-group is-open="sidebar.logOfMeasuresAndReportsActive"
+                     style="overflow-y: auto; max-height: 400px;">
                     <uib-accordion-heading>
-                        Log of measures and reports
+                        Log of assessments
                     </uib-accordion-heading>
 
                     <div class="container-fluid sidebar-grid">
                         <div class="row sidebar-grid-heading sidebar-grid-row">
-                            <div class="col-xs-5">Date and time</div>
+                            <div class="col-xs-5">Assessment time</div>
                             <div class="col-xs-4">Max index</div>
                         </div>
                         <div class="row sidebar-grid-row" ng-repeat="assessment in sidebar.assessments">
@@ -208,8 +214,59 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        <div class="row sidebar-grid-row">
+                            <div class="col-xs-12">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" ng-model="sidebar.showHistoricalOtherRoutes"
+                                               style="margin-top: 0"> Show assessments for other voyages
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div ng-if="sidebar.showHistoricalOtherRoutes">
+                            <div class="panel">
+                                <div class="row panel-heading" ng-click="route.isCollapsed = !route.isCollapsed">
+                                    <div class="panel-title">
+                                        Voyage <span class="pull-right" style="padding-right: 30px;">Departure</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-repeat="route in sidebar.otherRoutes">
+                                <div class="panel">
+                                    <div class="row panel-heading" ng-click="route.isCollapsed = !route.isCollapsed">
+                                        <div class="panel-title">
+                                            <a role="button">{{route.dep}}-{{route.des}}
+                                                <span class="pull-right glyphicon"
+                                                      ng-class="{'glyphicon-menu-down': route.isCollapsed, 'glyphicon-menu-up': !route.isCollapsed}"></span>
+                                                <span class="pull-right" style="padding-right: 15px;">{{route.departureDate}}</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div uib-collapse="route.isCollapsed">
+                                        <div class="row sidebar-grid-heading sidebar-grid-row">
+                                            <div class="col-xs-5">Date and time</div>
+                                            <div class="col-xs-4">Max index</div>
+                                        </div>
+                                        <div class="row sidebar-grid-row" ng-repeat="assessment in route.assessments">
+                                            <div class="col-xs-5">{{assessment.finished}}</div>
+                                            <div class="col-xs-4">
+                                                <index-color index="assessment.maxIndex"></index-color>
+                                            </div>
+                                            <div class="col-xs-3">
+                                                <div class="pull-right">
+                                                    <button class="btn btn-xs btn-primary"
+                                                            ng-click="assessment.showDetails()">Details
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </uib-accordion>
         </div>
