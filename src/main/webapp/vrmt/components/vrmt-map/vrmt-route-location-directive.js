@@ -4,9 +4,9 @@
     angular.module('vrmt.map')
         .directive('vrmtRouteLocations', routeLocations);
 
-    routeLocations.$inject = ['NotifyService', 'VrmtEvents', 'FeatureName'];
+    routeLocations.$inject = ['NotifyService', 'VrmtEvents', 'FeatureName', 'OpenlayerEvents'];
 
-    function routeLocations(NotifyService, VrmtEvents, FeatureName) {
+    function routeLocations(NotifyService, VrmtEvents, FeatureName, OpenlayerEvents) {
         return {
             restrict: 'E',
             require: '^openlayerParent',
@@ -119,6 +119,7 @@
                 routeLocations.forEach(function (routeLocation) {
                     addOrReplaceLocation(routeLocation);
                 });
+                NotifyService.notify(OpenlayerEvents.ZoomToExtent, {extent: locationLayer.getSource().getExtent(), padding: [30, 20, 50, 20]});
             }
 
             NotifyService.subscribe(scope, VrmtEvents.RouteLocationChosen, onAssessmentLocationChosen);
@@ -128,7 +129,13 @@
                 var featureToSelect = locationLayer.getSource().getFeatureById(chosen.id);
 
                 select.getFeatures().push(featureToSelect);
-                panToFeature(featureToSelect);
+                olScope.getMap().then(function (map) {
+                    var viewExtent = map.getView().calculateExtent(map.getSize());
+                    var featureExtent = featureToSelect ? featureToSelect.getGeometry().getExtent() : undefined;
+                    if (featureExtent && !ol.extent.containsExtent(viewExtent, featureExtent)) {
+                        NotifyService.notify(OpenlayerEvents.ZoomToExtent, {extent: locationLayer.getSource().getExtent(), padding: [30, 20, 50, 20]});
+                    }
+                });
             }
 
             /**
@@ -162,17 +169,6 @@
                     scope.$apply();
                 });
 
-            }
-
-            function panToFeature(feature) {
-                olScope.getMap().then(function (map) {
-                    var view = map.getView();
-                    var featureExtent = feature.getGeometry().getExtent();
-                    var mapExtent = view.calculateExtent(map.getSize());
-                    if (!ol.extent.containsExtent(mapExtent, featureExtent)) {
-                        view.fit(feature.getGeometry(), {size: map.getSize(), minResolution: view.getResolution()});
-                    }
-                });
             }
 
             /**

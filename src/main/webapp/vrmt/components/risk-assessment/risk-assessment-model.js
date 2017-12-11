@@ -336,16 +336,21 @@ function RiskFactor(parameters) {
                     } else {
                         leg.length = leg.from.rhumbLineDistanceTo(leg.to);
                     }
-                    leg.lineString = turf.lineString([[wp1.longitude, wp1.latitude], [wp2.longitude, wp2.latitude]]);
                     leg.hours = moment.duration(moment(wp2.eta).diff(wp1.eta)).asHours();
                     leg.startTime = moment(wp1.eta).utc();
                     leg.endTime = moment(wp2.eta).utc();
 
+                    /**
+                     * Determines if this leg does contain the given position.
+                     * @param position
+                     * @returns {boolean}
+                     */
                     leg.contains = function (position) {
-                        var turfPoint = turf.point([position.lon, position.lat]);
-                        var p = turf.pointOnLine(this.lineString, turfPoint);
-                        var positionOnLine = Position.create(p.geometry.coordinates[0], p.geometry.coordinates[1]);
-                        return positionOnLine.geodesicDistanceTo(position) < 0.1;
+                        var lineString = this.asOpenlayerLinestring();
+                        var closest = lineString.getClosestPoint(OpenlayerService.fromLonLat([position.lon, position.lat]));
+                        var closestPosition = Position.create(OpenlayerService.toLonLat(closest));
+
+                        return closestPosition.geodesicDistanceTo(position) < 0.1;
                     };
 
                     leg.hoursTo = function (position) {
@@ -360,6 +365,17 @@ function RiskFactor(parameters) {
                     leg.getVesselPositionAt = function (dateTime) {
                         var secondsFromStart = moment.duration(moment(dateTime).utc().diff(this.startTime)).asSeconds();
                         var lengthInNm = embryo.geo.Converter.metersToNm(embryo.geo.Converter.knots2Ms(this.speed) * secondsFromStart);
+                        var lineString = this.asOpenlayerLinestring();
+
+                        return Position.create(OpenlayerService.toLonLat(lineString.getCoordinateAt(lengthInNm/this.length)));
+                    };
+
+                    leg.getBearing = function () {
+                        var bearing = this.from.bearingTo(this.to, this.heading);
+                        return embryo.Math.toRadians(bearing);
+                    };
+
+                    leg.asOpenlayerLinestring = function () {
                         var points = [this.from.asLonLatArray(), this.to.asLonLatArray()];
                         if (this.heading === 'GC') {
                             points = this.createGeoDesicLineAsGeometryPoints({
@@ -370,14 +386,7 @@ function RiskFactor(parameters) {
                                 x: this.to.lon
                             });
                         }
-                        var lineString = OpenlayerService.createLineString(points);
-
-                        return Position.create(OpenlayerService.toLonLat(lineString.getCoordinateAt(lengthInNm/this.length)));
-                    };
-
-                    leg.getBearing = function () {
-                        var bearing = this.from.bearingTo(this.to, this.heading);
-                        return embryo.Math.toRadians(bearing);
+                        return OpenlayerService.createLineString(points);
                     };
 
                     leg.createGeoDesicLineAsGeometryPoints = function (p1, p2) {
