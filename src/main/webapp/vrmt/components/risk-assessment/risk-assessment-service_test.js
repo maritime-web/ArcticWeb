@@ -234,7 +234,7 @@ describe('RiskAssessmentService', function () {
                 assessments: []
             });
 
-            cut.createRouteLocation(route, {name: "a", lat: -21, lon: 73})
+            cut.createRouteLocation({name: "a", lat: -21, lon: 73})
                 .then(function (data) {
                     theNewlocation = data;
                 })
@@ -244,7 +244,67 @@ describe('RiskAssessmentService', function () {
 
             $rootScope.$apply();
 
-            expect(theNewlocation).toBeDefined();
+            expect(theNewlocation.name).toEqual("a");
+        });
+
+    });
+
+    describe('deleteRouteLocation', function () {
+        it('should delete location based on id', function () {
+            var route = createTestRoute();
+            dataService.storeAssessmentData = getFunctionResolving();
+            dataService.getAssessmentData = getFunctionResolving({
+                routeLocationSequence: 1,
+                routeLocations: [new RouteLocation({id: 1, name: "a", lat: -21, lon: 73})],
+                currentRoute: route,
+                currentAssessment: null,
+                assessments: []
+            });
+
+            var deletedLocation = null;
+            cut.deleteRouteLocation({id: 1}).then(function (deletedLocations) {
+                deletedLocation = deletedLocations[0];
+            });
+
+            $rootScope.$apply();
+
+            expect(deletedLocation.name).toEqual("a");
+        });
+
+        it('should reject deleting location placed at route start', function () {
+            var route = createTestRoute();
+            dataService.storeAssessmentData = getFunctionResolving();
+            dataService.getAssessmentData = getFunctionResolving({
+                routeLocationSequence: 1,
+                routeLocations: [new RouteLocation({id: 1, name: "a", lat: -20, lon: 70})],
+                currentRoute: route,
+                currentAssessment: null,
+                assessments: []
+            });
+
+            cut.deleteRouteLocation({id: 1});
+
+            expect(function () {
+                $rootScope.$apply();
+            }).toThrowError(Error, "It is not allowed to delete assessment location at route start");
+        });
+
+        it('should reject deleting location placed at route end', function () {
+            var route = createTestRoute();
+            dataService.storeAssessmentData = getFunctionResolving();
+            dataService.getAssessmentData = getFunctionResolving({
+                routeLocationSequence: 1,
+                routeLocations: [new RouteLocation({id: 1, name: "a", lat: -22, lon: 75})],
+                currentRoute: route,
+                currentAssessment: null,
+                assessments: []
+            });
+
+            cut.deleteRouteLocation({id: 1});
+
+            expect(function () {
+                $rootScope.$apply();
+            }).toThrowError(Error, "It is not allowed to delete assessment location at route end");
         });
 
     });

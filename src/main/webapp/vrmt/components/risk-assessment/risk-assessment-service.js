@@ -23,6 +23,7 @@
         this.getRouteLocations = getRouteLocations;
 
         var currentRouteId = null;
+
         /**
          * Returns the assessment currently being created
          * @returns {*}
@@ -33,7 +34,7 @@
                     if (data.currentAssessment) {
                         return new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
                     }
-                    return $q.reject("There is no current assessment for route '" +currentRouteId+ "'");
+                    return $q.reject("There is no current assessment for route '" + currentRouteId + "'");
                 });
         }
 
@@ -62,7 +63,12 @@
 
                     function createNewAssessment() {
                         var locationsToAssess = getLocationsNotYetPassed();
-                        var result = new Assessment({id: moment().utc().unix(), routeId: currentRouteId, started: moment().utc(), locationsToAssess: locationsToAssess});
+                        var result = new Assessment({
+                            id: moment().utc().unix(),
+                            routeId: currentRouteId,
+                            started: moment().utc(),
+                            locationsToAssess: locationsToAssess
+                        });
                         var lastAssessment = getLastAssessment();
                         locationsToAssess.forEach(function (location) {
                             result.updateLocationAssessment(location.id);
@@ -245,26 +251,18 @@
                 var result = [];
                 var route = RouteFactory.create(data.currentRoute);
 
-                var firstWp = route.wps[0];
-                var found = data.routeLocations.find(function (loc) {
-                    return closeTo(firstWp.latitude, loc.lat) && closeTo(firstWp.longitude, loc.lon);
-                });
-                if (!found) {
-                    result.push(createRouteLocationFromWaypoint(data, firstWp, route.dep));
-                }
-
-                var lastWp = route.wps[route.wps.length - 1];
-                found = data.routeLocations.find(function (loc) {
-                    return closeTo(lastWp.latitude, loc.lat) && closeTo(lastWp.longitude, loc.lon);
-                });
-                if (!found) {
-                    result.push(createRouteLocationFromWaypoint(data, lastWp, route.des));
-                }
+                createDefaultRouteLocationIfNotPresent(data, route.wps[0], route.dep);
+                createDefaultRouteLocationIfNotPresent(data, route.wps[route.wps.length - 1], route.des);
 
                 return result;
 
-                function closeTo(operand1, operand2) {
-                    return Math.abs(operand1 - operand2) < 0.0000001;
+                function createDefaultRouteLocationIfNotPresent(data, wp, name) {
+                    var found = data.routeLocations.find(function (loc) {
+                        return closeTo(wp.latitude, loc.lat) && closeTo(wp.longitude, loc.lon);
+                    });
+                    if (!found) {
+                        result.push(createRouteLocationFromWaypoint(data, wp, name));
+                    }
                 }
             }
         }
@@ -301,22 +299,41 @@
         function deleteRouteLocation(routeLocationToDelete) {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
-                    try {
-                        var routeLocations = data.routeLocations;
-                        var index = routeLocations.findIndex(function (entry) {
-                            return entry.id === routeLocationToDelete.id;
-                        });
+                    var routeLocations = data.routeLocations;
+                    var index = routeLocations.findIndex(function (entry) {
+                        return entry.id === routeLocationToDelete.id;
+                    });
 
-                        var deletedRouteLocationArray = routeLocations.splice(index, 1);
-
-                        RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
-                            .then(function () {
-                                return $q.when(deletedRouteLocationArray);
-                            });
-                    } catch (e) {
-                        return $q.reject(e);
+                    var deletedRouteLocationArray = [];
+                    if (index > -1) {
+                        assertNotDepartureOrDestination(data.currentRoute, routeLocations, routeLocations[index]);
+                        deletedRouteLocationArray = routeLocations.splice(index, 1);
+                    } else {
+                        throw new Error("Could not find assessment location with id: '"+routeLocationToDelete.id+"'");
                     }
+
+                    return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
+                        .then(function () {
+                            return deletedRouteLocationArray;
+                        });
                 });
+
+            function assertNotDepartureOrDestination(route, routeLocations, routeLocationToDelete) {
+                var wpDep = route.wps[0];
+                var wpDes = route.wps[route.wps.length - 1];
+                var toDeleteLat = routeLocationToDelete.lat;
+                var toDeleteLon = routeLocationToDelete.lon;
+                if (closeTo(toDeleteLat, wpDep.latitude) && closeTo(toDeleteLon, wpDep.longitude)) {
+                    throw new Error("It is not allowed to delete assessment location at route start");
+                }
+                if (closeTo(toDeleteLat, wpDes.latitude) && closeTo(toDeleteLon, wpDes.longitude)) {
+                    throw new Error("It is not allowed to delete assessment location at route end");
+                }
+            }
+        }
+
+        function closeTo(operand1, operand2) {
+            return Math.abs(operand1 - operand2) < 0.0000001;
         }
 
         function getRouteLocations() {

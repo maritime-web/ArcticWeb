@@ -42,6 +42,7 @@
 
                 RiskAssessmentService.createRouteLocation(locParam)
                     .then(function (location) {
+                        growl.success("Assessment location successfully created");
                         NotifyService.notify(VrmtEvents.RouteLocationCreated, location);
                     })
                     .catch(function (e) {
