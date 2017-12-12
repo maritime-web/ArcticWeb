@@ -36,7 +36,7 @@
         NotifyService.subscribe($scope, VrmtEvents.RouteLocationsLoaded, onNoActiveAssessment);
         function onNoActiveAssessment() {
             vm.functions = [];
-            vm.functions.push(deleteRouteLocationFunction);
+            vm.functions.push(editRouteLocationFunction, deleteRouteLocationFunction);
         }
 
         function close() {
@@ -49,6 +49,16 @@
             choose: function () {
                 vm.close();
                 NotifyService.notify(VrmtEvents.OpenAssessmentEditor);
+            }
+        };
+
+        var editRouteLocationFunction =
+        {
+            name: 'Edit',
+            choose: function () {
+                vm.close();
+                var locationToEdit = vm.chosenRouteLocation;
+                NotifyService.notify(VrmtEvents.EditRouteLocation, locationToEdit);
             }
         };
 

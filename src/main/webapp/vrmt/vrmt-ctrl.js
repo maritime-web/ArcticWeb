@@ -9,6 +9,7 @@
             LocationAssessmentCreated: "VRMT.LocationAssessmentCreated",
             LocationAssessmentDeleted: "VRMTL.ocationAssessmentDeleted",
             AddRouteLocation: "VRMT.AddRouteLocation",
+            EditRouteLocation: "VRMT.EditRouteLocation",
             AddRouteLocationDiscarded: "VRMT.AddRouteLocationDiscarded",
             RouteLocationCreated: "VRMT.RouteLocationCreated",
             RouteLocationDeleted: "VRMT.RouteLocationDeleted",

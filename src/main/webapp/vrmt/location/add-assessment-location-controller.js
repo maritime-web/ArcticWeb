@@ -11,8 +11,40 @@
 
     function AssessmentLocationController($scope, $uibModal, RiskAssessmentService, NotifyService, VrmtEvents, growl) {
 
+        var create = function (locParam) {
+            RiskAssessmentService.createRouteLocation(locParam)
+                .then(function (location) {
+                    growl.success("Assessment location successfully created");
+                    NotifyService.notify(VrmtEvents.RouteLocationCreated, location);
+                })
+                .catch(function (e) {
+                    NotifyService.notify(VrmtEvents.AddRouteLocationDiscarded);
+                    growl.warning(e.message);
+                    console.log(e);
+                });
+        };
+
+        var edit = function (locParam) {
+            RiskAssessmentService.editRouteLocation(locParam)
+                .then(function (location) {
+                    growl.success("Assessment location '"+location.name+"' successfully saved");
+                })
+                .catch(function (e) {
+                    growl.error(e.message);
+                    console.log(e);
+                });
+        };
+
         NotifyService.subscribe($scope, VrmtEvents.AddRouteLocation, onAddAssessmentLocation);
+        NotifyService.subscribe($scope, VrmtEvents.EditRouteLocation, onAddAssessmentLocation);
+
         function onAddAssessmentLocation(event, newAssessmentLocationEvent) {
+            if (!newAssessmentLocationEvent.route && !newAssessmentLocationEvent.vessel) {
+                newAssessmentLocationEvent.route = {
+                    lon: newAssessmentLocationEvent.lon,
+                    lat: newAssessmentLocationEvent.lat
+                }
+            }
             var modalInstance = $uibModal.open({
                 templateUrl: "addAssessmentLocation",
                 controller: 'ModalInstanceCtrl',
@@ -40,25 +72,23 @@
                     }
                 }
 
-                RiskAssessmentService.createRouteLocation(locParam)
-                    .then(function (location) {
-                        growl.success("Assessment location successfully created");
-                        NotifyService.notify(VrmtEvents.RouteLocationCreated, location);
-                    })
-                    .catch(function (e) {
-                        NotifyService.notify(VrmtEvents.AddRouteLocationDiscarded);
-                        growl.warning(e.message);
-                        console.log(e);
-                });
+                if (event.name === VrmtEvents.AddRouteLocation) {
+                    create(locParam);
+                } else if (event.name === VrmtEvents.EditRouteLocation) {
+                    edit(locParam);
+                }
             }, function (dismissReason) {
                 console.log("assessment Location dismissed with reason '" + dismissReason + "'");
                 console.log(dismissReason);
                 NotifyService.notify(VrmtEvents.AddRouteLocationDiscarded);
             })
+
+
         }
     }
 
     ModalInstanceCtrl.$inject = ['$scope', '$uibModalInstance', 'event'];
+
     function ModalInstanceCtrl($scope, $uibModalInstance, event) {
         $scope.loc = event;
     }

@@ -206,6 +206,7 @@
                 NotifyService.subscribe(scope, VrmtEvents.VRMTFeatureInActive, function () {
                     if (select) {
                         map.removeInteraction(select);
+                        select = undefined;
                     }
                     locationLayer.setVisible(false);
                 });

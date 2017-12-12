@@ -19,6 +19,7 @@
         this.deleteLocation = deleteLocation;
         this.updateCurrentRoute = updateCurrentRoute;
         this.createRouteLocation = createRouteLocation;
+        this.editRouteLocation = editRouteLocation;
         this.deleteRouteLocation = deleteRouteLocation;
         this.getRouteLocations = getRouteLocations;
 
@@ -296,6 +297,27 @@
             return routeLocation;
         }
 
+        function editRouteLocation(locationAttributes) {
+
+            return RiskAssessmentDataService.getAssessmentData(currentRouteId)
+                .then(function (data) {
+                    var routeLocation = data.routeLocations.find(function (loc) {
+                        return loc.id === locationAttributes.id;
+                    });
+
+                    if (!routeLocation) {
+                        throw new Error("Can't find assessment location with id: '"+locationAttributes.id+"'");
+                    }
+
+                    routeLocation.name = locationAttributes.name || routeLocation.name;
+
+                    return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
+                        .then(function () {
+                            return routeLocation;
+                        });
+                });
+        }
+
         function deleteRouteLocation(routeLocationToDelete) {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
@@ -309,7 +331,7 @@
                         assertNotDepartureOrDestination(data.currentRoute, routeLocations, routeLocations[index]);
                         deletedRouteLocationArray = routeLocations.splice(index, 1);
                     } else {
-                        throw new Error("Could not find assessment location with id: '"+routeLocationToDelete.id+"'");
+                        throw new Error("Could not find assessment location with id: '" + routeLocationToDelete.id + "'");
                     }
 
                     return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
