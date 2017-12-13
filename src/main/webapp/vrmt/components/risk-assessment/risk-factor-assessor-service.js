@@ -36,7 +36,7 @@
 
 
         function defaultOption() {
-            return {name: '-', index: 0};
+            return {name: '-', index: 0, source: null};
         }
 
         /**
@@ -49,8 +49,13 @@
         function chooseTypeOfSeason(routeLocation, riskFactor) {
             var monthNumber = getArrivalMonthAtLocation();
             var res = riskFactor.scoreOptions.find(function (scoreOption) {
-                return monthToNumber(scoreOption.name) == monthNumber;
+                return monthToNumber(scoreOption.name) === monthNumber;
             });
+
+            if (res) {
+                res.source = "AW";
+            }
+
             return res || defaultOption();
 
             function getArrivalMonthAtLocation() {

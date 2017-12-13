@@ -70,22 +70,34 @@
                             started: moment().utc(),
                             locationsToAssess: locationsToAssess
                         });
-                        var lastAssessment = getLastAssessment();
                         locationsToAssess.forEach(function (location) {
-                            result.updateLocationAssessment(location.id);
+                            result.updateLocationAssessment({routeLocationId: location.id});
                         });
 
-                        if (lastAssessment) {
-                            lastAssessment = new Assessment(lastAssessment);
-                            locationsToAssess.forEach(function (location) {
-                                var defaultLocationAssessment = lastAssessment.getLocationAssessment(location.id);
-                                if (defaultLocationAssessment) {
-                                    result.updateLocationAssessment(location.id, defaultLocationAssessment.scores);
-                                }
-                            });
-                        }
+                        useLastAssessmentScoresAsStartValues();
 
                         return result;
+
+                        function useLastAssessmentScoresAsStartValues() {
+                            var lastAssessment = getLastAssessment();
+                            if (lastAssessment) {
+                                lastAssessment = new Assessment(lastAssessment);
+                                locationsToAssess.forEach(function (location) {
+                                    var defaultLocationAssessment = lastAssessment.getLocationAssessment(location.id);
+                                    if (defaultLocationAssessment) {
+                                        result.updateLocationAssessment({
+                                            routeLocationId: location.id,
+                                            scores: defaultLocationAssessment.scores.map(function (score) {
+                                                if (score.index > 0 || score.name !== "-") {
+                                                    score.source = "Prev. score";
+                                                }
+                                                return score;
+                                            })
+                                        });
+                                    }
+                                });
+                            }
+                        }
                     }
 
                     function getLocationsNotYetPassed() {
@@ -148,19 +160,19 @@
         function createLocationAssessment(locationId, scores, note) {
             return RiskAssessmentDataService.getAssessmentData(currentRouteId)
                 .then(function (data) {
-                    try {
-                        if (data.currentAssessment) {
-                            data.currentAssessment = new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
-                            data.currentAssessment.updateLocationAssessment(locationId, scores, note);
-                            return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
-                                .then(function () {
-                                    return $q.when(data.currentAssessment.getLocationAssessment(locationId));
-                                });
-                        } else {
-                            return $q.reject("No active assessment.");
-                        }
-                    } catch (e) {
-                        return $q.reject(e);
+                    if (data.currentAssessment) {
+                        data.currentAssessment = new Assessment(/** @type {AssessmentOptions} */data.currentAssessment);
+                        data.currentAssessment.updateLocationAssessment({
+                            routeLocationId: locationId,
+                            scores: scores,
+                            note: note
+                        });
+                        return RiskAssessmentDataService.storeAssessmentData(currentRouteId, data)
+                            .then(function () {
+                                return data.currentAssessment.getLocationAssessment(locationId);
+                            });
+                    } else {
+                        return $q.reject("No active assessment.");
                     }
                 });
         }
@@ -306,7 +318,7 @@
                     });
 
                     if (!routeLocation) {
-                        throw new Error("Can't find assessment location with id: '"+locationAttributes.id+"'");
+                        throw new Error("Can't find assessment location with id: '" + locationAttributes.id + "'");
                     }
 
                     routeLocation.name = locationAttributes.name || routeLocation.name;

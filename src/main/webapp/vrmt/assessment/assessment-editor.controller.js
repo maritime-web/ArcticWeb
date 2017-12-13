@@ -66,9 +66,10 @@
                     if (score && score.index > 0) {
                         if (rfvm.hasChoices) {
                             var previousScore = rfvm.scoreOptions.find(function (so) {
-                                return so.name == score.name;
+                                return so.name === score.name;
                             });
                             rfvm.model = previousScore ? previousScore : rfvm.model;
+                            rfvm.model.source = score.source;
                         } else {
                             rfvm.model.index = score.index;
                         }
@@ -85,11 +86,12 @@
         }
 
         function chooseOption(viewModel) {
-            RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor).then(function (chosenOption) {
-                if (chosenOption.index > 0) {
-                    viewModel.model = chosenOption;
-                }
-            });
+            RiskFactorAssessorService.chooseOption(chosenRoutelocation, viewModel.riskFactor)
+                .then(function (chosenOption) {
+                    if (chosenOption.index > 0 || chosenOption.name !== "-") {
+                        viewModel.model = chosenOption;
+                    }
+                });
         }
 
         function clear() {
@@ -114,8 +116,8 @@
         function FactorAssessmentViewModel(param) {
             this.riskFactor = param;
             this.name = param.name;
-            this.scoreOptions = param.scoreOptions;
-            this.model = {name: "-", index: 0};
+            this.scoreOptions = param.scoreOptions && param.scoreOptions.length > 0 ? [{name: "-", index: 0, source: null}].concat(param.scoreOptions) : null;
+            this.model = {name: "-", index: 0, source: null};
             this.hasChoices = param.scoreOptions && param.scoreOptions.length > 0;
             this.minIndex = param.minIndex;
             this.maxIndex = param.maxIndex;
@@ -126,7 +128,7 @@
             var scoreOption;
             if (this.scoreOptions) {
                 scoreOption = this.scoreOptions.find(function (option) {
-                    return option.name == chosenOptionName;
+                    return option.name === chosenOptionName;
                 });
             }
 
@@ -141,14 +143,17 @@
 
         NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, handleNoCurrentAssessment);
         NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, handleNoCurrentAssessment);
+
         function handleNoCurrentAssessment() {
             currentAssessment = null;
         }
+
         NotifyService.subscribe($scope, VrmtEvents.AssessmentUpdated, function (event, assessment) {
             currentAssessment = assessment;
         });
 
         NotifyService.subscribe($scope, VrmtEvents.RouteLocationChosen, onRouteLocationChosen);
+
         function onRouteLocationChosen(event, chosen) {
             chosenRoutelocation = chosen;
         }

@@ -93,15 +93,15 @@ function Assessment(parameters) {
         return Array.from(this.locationAssessments.values());
     };
 
-    this.updateLocationAssessment = function (routeLocationId, scores, note) {
+    this.updateLocationAssessment = function (params) {
         var routeLocation = this.locationsToAssess.find(function (candidate) {
-            return routeLocationId == candidate.id;
+            return params.routeLocationId === candidate.id;
         });
         if (!routeLocation) {
-            throw "Could not find route location with id: '" + routeLocationId + "' in assessment identified by '" + this.id + "'";
+            throw "Could not find route location with id: '" + params.routeLocationId + "' in assessment identified by '" + this.id + "'";
         }
-        var locationAssessment = new LocationAssessment({time: moment().utc(), routeLocation: routeLocation, scores: scores || [], note: note});
-        this.locationAssessments.set(routeLocationId, locationAssessment);
+        var locationAssessment = new LocationAssessment({time: moment().utc(), routeLocation: routeLocation, scores: params.scores || [], note: params.note, source: params.source});
+        this.locationAssessments.set(params.routeLocationId, locationAssessment);
     };
 
     this.isComplete = function () {
@@ -140,11 +140,13 @@ function Score(parameters) {
     this.index = parameters.index;
     this.factorName = parameters.riskFactor.name;
     this.name = parameters.scoreOption ? parameters.scoreOption.name : "-";
+    this.source = parameters.scoreOption ? parameters.scoreOption.source : null;
 }
 
 function ScoreOption(parameters) {
     this.name = parameters.name;
     this.index = parameters.index;
+    this.source = parameters.source;
 }
 
 function ScoreInterval(parameters) {

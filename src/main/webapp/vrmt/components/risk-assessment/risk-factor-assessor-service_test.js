@@ -10,11 +10,6 @@ describe('RiskFactorAssessorService', function () {
     //angular stuf
     var $rootScope;
 
-/*
-    beforeEach(module('embryo.geo.services'));
-    beforeEach(module('embryo.components.openlayer'));
-    beforeEach(module('vrmt.model'));
-*/
     beforeEach(module('vrmt.app'));
     beforeEach(createTestData);
     beforeEach(inject(function (RiskFactorAssessorService, _$rootScope_, NotifyService, VrmtEvents) {

@@ -1,4 +1,5 @@
-<div class="col-xs-12 col-lg-4 e-reporting-panel-wide assessment-editor" style="z-index: 999" ng-hide="assessCreate.hide" ng-controller="AssessmentEditorController as assessCreate">
+<div class="col-xs-12 col-lg-4 e-reporting-panel-wide assessment-editor" style="z-index: 999"
+     ng-hide="assessCreate.hide" ng-controller="AssessmentEditorController as assessCreate">
 
     <div class="panel-group">
         <div class="panel panel-default">
@@ -6,15 +7,23 @@
                 <div>
                     <button type="button" class="close" x-ng-click="assessCreate.dismiss()">x</button>
                 </div>
-                <h4>Make risk assessment for location {{assessCreate.chosenLocation()}}</h4>
+                <h4>Risk assessment for {{assessCreate.chosenLocation()}}</h4>
             </div>
             <div class="panel-body">
-                <div class="form-horizontal">
-                    <div class="form-group" ng-repeat="factorAssessment in assessCreate.factorAssessments">
-                        <label class="control-label col-xs-6" for="{{factorAssessment.name}}">{{factorAssessment.name}}</label>
-                        <div class="col-xs-4">
+                <table class="table table-condensed borderless-table">
+                    <tr>
+                        <th>Risk factor</th>
+                        <th>Data source</th>
+                        <th>Value</th>
+                        <th>Score</th>
+                    </tr>
+                    <tr ng-repeat="factorAssessment in assessCreate.factorAssessments">
+                        <td>{{factorAssessment.name}}</td>
+                        <td><source-label source="factorAssessment.model.source"></source-label></td>
+                        <td>
                             <!--suppress XmlDuplicatedId -->
-                            <select ng-if="factorAssessment.hasChoices" class="form-control input-sm" id="{{factorAssessment.name}}"
+                            <select ng-if="factorAssessment.hasChoices" class="form-control input-sm"
+                                    id="{{factorAssessment.name}}"
                                     ng-model="factorAssessment.model"
                                     ng-options="model.name for model in factorAssessment.scoreOptions">
                             </select>
@@ -23,26 +32,29 @@
                                    id="{{factorAssessment.name}}"
                                    ng-model="factorAssessment.model.index"
                                    min="{{factorAssessment.minIndex}}" max="{{factorAssessment.maxIndex}}"/>
-                        </div>
-                        <div class="col-xs-2 form-horizontal-3rd-col">
-                            {{factorAssessment.model.index}}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-xs-offset-6 col-xs-4">
+
+                        </td>
+                        <td>{{factorAssessment.model.index}}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>
                             <label for="note">Note:</label>
                             <textarea class="form-control" rows="3" id="note" ng-model="assessCreate.note"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-xs-offset-6 col-xs-4">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td>
                             <button class="btn btn-default btn-sm" ng-click="assessCreate.save()">Save</button>
                             <button class="btn btn-default btn-sm" ng-click="assessCreate.dismiss()">Cancel</button>
-                        </div>
-                        <div class="col-xs-2 form-horizontal-3rd-col">
-                            <index-color index="assessCreate.sum()"></index-color>
-                        </div>
-                    </div>
+
+                        </td>
+                        <td><index-color index="assessCreate.sum()"></index-color></td>
+                    </tr>
+                </table>
                 </div>
             </div>
         </div>

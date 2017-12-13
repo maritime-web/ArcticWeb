@@ -37,7 +37,7 @@ describe('Risk Assessment Classes', function () {
         });
 
         it('should be able to instantiate from a serialized version', function () {
-            assessment.updateLocationAssessment(routeLocation.id, scores);
+            assessment.updateLocationAssessment({routeLocationId: routeLocation.id, scores: scores});
             var serializedVersion = angular.toJson(assessment);
             var deserializedAssessment = new Assessment(angular.fromJson(serializedVersion));
 
@@ -72,7 +72,7 @@ describe('Risk Assessment Classes', function () {
 
         describe('updateLocationAssessment', function () {
             it('should update location assessment for route location to a new LocationAssessment containing the given scores', function () {
-                assessment.updateLocationAssessment(routeLocation.id, scores);
+                assessment.updateLocationAssessment({routeLocationId: routeLocation.id, scores: scores});
 
                 expect(assessment.getLocationAssessment(routeLocation.id).scores).toEqual(scores);
             });
@@ -80,7 +80,7 @@ describe('Risk Assessment Classes', function () {
         });
         describe('getMaxScore', function () {
             it('should get 87', function () {
-                assessment.updateLocationAssessment(routeLocation.id, scores);
+                assessment.updateLocationAssessment({routeLocationId: routeLocation.id, scores: scores});
 
                 expect(assessment.getMaxScore()).toBe(87);
             });

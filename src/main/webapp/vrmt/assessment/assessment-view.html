@@ -13,40 +13,38 @@
             <div class="panel" style="border: none" ng-repeat="locationAssessment in assess.locationAssessments">
                 <div uib-accordion-group is-open="locationAssessment.active">
                     <uib-accordion-heading>
-                        <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong> assessed {{locationAssessment.time}}
+                        <strong>{{locationAssessment.location.name}} ({{locationAssessment.location | lonlat:{ decimals : 2, pp: true } }})</strong>
+                        assessed {{locationAssessment.time}}
 
-                        <span class="pull-right glyphicon">
+                        <span class="pull-right">
                             <index-color index="locationAssessment.index"></index-color>
                         </span>
                     </uib-accordion-heading>
 
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-xs-6"><strong>Factor</strong></div>
-                            <div class="col-xs-4"><strong>Value</strong></div>
-                            <div class="col-xs-2" style="text-align: right;"><strong>Index</strong></div>
-                        </div>
-                    </div>
-                    <div class="container-fluid div-striped">
-                        <div class="row" ng-repeat="score in locationAssessment.scores">
-                            <div class="col-xs-6">{{score.factorName}}</div>
-                            <div class="col-xs-4">{{score.name}}</div>
-                            <div class="col-xs-2" style="text-align: right;">{{score.index}}</div>
-                        </div>
-                    </div>
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-xs-offset-10 col-xs-2" style="text-align: right;">
-                                <index-color index="locationAssessment.index"></index-color>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-6">
-                                <div><strong>Note:</strong></div>
-                                <div>{{locationAssessment.note}}</div>
-                            </div>
-                        </div>
-                    </div>
+                    <table class="table table-condensed borderless-table">
+                        <tr>
+                            <th>Factor</th>
+                            <th>Source</th>
+                            <th>Value</th>
+                            <th>Index</th>
+                        </tr>
+                        <tr ng-repeat="score in locationAssessment.scores">
+                            <td>{{score.factorName}}</td>
+                            <td><source-label source="score.source"></source-label> </td>
+                            <td>{{score.name}}</td>
+                            <td>{{score.index}}</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><index-color index="locationAssessment.index"></index-color></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Note:</strong></td>
+                            <td colspan="3">{{locationAssessment.note}}</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </uib-accordion>
