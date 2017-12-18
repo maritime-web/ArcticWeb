@@ -1,3 +1,42 @@
+.sidebar {
+    padding: 0;
+}
+
+.sidebar-grid {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.sidebar-grid-heading {
+    border-bottom: solid thin lightgray;
+    font-weight: bold;
+}
+
+.sidebar-grid-row {
+    padding-bottom: 2px;
+    padding-top: 2px;
+}
+
+.sidebar-visibility-button {
+    position: absolute;
+    top: 10px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    background-color: rgba(0, 60, 136, 0.5);
+    padding-left: 6px;
+    padding-top: 3px;
+    border-radius: 4px;
+}
+.sidebar-visibility-button-shown {
+    right: 10px;
+}
+
+.sidebar-visibility-button-hidden {
+    left: 0;
+    margin-left: 1px;
+}
+
 .assessment-editor {
     width: 600px;
     padding-right: 0;
@@ -73,4 +112,24 @@
 
 .assessment-view .panel-group .panel-title a {
     font-size: 12px;
+}
+
+.sidebar-assessment .borderless-table>tbody>tr>td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+/** vertical aligning text with button**/
+.text-with-button  {
+    display: flex;
+    padding-bottom: 5px;
+}
+.text-with-button > div:first-child {
+    line-height: 1.5;
+    padding-top: 4px;
+}
+
+/** Context Function **/
+.button-dropdown button {
+    text-align: left;
 }

@@ -3,9 +3,9 @@
         .module('vrmt.app')
         .controller("AssessmentFactorConfigController", AssessmentFactorConfigController);
 
-    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'VrmtEvents', "growl", '$timeout'];
+    AssessmentFactorConfigController.$inject = ['$scope', 'RiskFactorService', 'NotifyService', 'VrmtEvents', "growl", '$timeout', '$q'];
 
-    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, VrmtEvents, growl, $timeout) {
+    function AssessmentFactorConfigController($scope, RiskFactorService, NotifyService, VrmtEvents, growl, $timeout, $q) {
         var vm = this;
         vm.hide = true;
         vm.vesselName = undefined;
@@ -13,7 +13,9 @@
         vm.dismiss = dismiss;
         vm.getVessel = getVessel;
         vm.save = save;
+        vm.getBerths = getBerths;
         vm.riskFactors = [];
+        var berths;
 
         initialize();
 
@@ -24,6 +26,22 @@
                     vm.riskFactors = riskFactors.map(function (riskFactor) {
                         return new RiskFactorView(riskFactor);
                     });
+
+                    var berthUrl = embryo.baseUrl + 'rest/berth/search';
+
+                    berths = new Bloodhound({
+                        datumTokenizer: Bloodhound.tokenizers.obj.nonword('value'),
+                        queryTokenizer: Bloodhound.tokenizers.whitespace,
+                        prefetch: {
+                            url: berthUrl,
+                            // 1 week
+                            ttl: 7 * 24 * 60 * 60 * 1000
+                        },
+                        remote: berthUrl + "?q=%QUERY"
+                    });
+
+                    berths.initialize();
+
                 });
             } else {
                 $timeout(function () {
@@ -41,6 +59,18 @@
 
         NotifyService.subscribe($scope, VrmtEvents.OpenAssessmentFactorEditor, vm.show);
 
+        function getBerths(query) {
+            return function () {
+                var deferred = $q.defer();
+                berths.get(query, function (suggestions) {
+                    deferred.resolve(suggestions);
+                });
+                return deferred.promise;
+            }().then(function (res) {
+                return res;
+            });
+        }
+
         function show() {
             vm.hide = false;
         }
@@ -56,20 +86,21 @@
         function save(riskFactorView) {
             RiskFactorService.saveRiskFactor(riskFactorView.toRiskFactor())
                 .then(function (riskFactor) {
-                    console.log("Saved risk factor with id " + riskFactor.id);
-                    growl.success("Saved risk factor");
+                    growl.success("Saved risk factor: " + riskFactor.name);
                 }, function (reason) {
                     growl.error("Failed to save risk factor: " + reason);
-                    console.log(reason);
                 });
         }
+
+        var riskFactorWithSupport = "3. Landing sites";
 
         function RiskFactorView(riskFactor) {
             this.riskFactor = riskFactor;
             this.isActive = false;
             this.name = riskFactor.name;
             this.scoreOptions = riskFactor.scoreOptions;
-            this.scoreInterval = riskFactor.scoreInterval
+            this.scoreInterval = riskFactor.scoreInterval;
+            this.optionSupport = riskFactor.name === riskFactorWithSupport;
         }
 
         RiskFactorView.prototype.hasScoreOptions = function () {

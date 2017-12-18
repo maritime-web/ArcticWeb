@@ -231,6 +231,7 @@ public class AppDataServiceBean {
         berthList.add(new Berth("Maarmorilik", null, "71 07.6N", "051 16.5W"));
         berthList.add(new Berth("Zackenberg Forskningsstation", null, "74 28.0N", "020 34.0W"));
         berthList.add(new Berth("Aalborg", null, "57 02.9N", "010 03.3E"));
+        berthList.add(new Berth("Sorgfjorden", null, "79 54.3N", "016 48.5E"));
 
         addBerthsFromFiles(berthList);
     }

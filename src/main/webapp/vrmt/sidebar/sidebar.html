@@ -67,14 +67,14 @@
                 <div class="panel" style="border: none" ng-controller="AssessController as assess">
                     <div uib-accordion-group is-open="assess.active">
                         <uib-accordion-heading>
-                            <span data-ng-show="!assess.assessing">Start new assessment</span> <span
+                            <span data-ng-show="!assess.assessing">Assessment</span> <span
                                 data-ng-show="assess.assessing">Assessment in progress <span
                                 class="label label-primary">Started
                             {{assess.assessmentStartedAt}}</span></span>
                         </uib-accordion-heading>
 
-                        <div class="table-responsive">
-                            <table class="table table-condensed">
+                        <div class="table-responsive sidebar-assessment">
+                            <table class="table table-condensed borderless-table">
                                 <thead>
                                 <tr>
                                     <th>Location</th>
@@ -115,10 +115,11 @@
                             </table>
                             <div class="col-xs-12">
                                 <div class="pull-right">
+
                                     <button class="btn btn-primary btn-xs"
                                             data-ng-disabled="assess.assessing || assess.isInAssessable"
-                                            ng-click="assess.startNew()">
-                                        Start new Assessment
+                                            ng-click="assess.startNew()" uib-tooltip="{{assess.newAssessmentTooltip}}" tooltip-append-to-body="true">
+                                        New
                                     </button>
                                     <button class="btn btn-primary btn-xs"
                                             data-ng-disabled="!assess.assessing || !assess.isComplete"
@@ -131,8 +132,12 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="col-xs-12 text-danger">
-                                {{assess.newAssessmentNotPossibleWarning}}
+                        </div>
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-xs-12 text-danger" style="padding-top: 10px;">
+                                    {{assess.newAssessmentNotPossibleWarning}}
+                                </div>
                             </div>
                         </div>
                         <div class="container-fluid">

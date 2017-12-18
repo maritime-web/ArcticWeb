@@ -5,38 +5,37 @@
         .module('vrmt.app')
         .service('RiskFactorAssessorService', RiskFactorAssessorService);
 
-    RiskFactorAssessorService.$inject = ['$q', '$window', '$timeout', '$rootScope', 'NotifyService', 'VrmtEvents', 'RouteFactory'];
+    RiskFactorAssessorService.$inject = ['$q', '$rootScope', 'NotifyService', 'VrmtEvents', 'RouteFactory', '$http'];
 
-    function RiskFactorAssessorService($q, $window, $timeout, $rootScope, NotifyService, VrmtEvents, RouteFactory) {
+    function RiskFactorAssessorService($q, $rootScope, NotifyService, VrmtEvents, RouteFactory, $http) {
         this.chooseOption = chooseOption;
 
         function chooseOption(assessmentLocation, riskFactor) {
-            var deferred = $q.defer();
-            deferred.resolve(mapper[riskFactor.id](new RouteLocation(assessmentLocation), riskFactor));
-            return deferred.promise;
+            return mapper[riskFactor.id](new RouteLocation(assessmentLocation), riskFactor);
         }
 
         var route;
         var mapper = {
-            1: defaultOption,
+            1: getDefaultOption,
             2: chooseTypeOfSeason,
-            3: defaultOption,
-            4: defaultOption,
-            5: defaultOption,
-            6: defaultOption,
-            7: defaultOption,
-            8: defaultOption,
-            9: defaultOption,
-            10: defaultOption,
-            11: defaultOption,
-            12: defaultOption,
-            13: defaultOption,
-            14: defaultOption
+            3: chooseLandingSite,
+            4: getDefaultOption,
+            5: getDefaultOption,
+            6: getDefaultOption,
+            7: getDefaultOption,
+            8: getDefaultOption,
+            9: getDefaultOption,
+            10: getDefaultOption,
+            11: getDefaultOption,
+            12: getDefaultOption,
+            13: getDefaultOption,
+            14: getDefaultOption
         };
 
 
-        function defaultOption() {
-            return {name: '-', index: 0, source: null};
+        var defaultOption = {name: '-', index: 0, source: null};
+        function getDefaultOption() {
+            return $q.when(defaultOption);
         }
 
         /**
@@ -44,7 +43,7 @@
          * matching risk factor option or a default option if none matches.
          * @param routeLocation
          * @param riskFactor
-         * @returns {{name: string, index: number}}
+         * @returns {{name: string, index: number, source: string}}
          */
         function chooseTypeOfSeason(routeLocation, riskFactor) {
             var monthNumber = getArrivalMonthAtLocation();
@@ -56,7 +55,7 @@
                 res.source = "AW";
             }
 
-            return res || defaultOption();
+            return $q.when(res || getDefaultOption()) ;
 
             function getArrivalMonthAtLocation() {
                 return moment(routeLocation.eta).utc().month();
@@ -64,6 +63,46 @@
 
             function monthToNumber(monthString) {
                 return moment().utc().month(monthString).month();
+            }
+        }
+
+        function chooseLandingSite(routeLocation, riskFactor) {
+            var berthUrl = embryo.baseUrl + 'rest/berth/search';
+            var berths = undefined;
+            var res = undefined;
+
+            return $http.get(berthUrl, {cache: true})
+                .then(function (response) {
+                    berths = response.data;
+                    if (isRouteLocationLandingSite()) {
+                        res = matchOption(routeLocation.name, riskFactor.scoreOptions);
+
+                        if (res) {
+                            res.source = "AW";
+                        }
+                    }
+                    return res || getDefaultOption();
+
+                })
+                .catch(function (response) {
+                    console.error("Failed to get berths");
+                    console.error(response);
+                    return $q.reject(response);
+                });
+
+
+            function isRouteLocationLandingSite() {
+                return berths.some(function (berth) {
+                    var lowerCaseBerth = berth.value.toLowerCase();
+                    return lowerCaseBerth.startsWith(route.dep.toLowerCase()) ||
+                        lowerCaseBerth.startsWith(route.des.toLowerCase())
+                });
+            }
+
+            function matchOption(name, scoringOptions) {
+                return scoringOptions.find(function (scoreOption) {
+                    return name.toLowerCase().startsWith(scoreOption.name.toLowerCase());
+                });
             }
         }
 

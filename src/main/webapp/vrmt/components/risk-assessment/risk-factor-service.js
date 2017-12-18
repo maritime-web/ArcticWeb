@@ -48,13 +48,13 @@
                     id: 3,
                     name: '3. Landing sites',
                     scoreOptions: [
-                        new ScoreOption({source: defaultSource, name: 'Nuuk', index: 300}),
+                        new ScoreOption({source: defaultSource, name: 'Nuuk', index: 200}),
                         new ScoreOption({source: defaultSource, name: 'Longyearbyen', index: 300}),
-                        new ScoreOption({source: defaultSource, name: 'Sorgfjorden', index: 500}),
+                        new ScoreOption({source: defaultSource, name: 'Sorgfjorden', index: 450}),
                         new ScoreOption({source: defaultSource, name: 'Paamiut', index: 200}),
-                        new ScoreOption({source: defaultSource, name: 'Quaqortoq', index: 50}),
-                        new ScoreOption({source: defaultSource, name: 'Nanortalik', index: 25}),
-                        new ScoreOption({source: defaultSource, name: 'Kulusuk', index: 340}),
+                        new ScoreOption({source: defaultSource, name: 'Qaqortoq', index: 150}),
+                        new ScoreOption({source: defaultSource, name: 'Nanortalik', index: 125}),
+                        new ScoreOption({source: defaultSource, name: 'Kulusuk', index: 400}),
                         new ScoreOption({source: defaultSource, name: 'Tasiilaq', index: 450})
                     ]
                 }),

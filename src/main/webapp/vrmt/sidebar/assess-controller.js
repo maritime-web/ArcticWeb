@@ -21,6 +21,7 @@
         vm.isComplete = false;
         vm.newAssessmentNotPossibleWarning = undefined;
         vm.discardTime = null;
+        vm.newAssessmentTooltip = undefined;
         var currentRoute = null;
         var currentAssessment = null;
         var vessel = null;
@@ -45,7 +46,7 @@
 
             var addRouteLocationEvent = {
                 introduction: "Before the new assessment can start you need to create a new assessment location on your vessels current position. Please override the given ais position if it isn't correct. The ais position was last recieved " + moment().utc().to(vessel.aisVessel.lastReport),
-                name: "Position at " + moment().utc().format("MM-DD HH:mm UTC"),
+                name: "" + moment().utc().format("MMMM DD HH:mm UTC"),
                 vessel: {
                     ais: vessel ? vessel.aisVessel : {},
                     override: vessel ? Object.assign({}, vessel.aisVessel) : {}
@@ -229,6 +230,10 @@
                 cancelDiscardTimer = null;
             }
         }
+
+        $scope.$watch(function () {return vm.isInAssessable} , function () {
+            vm.newAssessmentTooltip = vm.assessing || vm.isInAssessable ? "" : "Start a new assessment";
+        })
     }
 
 })();

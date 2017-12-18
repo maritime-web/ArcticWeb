@@ -32,14 +32,16 @@
                         </div>
                         <div class="form-group" ng-repeat="scoreOption in riskFactor.scoreOptions">
                             <div class="col-xs-6">
-                                <input type="text" class="form-control input-sm" ng-model="scoreOption.name"/>
+                                <input type="text" class="form-control input-sm" ng-model="scoreOption.name" ng-if="riskFactor.optionSupport"
+                                       uib-typeahead="berth.value for berth in factorConfig.getBerths($viewValue)" />
+                                <input type="text" class="form-control input-sm" ng-model="scoreOption.name" ng-if="!riskFactor.optionSupport" />
                             </div>
                             <div class="col-xs-5">
                                 <input type="number" class="form-control input-sm" ng-model="scoreOption.index"/>
                             </div>
                             <div class="col-xs-1">
                                 <button type="button" class="close"
-                                        x-ng-click="riskFactor.deleteScoreOption(scoringOption)">x
+                                        x-ng-click="riskFactor.deleteScoreOption(scoreOption)">x
                                 </button>
                             </div>
                         </div>
