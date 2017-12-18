@@ -66,6 +66,16 @@
 
     <filter-mapping>
         <filter-name>NoCacheFilter</filter-name>
+        <url-pattern>*.html</url-pattern>
+        <url-pattern>*.js</url-pattern>
+        <url-pattern>*.png</url-pattern>
+        <url-pattern>*.jpeg</url-pattern>
+        <url-pattern>*.jpg</url-pattern>
+        <url-pattern>*.svg</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>NoCacheFilter</filter-name>
         <url-pattern>/partials/admin/*</url-pattern>
     </filter-mapping>
 
