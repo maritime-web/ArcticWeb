@@ -250,6 +250,10 @@ module.exports = function (grunt) {
                         to: '//ajax.googleapis.com/ajax/libs'
                     },
                     {
+                        from: 'js/cached/openlayer-map/cdn.netdna', // string replacement
+                        to: '//netdna.bootstrapcdn.com'
+                    },
+                    {
                         from: '/css/cached/cdn.netdna', // string replacement
                         to: '//netdna.bootstrapcdn.com'
                     },
