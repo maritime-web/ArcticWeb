@@ -18,7 +18,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 1,
-                    name: '1. Regions',
+                    name: 'Regions',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: 'Region AA', index: 40}),
                         new ScoreOption({source: defaultSource, name: 'Region BA', index: 160}),
@@ -34,7 +34,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 2,
-                    name: '2. Time of the season',
+                    name: 'Time of the season',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: 'May', index: 300}),
                         new ScoreOption({source: defaultSource, name: 'June', index: 200}),
@@ -46,7 +46,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 3,
-                    name: '3. Landing sites',
+                    name: 'Landing sites',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: 'Nuuk', index: 200}),
                         new ScoreOption({source: defaultSource, name: 'Longyearbyen', index: 300}),
@@ -61,7 +61,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 4,
-                    name: '4. Tide',
+                    name: 'Tide',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: 'HW Spring', index: 300}),
                         new ScoreOption({source: defaultSource, name: 'HW Nip', index: 100}),
@@ -72,7 +72,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 5,
-                    name: '5. Current Expected',
+                    name: 'Current Expected',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: 'No current, slack', index: 0}),
                         new ScoreOption({source: defaultSource, name: 'Weak current', index: 40}),
@@ -83,7 +83,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 6,
-                    name: '6. Distance to SAR facilities, other ships',
+                    name: 'Distance to SAR facilities, other ships',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '10 nm One vessel', index: 10}),
                         new ScoreOption({source: defaultSource, name: '20 nm One vessel', index: 20}),
@@ -129,7 +129,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 7,
-                    name: '7. Ice cover and type of ice',
+                    name: 'Ice cover and type of ice',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '1/10 - One year sea ice', index: 0}),
                         new ScoreOption({source: defaultSource, name: '2/10 - One year sea ice', index: 10}),
@@ -202,7 +202,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 8,
-                    name: '8. Wind speed',
+                    name: 'Wind speed',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '0', index: 0}),
                         new ScoreOption({source: defaultSource, name: '1', index: 5}),
@@ -222,7 +222,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 9,
-                    name: '9. Air temperature',
+                    name: 'Air temperature',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '10', index: 0}),
                         new ScoreOption({source: defaultSource, name: '5', index: 0}),
@@ -238,7 +238,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 10,
-                    name: '10. Sea conditions',
+                    name: 'Sea conditions',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '0m', index: 0}),
                         new ScoreOption({source: defaultSource, name: '1m', index: 50}),
@@ -265,7 +265,7 @@
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 11,
-                    name: '11. Visibility',
+                    name: 'Visibility',
                     scoreOptions: [
                         new ScoreOption({source: defaultSource, name: '10nm', index: 0}),
                         new ScoreOption({source: defaultSource, name: '9nm', index: 0}),
@@ -289,6 +289,7 @@
                         new ScoreOption({source: defaultSource, name: '0nm', index: 1000})
                     ]
                 }),
+/*
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 12,
@@ -310,10 +311,11 @@
                         new ScoreOption({source: defaultSource, name: 'Day', index: 0})
                     ]
                 }),
+*/
                 new RiskFactor({
                     vesselId: vesselId,
                     id: 14,
-                    name: '14. Miscellaneous',
+                    name: 'Miscellaneous',
                     scoreInterval: new ScoreInterval({minIndex: 0, maxIndex: 500})
                 })
             ];
@@ -323,17 +325,27 @@
             return RiskAssessmentDataService.getRiskFactorData()
                 .then(function (riskFactors) {
                     if (riskFactors) {
-                        riskFactors = riskFactors.map(function (factor) {
+                        riskFactors = riskFactors.filter(skipExperimental).map(function (factor) {
                             if (factor.scoreOptions) {
                                 factor.scoreOptions = factor.scoreOptions.map(function (scoreOption) {
                                     scoreOption.source = defaultSource;
                                     return scoreOption;
                                 });
                             }
+
+                            var matchingDefaultFactor = getDefaultRiskFactorData(vesselId).find(function (defaultFactor) {
+                                return factor.id === defaultFactor.id;
+                            });
+                            factor.name = matchingDefaultFactor ? matchingDefaultFactor.name : factor.name;
+
                             return factor;
                         });
                     }
                     return riskFactors || getDefaultRiskFactorData(vesselId);
+
+                    function skipExperimental(riskFactor) {
+                        return riskFactor && riskFactor.id !== 12 && riskFactor.id !== 13;
+                    }
                 }).catch(function (err) {
                     console.log(err);
                     growl.error(err);

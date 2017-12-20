@@ -92,15 +92,13 @@
                 });
         }
 
-        var riskFactorWithSupport = "3. Landing sites";
-
         function RiskFactorView(riskFactor) {
             this.riskFactor = riskFactor;
             this.isActive = false;
             this.name = riskFactor.name;
             this.scoreOptions = riskFactor.scoreOptions;
             this.scoreInterval = riskFactor.scoreInterval;
-            this.optionSupport = riskFactor.name === riskFactorWithSupport;
+            this.optionSupport = riskFactor.id === 3;
         }
 
         RiskFactorView.prototype.hasScoreOptions = function () {

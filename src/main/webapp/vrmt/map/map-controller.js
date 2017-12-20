@@ -14,6 +14,7 @@
         vm.close = close;
         vm.vessel = null;
         vm.chosenRouteLocation = null;
+        var stateFunctions = [];
 
         NotifyService.subscribe($scope, VrmtEvents.VesselLoaded, onVesselLoaded);
         function onVesselLoaded(event, loadedVessel) {
@@ -27,16 +28,16 @@
 
         NotifyService.subscribe($scope, VrmtEvents.AssessmentUpdated, onCurrentAssessmentLoaded);
         function onCurrentAssessmentLoaded() {
-            vm.functions = [];
-            vm.functions.push(startNewAssessmentfunction);
+            stateFunctions = [];
+            stateFunctions.push(startNewAssessmentfunction);
         }
 
         NotifyService.subscribe($scope, VrmtEvents.AssessmentCompleted, onNoActiveAssessment);
         NotifyService.subscribe($scope, VrmtEvents.AssessmentDiscarded, onNoActiveAssessment);
         NotifyService.subscribe($scope, VrmtEvents.RouteLocationsLoaded, onNoActiveAssessment);
         function onNoActiveAssessment() {
-            vm.functions = [];
-            vm.functions.push(editRouteLocationFunction, deleteRouteLocationFunction);
+            stateFunctions = [];
+            stateFunctions.push(editRouteLocationFunction, deleteRouteLocationFunction);
         }
 
         function close() {
@@ -86,8 +87,10 @@
             vm.style.top = details.y + "px";
             vm.style.left = details.x + "px";
             vm.hide = false;
-            if (vm.functions.length === 0) {
+            if (stateFunctions.length === 0) {
                 vm.functions.push(deleteRouteLocationFunction);
+            } else {
+                vm.functions = stateFunctions;
             }
         }
 

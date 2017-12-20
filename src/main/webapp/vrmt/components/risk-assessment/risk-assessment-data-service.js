@@ -64,7 +64,6 @@
                 include_docs: true
             })
                 .then(function (res) {
-                    console.log(res);
                     return res.rows.filter(routeFilter).map(function (doc) {
                         return angular.fromJson(doc.doc);
                     });
