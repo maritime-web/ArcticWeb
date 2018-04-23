@@ -99,7 +99,7 @@ In particular the file may contain URLs and passwords for the DMI Ice map server
     mvn clean install
 
 
-## Deploy to JBoss
+## Deploy to Wildfly
 
 Initial deployment (Clean, build, install database drivers environmental variables and deploy application)
 
