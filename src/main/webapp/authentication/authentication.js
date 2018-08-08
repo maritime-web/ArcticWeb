@@ -26,65 +26,6 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
 
     var serviceModule = angular.module('embryo.authentication.service', ['ngCookies']);
 
-    embryo.ChangePasswordCtrl = function ($scope, $http, $routeParams) {
-        $scope.request = {};
-        $scope.message = null;
-        $scope.alertMessages = null;
-
-        var pwf = $('#passwordfield');
-        pwf.focus();
-
-        $scope.user = null;
-
-        var uuid = $routeParams.uuid;
-
-        $http.get('/rest/authentication/change-password?uuid=' + uuid)
-            .then(function (response) {
-                var data = response.data;
-                if (!data) {
-                    $scope.alertMessages = ['Did not find any user matching the URL. Perhaps the password has already been changed?'];
-                } else {
-                    $scope.user = data;
-                }
-            })
-            .catch(function (response) {
-                var data = response.data;
-                var status = response.status;
-                $scope.alertMessages = embryo.ErrorService.extractError(data, status);
-            });
-
-        $scope.changePassword = function () {
-            if (!$scope.change.password) {
-                $scope.alertMessages = $scope.alertMessages.concat('You must enter a password.');
-            }
-            if (!$scope.change.passwordrepeat) {
-                $scope.alertMessages = $scope.alertMessages.concat('You must repeat the password.');
-            }
-            if ($scope.change.password != $scope.change.passwordrepeat) {
-                $scope.alertMessages = $scope.alertMessages.concat('The two passwords must match.');
-            }
-
-            if (!$scope.alertMessages) {
-                var data = {
-                    password: $scope.change.password,
-                    uuid: uuid
-                };
-                $http.post('/rest/authentication/change-password', data)
-                    .then(function () {
-                        $scope.message = 'Your password has now been updated.';
-                        $scope.user = null;
-                    })
-                    .catch(function (response) {
-                        var data = response.data;
-                        var status = response.status;
-
-                        $scope.alertMessages = embryo.ErrorService.extractError(data, status);
-                    });
-            }
-
-        };
-    };
-
     function clearSessionData($cookieStore, $rootScope) {
         sessionStorage.clear();
         $cookieStore.remove('embryo.authentication');
@@ -481,8 +422,77 @@ embryo.eventbus.registerShorthand(embryo.eventbus.AuthenticationChangedEvent, "a
         });
     }
 
+    var moduleChange = angular.module('embryo.authentication.change', []);
+
+    moduleChange.controller('ChangePasswordCtrl', ChangePasswordCtrl);
+    ChangePasswordCtrl.$inject = ['$scope', '$http', '$routeParams'];
+    function ChangePasswordCtrl($scope, $http, $routeParams) {
+        $scope.request = {};
+        $scope.message = null;
+        $scope.alertMessages = null;
+
+        var pwf = $('#passwordfield');
+        pwf.focus();
+
+        $scope.user = null;
+
+        var uuid = $routeParams.uuid;
+
+        function transformResp (data) {
+            console.log(data);
+            return data;
+        }
+
+        $http.get('/rest/authentication/change-password?uuid=' + uuid, {transformResponse: transformResp})
+            .then(function (response) {
+                var data = response.data;
+                if (!data) {
+                    $scope.alertMessages = ['Did not find any user matching the URL. Perhaps the password has already been changed?'];
+                } else {
+                    $scope.user = data;
+                }
+            })
+            .catch(function (response) {
+                var data = response.data;
+                var status = response.status;
+                $scope.alertMessages = embryo.ErrorService.extractError(data, status);
+            });
+
+        $scope.changePassword = function () {
+            if (!$scope.change.password) {
+                $scope.alertMessages = $scope.alertMessages.concat('You must enter a password.');
+            }
+            if (!$scope.change.passwordrepeat) {
+                $scope.alertMessages = $scope.alertMessages.concat('You must repeat the password.');
+            }
+            if ($scope.change.password != $scope.change.passwordrepeat) {
+                $scope.alertMessages = $scope.alertMessages.concat('The two passwords must match.');
+            }
+
+            if (!$scope.alertMessages) {
+                var data = {
+                    password: $scope.change.password,
+                    uuid: uuid
+                };
+                $http.post('/rest/authentication/change-password', data)
+                    .then(function () {
+                        $scope.message = 'Your password has now been updated.';
+                        $scope.user = null;
+                    })
+                    .catch(function (response) {
+                        var data = response.data;
+                        var status = response.status;
+
+                        $scope.alertMessages = embryo.ErrorService.extractError(data, status);
+                    });
+            }
+
+        };
+    }
+
     var module = angular.module('embryo.authentication', ['embryo.base', 'ui.bootstrap.modal', 'ui.bootstrap.tpls',
         'embryo.authentication.service', 'embryo.authentication.directives']);
+
 
     module.controller('RequestAccessCtrl', RequestAccessCtrl);
     RequestAccessCtrl.$inject = ['$scope', '$http'];

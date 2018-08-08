@@ -1,7 +1,7 @@
 (function() {
     "use strict";
 
-    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'embryo.user', 'ui.bootstrap', 'embryo.components.version', 'angular-growl']);
+    var indexApp = angular.module('embryo.content', [ 'ngRoute' , 'embryo.menu', 'embryo.feedback', 'embryo.user', 'ui.bootstrap', 'embryo.components.version', 'angular-growl', 'embryo.authentication.change']);
 
     indexApp.config([ '$routeProvider', 'growlProvider', '$locationProvider', function($routeProvider, growlProvider, $locationProvider) {
         $locationProvider.hashPrefix("");
