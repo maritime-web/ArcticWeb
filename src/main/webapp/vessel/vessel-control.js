@@ -247,7 +247,7 @@ embryo.global.vessels = null;
             }
 
             var sections = [{
-                name: "ArcticWeb Reporting",
+                name: "Arctic Reporting",
                 services: [],
                 type: "view"
             }, {

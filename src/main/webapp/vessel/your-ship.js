@@ -84,7 +84,7 @@
             }
 
             var sections = [{
-                name: "ArcticWeb Reporting",
+                name: "Arctic Reporting",
                 services: [],
                 type: "edit"
             }, {

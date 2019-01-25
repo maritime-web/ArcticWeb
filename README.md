@@ -1,13 +1,13 @@
-ArcticWeb
+Arctic
 =========
 
-A tool for ships sailing in the Arctic region around Greenland. ArcticWeb serves as a single access point to safety related information, provides streamlined reporting and allows for voluntary coordinated voyage through sharing of positions and planned routes.
+A tool for ships sailing in the Arctic region around Greenland. Arctic serves as a single access point to safety related information, provides streamlined reporting and allows for voluntary coordinated voyage through sharing of positions and planned routes.
 
 The live system can be found here: https://arcticweb.e-navigation.net
 
 ## Software Architecture
 
-The ArcticWeb client is a rich client HTML/JS-application with a server side JSON webservice API.
+The Arctic client is a rich client HTML/JS-application with a server side JSON webservice API.
 The server is a Java EE 7 application.
 
 On the client side we use:
@@ -57,9 +57,9 @@ The user manual is included in the war produced by this project using the overla
 ## Continuous integration and deployment
 
 The master branch is build and testet continuously by Jenkins
-https://dma.ci.cloudbees.com/view/MaritimeWeb/job/ArcticWeb-branch-master/
+https://dma.ci.cloudbees.com/view/MaritimeWeb/job/Arctic-branch-master/
 
-Other branches of ArcticWeb may also have been configured for continuous integration on Jenkins.
+Other branches of Arctic may also have been configured for continuous integration on Jenkins.
 If so they will be available in the list of build jobs: https://dma.ci.cloudbees.com/view/MaritimeWeb/
 
 ## Initial setup
@@ -70,7 +70,7 @@ Wildfly should be installed using the install script provided in this repository
     $ ./install-wildfly.sh
     $ ./wildfly-8.2.0.Final/bin/add-user.sh 
 
-As root in MySQL - create a database and a user for ArcticWeb:
+As root in MySQL - create a database and a user for Arctic:
 
     create database embryo;
     create user 'embryo'@'localhost' identified by 'embryo';
@@ -83,7 +83,7 @@ depending on OS it might be located in /etc/mysql/my.cnf
     max_allowed_packet=16M
 
 ### Configure WildFly ###
-ArcticWeb has a default configuration file which may be overridden by setting the system property "arcticweb.configuration" to the URI of an external configuration file. For example put the following in your JBOSS standalone.xml-file:
+Arctic has a default configuration file which may be overridden by setting the system property "arcticweb.configuration" to the URI of an external configuration file. For example put the following in your JBOSS standalone.xml-file:
 
     <system-properties>
         <property name="arcticweb.configuration" value="file:///Users/chvid/sfs/arcticweb.properties"/>
@@ -117,7 +117,7 @@ Daily deployment
 
     Embryo> mvn install -P deploy - build the whole application and deploy WAR-file
 
-A local deployment will setup ArcticWeb at the following URL:
+A local deployment will setup Arctic at the following URL:
 
     http://localhost:8080/
 
@@ -200,12 +200,12 @@ https://arcticweb-alpha.e-navigation.net (requires credentials only available to
 ## Scheduled Jobs
 The application contains a number of scheduled jobs responsible for fetching data from external systems or for calculating necessary values. These jboss are described below.
 
-* dk.dma.embryo.vessel.job.AisReplicatorJob : This job replicates data from the external AIS server to ArcticWeb on regular schedule configured in the property embryo.vessel.aisjob.cron. The data is keeped in memory. Data might therefore not be available immidiately after a server/application (re)start.
+* dk.dma.embryo.vessel.job.AisReplicatorJob : This job replicates data from the external AIS server to Arctic on regular schedule configured in the property embryo.vessel.aisjob.cron. The data is keeped in memory. Data might therefore not be available immidiately after a server/application (re)start.
 * dk.dma.embryo.vessel.job.MaxSpeedJob : This job fetches a vessels route during the past 5 days from the AIS server and calculates the maximum speed for each vessel during those 5 days. Data is keeped in memory. 
-* dk.dma.embryo.dataformats.job.DmiFtpReaderJob : This jobs transfers ice chart shape files from an FTP server to a folder in the operating system, which ArcticWeb is installed on. See property embryo.iceChart.dmi.localDirectory. The job will only transfer files not already transfered. Ice charts are not available to users before measured by dk.dma.arcticweb.filetransfer.ShapeFileMeasurerJob.
-* dk.dma.embryo.dataformats.job.AariHttpReaderJob: This jobs transfers ice chart shape files from a HTTP server to a folder in the operating system, which ArcticWeb is installed on. See property embryo.iceChart.aari.localDirectory. The job will only transfer files not already transfered. Ice charts are not available to users before measured by dk.dma.arcticweb.filetransfer.ShapeFileMeasurerJob.
+* dk.dma.embryo.dataformats.job.DmiFtpReaderJob : This jobs transfers ice chart shape files from an FTP server to a folder in the operating system, which Arctic is installed on. See property embryo.iceChart.dmi.localDirectory. The job will only transfer files not already transfered. Ice charts are not available to users before measured by dk.dma.arcticweb.filetransfer.ShapeFileMeasurerJob.
+* dk.dma.embryo.dataformats.job.AariHttpReaderJob: This jobs transfers ice chart shape files from a HTTP server to a folder in the operating system, which Arctic is installed on. See property embryo.iceChart.aari.localDirectory. The job will only transfer files not already transfered. Ice charts are not available to users before measured by dk.dma.arcticweb.filetransfer.ShapeFileMeasurerJob.
 * dk.dma.embryo.dataformats.job.ShapeFileMeasurerJob : This job collects all shape files in the file system, measure their sizes and repopulates the database table ShapeFileMeasurements. The job will only measure new files.
-* dk.dma.embryo.dataformats.inshore.DmiInshoreIceReportJob: This jobs transfers inshore ice report files from an FTP server to a folder in the operating system, which ArcticWeb is installed on. See property embryo.inshoreIceReport.dmi.localDirectory. The job will only transfer latest files.
+* dk.dma.embryo.dataformats.inshore.DmiInshoreIceReportJob: This jobs transfers inshore ice report files from an FTP server to a folder in the operating system, which Arctic is installed on. See property embryo.inshoreIceReport.dmi.localDirectory. The job will only transfer latest files.
 * dk.dma.embryo.weather.service.DmiWeatherJob : This job transfers weather forecasts and warnings (XML files) from DMIs FTP server to the file system.
 * dk.dma.embryo.dataformats.job.FcooFtpReaderJob : This job transfers FCOO forecast data (NetCDF) from FTP server to local file system
 * dk.dma.embryo.dataformats.ForecastParserJob: This job parses forecast files received from different providers.

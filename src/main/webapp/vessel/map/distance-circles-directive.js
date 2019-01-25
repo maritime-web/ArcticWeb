@@ -112,7 +112,7 @@
                     function getLabelText() {
                         var maxSpeedLabel;
                         if(vessel.awsog) {
-                            maxSpeedLabel = "Based on ArcticWeb Max Speed: " + embryo.getMaxSpeed(vessel) + " kn";
+                            maxSpeedLabel = "Based on Arctic Max Speed: " + embryo.getMaxSpeed(vessel) + " kn";
                         } else if (vessel.ssog) {
                             maxSpeedLabel = "Based on Service Speed: " + embryo.getMaxSpeed(vessel) + " kn";
                         } else if (vessel.sog) {
