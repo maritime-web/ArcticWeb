@@ -19,8 +19,10 @@ $(function() {
                     $bodies.css("overflow", "auto");
                     $bodies.css("max-height", Math.max(100, $(window).height() - 233) + "px");
                 }
-                jQuery($window).resize(fixAccordionSize);
-                fixAccordionSize();
+
+                $timeout(function () {
+                    fixAccordionSize();
+                }, 150);
 
                 // open first
                 if (attrs.openFirst) {
