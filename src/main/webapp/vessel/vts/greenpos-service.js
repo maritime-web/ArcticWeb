@@ -71,7 +71,7 @@
                     },
                     report: greenpos
                 };
-                $http.post(embryo.baseUrl + 'rest/greenpos/save', request)
+                $http.post(embryo.baseUrl + 'rest/greenpos/save', request, {transformResponse: transformResponsSave})
                     .then(function (response) {
                         var email = response.data;
                         SessionStorageService.removeItem(latestGreenposKey(greenpos.mmsi));
@@ -89,7 +89,45 @@
                         var config = response.config;
                         error(embryo.ErrorService.extractError(data, status, config));
                     });
-            },
+
+                function transformResponsSave(data, headersGetter, status) {
+                    var JSON_PROTECTION_PREFIX = /^\)]\}',?\n/;
+                    var JSON_START = /^\[|^\{(?!\{)/;
+                    var JSON_ENDS = {
+                        '[': /]$/,
+                        '{': /}$/
+                    };
+
+                    function isJsonLike(str) {
+                        var jsonStart = str.match(JSON_START);
+                        return jsonStart && JSON_ENDS[jsonStart[0]].test(str);
+                    }
+                    function isString(str) {
+                        return str && (typeof str === "string");
+                    }
+
+                    if (status === 200) {
+                        if (isString(data)) {
+                            // Strip json vulnerability protection prefix and trim whitespace
+                            var tempData = data.replace(JSON_PROTECTION_PREFIX, '').trim();
+
+                            if (tempData) {
+                                if (isJsonLike(tempData)) {
+                                    try {
+                                        data = JSON.parse(tempData);
+                                    } catch (e) {
+                                        throw "Expected json got '" + tempData + "'";
+                                    }
+                                } else {
+                                    data = tempData;
+                                }
+                            }
+                        }
+                    }
+                    return data;
+                }
+            }
+            ,
             getPeriod: function (dateLong) {
                 var date = new Date(dateLong);
                 if (date.getUTCHours() >= 0 && date.getUTCHours() < 6) {
