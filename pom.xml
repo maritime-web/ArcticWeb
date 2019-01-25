@@ -481,16 +481,6 @@
 							<arguments>test</arguments>
 						</configuration>
 					</execution>
-					<execution>
-						<id>grunt test old</id>
-						<phase>test</phase>
-						<goals>
-							<goal>grunt</goal>
-						</goals>
-						<configuration>
-							<arguments>test_old</arguments>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 		</plugins>

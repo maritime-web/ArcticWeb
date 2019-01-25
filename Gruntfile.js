@@ -307,34 +307,6 @@ module.exports = function (grunt) {
             options: {
                 basePath: 'src/main/webapp'
             },
-            map: {
-                dest: 'target/build/map.appcache',
-                cache: {
-                    literals: [//as is in the "CACHE:" section
-                        'map.html',
-                        'css/arcticweb-map.css',
-                        'css/arcticweb-map-ext-lib.css',
-                        'js/arcticweb-map.js',
-                        'css/cached/cdn.netdna/font-awesome/4.3.0/fonts/fontawesome-webfont.woff2?v=4.3.0',
-                        'rest/shapefile/static/multiple/static.world_merc?delta=true&exponent=2'
-                    ],
-                    patterns: [
-                        'src/main/webapp/css/cached/**',
-                        'src/main/webapp/js/cached/common/**',
-                        'src/main/webapp/js/cached/map/**',
-                        'src/main/webapp/partials/common/*.html',
-                        'src/main/webapp/partials/*.html',
-                        'src/main/webapp/img/**/*.png',
-                        'src/main/webapp/img/**/*.jpg',
-                        'src/main/webapp/img/**/*.gif',
-                        '!src/main/webapp/img/front/**/*', // except the 'img/front/' subtree
-                        '!src/main/webapp/img/ext/**/*', // except the 'img/front/' subtree
-                        '!src/main/webapp/img/unused/**/*', // except the 'img/front/' subtree
-                        '!**/README.MD'
-                    ]
-                },
-                network: "*"
-            },
             mapOpenlayer: {
                 dest: 'target/build/map-openlayer.appcache',
                 cache: {
@@ -411,7 +383,6 @@ module.exports = function (grunt) {
         },
         concurrent: {
             server: [ 'concat:dist' ],
-            // test : [ 'coffee', 'copy:styles' ],
             build: [ 'copy:styles2Build', 'copy:html2Build' ]
         },
         karma: {
@@ -423,13 +394,6 @@ module.exports = function (grunt) {
                 port: 5678,
                 singleRun: true,
                 browsers: [ 'PhantomJS' ]
-            },
-            continuous_old: {
-                configFile: 'src/test/resources/karma.conf-old.js',
-                port: 5678,
-                singleRun: true,
-                browsers: [ 'PhantomJS' ],
-                reporters : [ 'spec' ],
             },
             unit: {
                 browsers: [ 'PhantomJS' ],
@@ -469,13 +433,12 @@ module.exports = function (grunt) {
     // 'autoprefixer', 'connect:test', 'karma' ]);
 
     grunt.registerTask('test', [ 'karma:continuous' ]);
-    grunt.registerTask('test_old', [ 'karma:continuous_old' ]);
 
     //grunt.registerTask('build', [ 'useminPrepare', 'copy:unMod2Build', 'concat', 'usemin',
     //   'copy:gen2Build', 'copy:toTarget', 'appcache:map', 'appcache:front']);
 
     grunt.registerTask('build', [ 'useminPrepare', 'copy:unMod2Build', 'replace:run', 'concat', 'usemin',
-        'copy:gen2Build', 'appcache:map', 'appcache:front', 'appcache:mapOpenlayer', 'replace:run', 'replace:version', 'copy:toTarget']);
+        'copy:gen2Build', 'appcache:front', 'appcache:mapOpenlayer', 'replace:run', 'replace:version', 'copy:toTarget']);
 
     // 'clean:dist',
     // 'useminPrepare',
